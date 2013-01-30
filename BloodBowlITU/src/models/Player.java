@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public abstract class Player {
 
-	protected String race;
+	protected Race race;
 	protected String title;
 	protected int cost;
 	protected int MA;
@@ -15,26 +15,18 @@ public abstract class Player {
 	protected Standing standing;
 	protected Turn turn;
 	
-	public Player(String race, String title) {
+	public Player(Race race, String title) {
 		super();
 		this.race = race;
 		this.title = title;
 	}
 
-	public String getRace() {
+	public Race getRace() {
 		return race;
-	}
-
-	public void setRace(String race) {
-		this.race = race;
 	}
 
 	public String getTitle() {
 		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public int getCost() {

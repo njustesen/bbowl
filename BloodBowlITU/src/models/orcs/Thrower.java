@@ -1,6 +1,7 @@
 package models.orcs;
 
 import models.Player;
+import models.Race;
 import models.Skill;
 import models.Standing;
 import models.Turn;
@@ -8,7 +9,7 @@ import models.Turn;
 public class Thrower extends Player{
 
 	public Thrower(){
-		super("Orcs", "Thrower");
+		super(Race.ORCS, "Thrower");
 		this.cost = 70000;
 		this.MA = 5;
 		this.ST = 3;

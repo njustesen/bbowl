@@ -1,6 +1,7 @@
 package models.humans;
 
 import models.Player;
+import models.Race;
 import models.Skill;
 import models.Standing;
 import models.Turn;
@@ -8,7 +9,7 @@ import models.Turn;
 public class Blitzer extends Player{
 
 	public Blitzer(){
-		super("Humans", "Blitzer");
+		super(Race.HUMANS, "Blitzer");
 		this.cost = 90000;
 		this.MA = 7;
 		this.ST = 3;

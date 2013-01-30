@@ -1,6 +1,7 @@
 package models.humans;
 
 import models.Player;
+import models.Race;
 import models.Skill;
 import models.Standing;
 import models.Turn;
@@ -8,7 +9,7 @@ import models.Turn;
 public class Catcher extends Player{
 
 	public Catcher(){
-		super("Humans", "Catcher");
+		super(Race.HUMANS, "Catcher");
 		this.cost = 70000;
 		this.MA = 8;
 		this.ST = 2;

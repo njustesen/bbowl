@@ -1,6 +1,7 @@
 package models.orcs;
 
 import models.Player;
+import models.Race;
 import models.Skill;
 import models.Standing;
 import models.Turn;
@@ -8,7 +9,7 @@ import models.Turn;
 public class Lineman extends Player{
 
 	public Lineman(){
-		super("Orcs", "Lineman");
+		super(Race.ORCS, "Lineman");
 		this.cost = 50000;
 		this.MA = 5;
 		this.ST = 3;
