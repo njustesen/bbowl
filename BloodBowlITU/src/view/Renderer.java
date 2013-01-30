@@ -51,6 +51,8 @@ public class Renderer extends JPanel{
 		g.fillRect(2, 44, 840, 510);
 		g.setColor(Color.RED);
 		g.fillRect(2, 556, 300, 40);
+		g.setColor(Color.BLUE);
+		g.fillRect(304, 556, 400, 40);
 		System.out.println("FRAMES RENDERED");
 	}
 }
