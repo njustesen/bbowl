@@ -1,14 +1,13 @@
 package models.humans;
 
 import models.Player;
+import models.Race;
 import models.Skill;
-import models.Standing;
-import models.Turn;
 
 public class Thrower extends Player{
 
 	public Thrower(){
-		super("Humans", "Thrower");
+		super(Race.HUMANS, "Thrower");
 		this.cost = 70000;
 		this.MA = 6;
 		this.ST = 3;
@@ -16,7 +15,5 @@ public class Thrower extends Player{
 		this.AV = 8;
 		this.skills.add(Skill.SURE_HANDS);
 		this.skills.add(Skill.PASS);
-		this.standing = Standing.UP;
-		this.turn = Turn.UNUSED;
 	}
 }

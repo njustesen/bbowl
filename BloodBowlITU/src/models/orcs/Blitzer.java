@@ -1,14 +1,13 @@
 package models.orcs;
 
 import models.Player;
+import models.Race;
 import models.Skill;
-import models.Standing;
-import models.Turn;
 
 public class Blitzer extends Player{
 
 	public Blitzer(){
-		super("Orcs", "Blitzer");
+		super(Race.ORCS, "Blitzer");
 		this.title = "Blitzer";
 		this.cost = 80000;
 		this.MA = 6;
@@ -16,7 +15,5 @@ public class Blitzer extends Player{
 		this.AG = 3;
 		this.AV = 9;
 		this.skills.add(Skill.BLOCK);
-		this.standing = Standing.UP;
-		this.turn = Turn.UNUSED;
 	}
 }
