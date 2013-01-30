@@ -1,16 +1,16 @@
-package Models;
+package models;
 
 import java.util.ArrayList;
 
 public class Team {
 	Coach coach;
-	ArrayList<BBPlayer> players;
+	ArrayList<IPlayer> players;
 	int rerolls;
 	int fanFactor;
 	int assistantCoaches;
 	TeamStatus gameStatus;
 	
-	public Team(Coach coach, ArrayList<BBPlayer> players, int rerolls,
+	public Team(Coach coach, ArrayList<IPlayer> players, int rerolls,
 			int fanFactor, int assistantCoaches, TeamStatus gameStatus) {
 		super();
 		this.coach = coach;
@@ -29,11 +29,11 @@ public class Team {
 		this.coach = coach;
 	}
 
-	public ArrayList<BBPlayer> getPlayers() {
+	public ArrayList<IPlayer> getPlayers() {
 		return players;
 	}
 
-	public void setPlayers(ArrayList<BBPlayer> players) {
+	public void setPlayers(ArrayList<IPlayer> players) {
 		this.players = players;
 	}
 

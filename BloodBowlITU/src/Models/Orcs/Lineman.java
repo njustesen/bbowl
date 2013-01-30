@@ -1,10 +1,10 @@
-package Models.Orcs;
+package models.orcs;
 
-import Models.Skill;
-import Models.Standing;
-import Models.Turn;
+import models.Skill;
+import models.Standing;
+import models.Turn;
 
-public class Lineman extends BBOrcPlayer{
+public class Lineman extends OrcPlayer{
 
 	public Lineman(){
 		this.title = "lineman";

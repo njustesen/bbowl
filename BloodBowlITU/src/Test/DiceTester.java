@@ -1,8 +1,8 @@
-package Test;
+package test;
 
-import Models.Dice.BB;
-import Models.Dice.D6;
-import Models.Dice.D8;
+import models.dice.BB;
+import models.dice.D6;
+import models.dice.D8;
 
 public class DiceTester {
 	

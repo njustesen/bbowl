@@ -1,13 +1,14 @@
-package Models.Humans;
+package models.humans;
 
 import java.util.ArrayList;
 
-import Models.BBPlayer;
-import Models.Skill;
-import Models.Standing;
-import Models.Turn;
+import models.IPlayer;
+import models.Skill;
+import models.Standing;
+import models.Turn;
 
-public class BBHumanPlayer implements BBPlayer{
+
+public class HumanPlayer implements IPlayer{
 
 	protected String race = "human";
 	protected String title;

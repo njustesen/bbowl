@@ -1,10 +1,10 @@
-package Models.Humans;
+package models.humans;
 
-import Models.Skill;
-import Models.Standing;
-import Models.Turn;
+import models.Skill;
+import models.Standing;
+import models.Turn;
 
-public class Blitzer extends BBHumanPlayer{
+public class Blitzer extends HumanPlayer{
 
 	public Blitzer(){
 		this.title = "Blitzer";

@@ -1,14 +1,14 @@
-package Models;
+package models;
 
 public class Pitch {
-	BBPlayer[][] playerArr = new BBPlayer[17][28];
+	IPlayer[][] playerArr = new IPlayer[17][28];
 	Ball ball;
 	Dugout homeDogout;
 	Dugout awayDogout;
-	public BBPlayer[][] getPlayerArr() {
+	public IPlayer[][] getPlayerArr() {
 		return playerArr;
 	}
-	public void setPlayerArr(BBPlayer[][] playerArr) {
+	public void setPlayerArr(IPlayer[][] playerArr) {
 		this.playerArr = playerArr;
 	}
 	public Ball getBall() {

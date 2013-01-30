@@ -1,6 +1,6 @@
-package Main;
+package main;
 
-import Test.DiceTester;
+import test.DiceTester;
 
 public class Main {
 

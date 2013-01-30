@@ -1,13 +1,14 @@
-package Models.Orcs;
+package models.orcs;
 
 import java.util.ArrayList;
 
-import Models.BBPlayer;
-import Models.Skill;
-import Models.Standing;
-import Models.Turn;
+import models.IPlayer;
+import models.Skill;
+import models.Standing;
+import models.Turn;
 
-public class BBOrcPlayer implements BBPlayer{
+
+public class OrcPlayer implements IPlayer{
 
 	protected String race = "orc";
 	protected String title;

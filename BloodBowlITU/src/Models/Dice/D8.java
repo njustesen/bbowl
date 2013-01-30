@@ -1,4 +1,4 @@
-package Models.Dice;
+package models.dice;
 
 
 public class D8 implements IDice{

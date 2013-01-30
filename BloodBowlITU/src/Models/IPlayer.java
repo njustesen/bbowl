@@ -1,8 +1,8 @@
-package Models;
+package models;
 
 import java.util.ArrayList;
 
-public interface BBPlayer {
+public interface IPlayer {
 
 public String getTitle();
 public int getCost();

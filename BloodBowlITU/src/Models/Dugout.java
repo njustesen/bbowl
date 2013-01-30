@@ -1,15 +1,15 @@
-package Models;
+package models;
 
 import java.util.ArrayList;
 
 public class Dugout {
 	Team team;
-	ArrayList<BBPlayer> reserves;
-	ArrayList<BBPlayer> knockedOut;
-	ArrayList<BBPlayer> deadAndInjured;
+	ArrayList<IPlayer> reserves;
+	ArrayList<IPlayer> knockedOut;
+	ArrayList<IPlayer> deadAndInjured;
 	
-	public Dugout(Team team, ArrayList<BBPlayer> reserves,
-			ArrayList<BBPlayer> knockedOut, ArrayList<BBPlayer> deadAndInjured) {
+	public Dugout(Team team, ArrayList<IPlayer> reserves,
+			ArrayList<IPlayer> knockedOut, ArrayList<IPlayer> deadAndInjured) {
 		super();
 		this.team = team;
 		this.reserves = reserves;
@@ -25,7 +25,7 @@ public class Dugout {
 		this.team = team;
 	}
 	
-	public void movePlayerToReserves(BBPlayer player) throws BloodBowlException{
+	public void movePlayerToReserves(IPlayer player) throws BloodBowlException{
 		if (team.getPlayers().contains(player)){
 			reserves.add(player);
 		} else {
@@ -33,27 +33,27 @@ public class Dugout {
 		}
 	}
 
-	public ArrayList<BBPlayer> getReserves() {
+	public ArrayList<IPlayer> getReserves() {
 		return reserves;
 	}
 
-	public void setReserves(ArrayList<BBPlayer> reserves) {
+	public void setReserves(ArrayList<IPlayer> reserves) {
 		this.reserves = reserves;
 	}
 
-	public ArrayList<BBPlayer> getKnockedOut() {
+	public ArrayList<IPlayer> getKnockedOut() {
 		return knockedOut;
 	}
 
-	public void setKnockedOut(ArrayList<BBPlayer> knockedOut) {
+	public void setKnockedOut(ArrayList<IPlayer> knockedOut) {
 		this.knockedOut = knockedOut;
 	}
 
-	public ArrayList<BBPlayer> getDeadAndInjured() {
+	public ArrayList<IPlayer> getDeadAndInjured() {
 		return deadAndInjured;
 	}
 
-	public void setDeadAndInjured(ArrayList<BBPlayer> deadAndInjured) {
+	public void setDeadAndInjured(ArrayList<IPlayer> deadAndInjured) {
 		this.deadAndInjured = deadAndInjured;
 	}
 	
