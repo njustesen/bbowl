@@ -1,8 +1,9 @@
 package models;
 
-public enum Turn {
+public enum PlayerTurn {
 
 	UNUSED,
 	USING_NOW,
 	USED;
+	
 }
