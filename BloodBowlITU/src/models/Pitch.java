@@ -9,8 +9,7 @@ public class Pitch {
 	Dugout awayDogout;
 	private InputManager inputManager;
 	
-	public Pitch(InputManager inputManager){
-		this.inputManager = inputManager;
+	public Pitch(){
 	}
 	
 	public InputManager getInputManager() {
