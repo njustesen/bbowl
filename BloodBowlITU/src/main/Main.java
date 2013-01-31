@@ -2,6 +2,11 @@ package main;
 
 import java.util.Date;
 
+import models.GameState;
+import models.Pitch;
+import models.Team;
+import models.TeamFactory;
+
 import game.GameMaster;
 import test.DiceTester;
 import view.InputManager;
@@ -17,21 +22,22 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		
-		DiceTester.testDices();
+		//DiceTester.testDices();
 		initialize();
 		startGame();
 	}
 
 	public static void initialize(){
 		inputManager = new InputManager();
-		gameMaster = new GameMaster();
+		Team home = TeamFactory.getHumanTeam();
+		Team away = TeamFactory.getHumanOrc();
+		Pitch pitch = new Pitch();
+		gameMaster = new GameMaster(new GameState(home, away, pitch));
 		renderer = new Renderer(60, gameMaster, inputManager);
 	}
 	
 	public static void startGame(){
 
-
-		
 		long startTime = new Date().getTime();
 		
 		while(true){
@@ -42,11 +48,11 @@ public class Main {
 			
 			long delta = new Date().getTime() - startTime;
 			try {
-				Thread.sleep(1000/renderer.getFps() - delta);
+				Thread.sleep(Math.max(1,(1000/renderer.getFps() - delta)));
 			} catch (InterruptedException e) {e.printStackTrace();}
 			
 		}
 	
 		
-		}
+	}
 }

@@ -3,30 +3,20 @@ package models;
 import java.util.ArrayList;
 
 public class Team {
-	Coach coach;
 	ArrayList<Player> players;
 	int rerolls;
 	int fanFactor;
 	int assistantCoaches;
 	TeamStatus gameStatus;
 	
-	public Team(Coach coach, ArrayList<Player> players, int rerolls,
+	public Team(ArrayList<Player> players, int rerolls,
 			int fanFactor, int assistantCoaches, TeamStatus gameStatus) {
 		super();
-		this.coach = coach;
 		this.players = players;
 		this.rerolls = rerolls;
 		this.fanFactor = fanFactor;
 		this.assistantCoaches = assistantCoaches;
 		this.gameStatus = gameStatus;
-	}
-
-	public Coach getCoach() {
-		return coach;
-	}
-
-	public void setCoach(Coach coach) {
-		this.coach = coach;
 	}
 
 	public ArrayList<Player> getPlayers() {

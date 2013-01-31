@@ -2,13 +2,20 @@ package models;
 
 public class TeamStatus {
 	int score;
-	int rerolls;
+	int rerollsDif;
 	int babes;
 	
-	public TeamStatus(int score, int rerolls, int babes) {
+	public TeamStatus() {
+		super();
+		this.score = 0;
+		this.rerollsDif = 0;
+		this.babes = 0;
+	}
+	
+	public TeamStatus(int score, int rerollsDif, int babes) {
 		super();
 		this.score = score;
-		this.rerolls = rerolls;
+		this.rerollsDif = rerollsDif;
 		this.babes = babes;
 	}
 
@@ -20,12 +27,12 @@ public class TeamStatus {
 		this.score = score;
 	}
 
-	public int getRerolls() {
-		return rerolls;
+	public int getRerollsDif() {
+		return rerollsDif;
 	}
 
-	public void setRerolls(int rerolls) {
-		this.rerolls = rerolls;
+	public void setRerolls(int rerollsDif) {
+		this.rerollsDif = rerollsDif;
 	}
 
 	public int getBabes() {

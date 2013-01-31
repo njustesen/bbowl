@@ -4,10 +4,10 @@ import models.Player;
 import models.Race;
 import models.Skill;
 
-public class Blitzer extends Player{
+public class OrcBlitzer extends Player{
 
-	public Blitzer(){
-		super(Race.ORCS, "Blitzer");
+	public OrcBlitzer(int number){
+		super(Race.ORCS, "Blitzer", number);
 		this.title = "Blitzer";
 		this.cost = 80000;
 		this.MA = 6;

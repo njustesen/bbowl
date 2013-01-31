@@ -11,13 +11,15 @@ public abstract class Player {
 	protected int ST;
 	protected int AG;
 	protected int AV;
+	private int number;
 	protected ArrayList<Skill> skills = new ArrayList<Skill>();
 	protected PlayerStatus playerStatus;
 	
-	public Player(Race race, String title) {
+	public Player(Race race, String title, int number) {
 		super();
 		this.race = race;
 		this.title = title;
+		this.number = number;
 		this.playerStatus = new PlayerStatus(); 
 	}
 

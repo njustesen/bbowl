@@ -4,10 +4,10 @@ import models.Player;
 import models.Race;
 import models.Skill;
 
-public class Lineman extends Player{
+public class HumanLineman extends Player{
 
-	public Lineman(){
-		super(Race.HUMANS, "Lineman");
+	public HumanLineman(int number){
+		super(Race.HUMANS, "Lineman", number);
 		this.cost = 50000;
 		this.MA = 6;
 		this.ST = 3;
