@@ -8,27 +8,11 @@ import java.awt.event.MouseMotionListener;
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
 	
-//	boolean leftDown;
-//	boolean rightDown;
-//	boolean upDown;
-//	boolean downDown;
-//	boolean spaceDown;
-//	boolean shiftDown;
-//	boolean wDown;
-//	boolean sDown;
-//	boolean aDown;
-//	boolean dDown;
-//	boolean Down1;
-//	boolean Down2;
-//	boolean Down3;
-//	boolean controlDown;
-//	Point2D mousePosition;
-//	long mouseDownTimeStart;
-//	long mouseDownTime;
 	int mouseX;
 	int mouseY;
 	boolean mouse1Down;
-	
+	private static Point2D pitchOrigin = new Point2D(2,44);
+	private static int pitchSquareSize = 30;
 	boolean [] keysDown = new boolean [256];
 	boolean [] keysToggled = new boolean [256];
 	
@@ -36,6 +20,14 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 		
 	}
 	
+	public static Point2D getPitchOrigin() {
+		return pitchOrigin;
+	}
+
+	public static int getPitchSquareSize() {
+		return pitchSquareSize;
+	}
+
 	public boolean isKeyDown(String key){
 		char c = key.charAt(0);
 
@@ -85,10 +77,23 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	public void mousePressed(MouseEvent e) {
 		int button = e.getButton();
 		if (button == 1){
+			System.out.println(getMousePosition().getX()+"  "+getMousePosition().getX());
 			mouse1Down = true;
 		}
 	}
 
+	public Point2D mouseOverPlayerArrIndex(){
+		 
+		int pitchX = getMouseX()-pitchOrigin.getX();
+		 int pitchY = getMouseY()-pitchOrigin.getY();
+		 int squareX = ((pitchX/pitchSquareSize)*pitchSquareSize)+pitchOrigin.getX();
+		 int squareY = ((pitchY/pitchSquareSize)*pitchSquareSize)+pitchOrigin.getY();
+		 int xIndex = ((squareX-pitchOrigin.getX())/pitchSquareSize)+1;
+		 int yIndex = ((squareY-pitchOrigin.getY())/pitchSquareSize)+1;
+		
+		return new Point2D(xIndex, yIndex);
+	}
+	
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int button = e.getButton();
