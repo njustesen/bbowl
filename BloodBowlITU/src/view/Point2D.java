@@ -2,41 +2,32 @@ package view;
 
 public class Point2D {
 
-	private double x, y;
+	private int x, y;
 
-	public Point2D(double x, double y) {
+	public Point2D(int x, int y) {
 
 		this.x = x;
 		this.y = y;
 	}
 	
-	public double getX(){
+	public int getX(){
 		return x;
 	}
 	
-	public void setX(double newX){
+	public void setX(int newX){
 		this.x = newX;
 	}
 	
-	public double getY(){
+	public int getY(){
 		return y;
 	}
 	
-	public void setY(double newY){
+	public void setY(int newY){
 		this.y = newY;
 	}
 	
 	public Point2D add(Point2D other){
 		return new Point2D(x+other.x,y+other.y);
 	}
-/*	
-	public Point2D add(Vector2D other){
-		return new Point2D(x+other.getX(),y+other.getY());
-	}
-	
-	public Vector2D toVector(){
-		return new Vector2D(x,y);
-	}
-*/
 	
 }

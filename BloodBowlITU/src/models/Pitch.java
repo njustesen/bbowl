@@ -1,10 +1,22 @@
 package models;
 
+import view.InputManager;
+
 public class Pitch {
 	Player[][] playerArr = new Player[17][28];
 	Ball ball;
 	Dugout homeDogout;
 	Dugout awayDogout;
+	private InputManager inputManager;
+	
+	public Pitch(InputManager inputManager){
+		this.inputManager = inputManager;
+	}
+	
+	public InputManager getInputManager() {
+		return inputManager;
+	}
+
 	public Player[][] getPlayerArr() {
 		return playerArr;
 	}

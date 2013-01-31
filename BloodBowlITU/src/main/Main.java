@@ -42,7 +42,8 @@ public class Main {
 			
 			long delta = new Date().getTime() - startTime;
 			try {
-				Thread.sleep(1000/renderer.getFps() - delta);
+				if(1000/renderer.getFps() - delta > 0)
+					Thread.sleep(1000/renderer.getFps() - delta);
 			} catch (InterruptedException e) {e.printStackTrace();}
 			
 		}
