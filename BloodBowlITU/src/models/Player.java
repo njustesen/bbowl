@@ -87,4 +87,8 @@ public abstract class Player {
 		this.playerStatus = playerStatus;
 	}
 
+	public int getNumber() {
+		return number;
+	}
+
 }

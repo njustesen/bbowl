@@ -191,6 +191,34 @@ public class Pitch {
 		}
 	}
 
+	public boolean isOnPitch(Player player) {
+		
+		for(int y = 0; y < playerArr.length; y++){
+			for(int x = 0; x < playerArr[0].length; x++){
+				
+				if (playerArr[y][x] == player)
+					return true;
+				
+			}
+		}
+		
+		return false;
+	}
+	
+	public Square getPlayerPosition(Player player) {
+
+		for(int y = 0; y < playerArr.length; y++){
+			for(int x = 0; x < playerArr[0].length; x++){
+				
+				if (playerArr[y][x] == player)
+					return new Square(x,y);
+				
+			}
+		}
+		
+		return null;
+	}
+
 	private boolean isPlayerHome(Team team) {
 		if (getDogout(team) == getHomeDogout())
 			return true;

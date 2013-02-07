@@ -3,10 +3,15 @@ package game;
 import models.GameStage;
 import models.GameState;
 import models.Player;
+import models.PlayerTurn;
 import models.Square;
+import models.Standing;
 import models.Team;
 import models.Weather;
+import models.dice.BB;
 import models.dice.D6;
+import models.dice.DiceFace;
+import models.dice.DiceRoll;
 
 public class GameMaster {
 	
@@ -174,6 +179,195 @@ public class GameMaster {
 		
 	}
 	
+	public void performBlock(Player attacker, Player defender){
+		
+		// Legal action?
+		if (allowedToBlock(attacker) && nextToEachOther(attacker, defender)){
+			
+			DiceRoll roll = new DiceRoll();
+			
+			BlockSum sum = CalculateBlockSum(attacker, defender);
+			
+			if (sum == BlockSum.EQUAL){
+				
+				BB ba = new BB();
+				ba.roll();
+				roll.addDice(ba);
+				
+			} else if(sum == BlockSum.ATTACKER_STRONGER){
+				
+				BB ba = new BB();
+				BB bb = new BB();
+				ba.roll();
+				bb.roll();
+				roll.addDice(ba);
+				roll.addDice(bb);
+				
+			}  else if(sum == BlockSum.DEFENDER_STRONGER){
+				
+				BB ba = new BB();
+				BB bb = new BB();
+				ba.roll();
+				bb.roll();
+				roll.addDice(ba);
+				roll.addDice(bb);
+				
+			} else if(sum == BlockSum.ATTACKER_DOUBLE_STRONG){
+				
+				BB ba = new BB();
+				BB bb = new BB();
+				BB bc = new BB();
+				ba.roll();
+				bb.roll();
+				bc.roll();
+				roll.addDice(ba);
+				roll.addDice(bb);
+				roll.addDice(bc);
+				
+			} else if(sum == BlockSum.DEFENDER_DOUBLE_STRONG){
+				
+				BB ba = new BB();
+				BB bb = new BB();
+				BB bc = new BB();
+				ba.roll();
+				bb.roll();
+				bc.roll();
+				roll.addDice(ba);
+				roll.addDice(bb);
+				roll.addDice(bc);
+				
+			}
+			
+			state.setCurrentBlock(new Block(attacker, defender));
+			
+		}
+		
+	}
+	
+	public void selectDie(int i){
+		
+		if (state.getCurrentDiceRoll() != null){
+			
+			// Select face
+			DiceFace face = state.getCurrentDiceRoll().getFaces().get(i);
+			
+			// Continue block?
+			if (state.getCurrentBlock() != null){
+				
+				continueBlock(face);
+				
+			}
+			
+			
+		}
+		
+	}
+	
+	private void continueBlock(DiceFace face) {
+		
+		// TODO: block logic
+		
+	}
+
+	private BlockSum CalculateBlockSum(Player attacker, Player defender) {
+		// TODO Auto-generated method stub
+		return BlockSum.EQUAL;
+	}
+
+	private boolean nextToEachOther(Player a, Player b) {
+		
+		if (state.getPitch().isOnPitch(a) &&
+				state.getPitch().isOnPitch(b)){
+			
+			Square aPos = state.getPitch().getPlayerPosition(a);
+			Square bPos = state.getPitch().getPlayerPosition(b);
+			
+			// Not equal
+			if (aPos.getX() == bPos.getX() && aPos.getY() == bPos.getY()){
+				return false;
+			}
+			
+			// At most one away
+			if (Math.abs( aPos.getX() - bPos.getX() ) <= 1 ){
+				if (Math.abs( aPos.getY() - bPos.getY() ) <= 1 ){
+					return true;
+				}
+			}
+			
+		}
+		
+		return false;
+	}
+
+	private boolean allowedToBlock(Player player) {
+		
+		boolean allowed = false;
+		
+		// Home turn
+		if (state.getGameStage() == GameStage.HOME_TURN && 
+				state.getHomeTeam() == playerOwner(player)){
+			
+			allowed = true;
+			
+		}
+		
+		// Away turn
+		if (state.getGameStage() == GameStage.AWAY_TURN && 
+				state.getAwayTeam() == playerOwner(player)){
+			
+			allowed = true;
+			
+		}
+		
+		// Blitz phase
+		if (state.getGameStage() == GameStage.BLITZ && 
+				state.getKickingTeam() == playerOwner(player)){
+			
+			allowed = true;
+			
+		}
+		
+		if (!allowed)
+			return false;
+		
+		allowed = false;
+		
+		// Player have had turn?
+		if (player.getPlayerStatus().getTurn() == PlayerTurn.USED){
+			
+			return false;
+			
+		} else if (player.getPlayerStatus().getTurn() == PlayerTurn.USING_NOW && 
+				player.getPlayerStatus().isBlitzing() &&
+				player.getPlayerStatus().hasMovedToBlock()){
+			
+			// Blitz
+			allowed = true;
+			
+		} else if (player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			
+			allowed = true;
+			
+		}
+		
+		// Standing
+		if (allowed && player.getPlayerStatus().getStanding() == Standing.UP){
+			
+			return true;
+			
+		}
+			
+		return false;
+		
+	}
+
+	private Team playerOwner(Player player) {
+		if (state.getHomeTeam().getPlayers().contains(player)){
+			return state.getHomeTeam();
+		} 
+		return state.getAwayTeam();
+	}
+
 	private void placePlayerAt(Player player, Square square) {
 		state.getPitch().getPlayerArr()[square.getY()][square.getX()] = player;
 	}
@@ -229,5 +423,5 @@ public class GameMaster {
 	public GameState getState() {
 		return state;
 	}
-	
+
 }

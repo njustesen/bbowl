@@ -1,23 +1,25 @@
 package models;
 
+import game.Block;
 import models.dice.DiceRoll;
 
 public class GameState {
 	
-	Team homeTeam;
-	Team awayTeam;
-	Pitch pitch;
-	int half;
-	int awayTurn;
-	int homeTurn;
-	boolean refAgainstHomeTeam;
-	boolean refAgainstAwayTeam;
-	Weather weather;
-	DiceRoll lastDiceRoll;
-	CoinToss coinToss;
-	Team kickingTeam;
-	Team receivingTeam;
-	GameStage gameStage;
+	private Team homeTeam;
+	private Team awayTeam;
+	private Pitch pitch;
+	private int half;
+	private int awayTurn;
+	private int homeTurn;
+	private boolean refAgainstHomeTeam;
+	private boolean refAgainstAwayTeam;
+	private Weather weather;
+	private DiceRoll currentDiceRoll;
+	private CoinToss coinToss;
+	private Team kickingTeam;
+	private Team receivingTeam;
+	private GameStage gameStage;
+	private Block currentBlock;
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
 		super();
@@ -131,8 +133,20 @@ public class GameState {
 		this.receivingTeam = receivingTeam;
 	}
 
-	public DiceRoll getLastDiceRoll() {
-		return lastDiceRoll;
+	public DiceRoll getCurrentDiceRoll() {
+		return currentDiceRoll;
+	}
+
+	public Block getCurrentBlock() {
+		return currentBlock;
+	}
+
+	public void setCurrentBlock(Block currentBlock) {
+		this.currentBlock = currentBlock;
+	}
+
+	public void setCurrnetDiceRoll(DiceRoll currentDiceRoll) {
+		this.currentDiceRoll = currentDiceRoll;
 	}
 	
 }
