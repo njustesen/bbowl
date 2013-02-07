@@ -22,9 +22,15 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		
-		//DiceTester.testDices();
+		//test();
 		initialize();
 		startGame();
+	}
+	
+	public static void test(){
+		
+		DiceTester.testDices();
+		
 	}
 
 	public static void initialize(){
@@ -43,7 +49,6 @@ public class Main {
 		while(true){
 			startTime = new Date().getTime();
 			
-			gameMaster.update();
 			renderer.renderFrame();
 			
 			long delta = new Date().getTime() - startTime;

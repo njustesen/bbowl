@@ -3,10 +3,10 @@ package models;
 import java.util.ArrayList;
 
 public class Dugout {
-	Team team;
-	ArrayList<Player> reserves;
-	ArrayList<Player> knockedOut;
-	ArrayList<Player> deadAndInjured;
+	protected Team team;
+	protected ArrayList<Player> reserves;
+	protected ArrayList<Player> knockedOut;
+	protected ArrayList<Player> deadAndInjured;
 	
 	public Dugout(Team team, ArrayList<Player> reserves,
 			ArrayList<Player> knockedOut, ArrayList<Player> deadAndInjured) {

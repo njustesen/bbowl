@@ -12,6 +12,8 @@ public class GameState {
 	boolean refAgainstAwayTeam;
 	Weather weather;
 	CoinToss coinToss;
+	Team kickingTeam;
+	Team receivingTeam;
 	GameStage gameStage;
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
@@ -108,6 +110,22 @@ public class GameState {
 
 	public Team getAwayTeam() {
 		return awayTeam;
+	}
+
+	public Team getKickingTeam() {
+		return kickingTeam;
+	}
+
+	public void setKickingTeam(Team kickingTeam) {
+		this.kickingTeam = kickingTeam;
+	}
+
+	public Team getReceivingTeam() {
+		return receivingTeam;
+	}
+
+	public void setReceivingTeam(Team receivingTeam) {
+		this.receivingTeam = receivingTeam;
 	}
 	
 }
