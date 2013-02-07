@@ -3,6 +3,7 @@ package models;
 import java.util.ArrayList;
 
 public class Team {
+	
 	protected ArrayList<Player> players;
 	protected int rerolls;
 	protected int fanFactor;

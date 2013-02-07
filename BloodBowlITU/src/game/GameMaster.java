@@ -174,8 +174,6 @@ public class GameMaster {
 		
 	}
 	
-	
-
 	private void placePlayerAt(Player player, Square square) {
 		state.getPitch().getPlayerArr()[square.getY()][square.getX()] = player;
 	}

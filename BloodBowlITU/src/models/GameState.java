@@ -1,5 +1,7 @@
 package models;
 
+import models.dice.DiceRoll;
+
 public class GameState {
 	
 	Team homeTeam;
@@ -11,6 +13,7 @@ public class GameState {
 	boolean refAgainstHomeTeam;
 	boolean refAgainstAwayTeam;
 	Weather weather;
+	DiceRoll lastDiceRoll;
 	CoinToss coinToss;
 	Team kickingTeam;
 	Team receivingTeam;
@@ -126,6 +129,10 @@ public class GameState {
 
 	public void setReceivingTeam(Team receivingTeam) {
 		this.receivingTeam = receivingTeam;
+	}
+
+	public DiceRoll getLastDiceRoll() {
+		return lastDiceRoll;
 	}
 	
 }
