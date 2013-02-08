@@ -145,8 +145,8 @@ public class GameState {
 		this.currentBlock = currentBlock;
 	}
 
-	public void setCurrnetDiceRoll(DiceRoll currentDiceRoll) {
-		this.currentDiceRoll = currentDiceRoll;
+	public void setCurrnetDiceRoll(DiceRoll diceRoll) {
+		this.currentDiceRoll = diceRoll;
 	}
 	
 }
