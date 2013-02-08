@@ -3,11 +3,12 @@ package models;
 import java.util.ArrayList;
 
 public class Team {
-	ArrayList<Player> players;
-	int rerolls;
-	int fanFactor;
-	int assistantCoaches;
-	TeamStatus gameStatus;
+	
+	protected ArrayList<Player> players;
+	protected int rerolls;
+	protected int fanFactor;
+	protected int assistantCoaches;
+	protected TeamStatus gameStatus;
 	
 	public Team(ArrayList<Player> players, int rerolls,
 			int fanFactor, int assistantCoaches, TeamStatus gameStatus) {

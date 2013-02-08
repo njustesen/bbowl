@@ -1,18 +1,25 @@
 package models;
 
+import models.dice.DiceRoll;
+
 public class GameState {
 	
-	Team homeTeam;
-	Team awayTeam;
-	Pitch pitch;
-	int half;
-	int awayTurn;
-	int homeTurn;
-	boolean refAgainstHomeTeam;
-	boolean refAgainstAwayTeam;
-	Weather weather;
-	CoinToss coinToss;
-	GameStage gameStage;
+	private Team homeTeam;
+	private Team awayTeam;
+	private Pitch pitch;
+	private int half;
+	private int awayTurn;
+	private int homeTurn;
+	private boolean isHomeTurn;
+	private boolean refAgainstHomeTeam;
+	private boolean refAgainstAwayTeam;
+	private Weather weather;
+	private DiceRoll currentDiceRoll;
+	private CoinToss coinToss;
+	private Team kickingTeam;
+	private Team receivingTeam;
+	private GameStage gameStage;
+	private Block currentBlock;
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
 		super();
@@ -22,6 +29,7 @@ public class GameState {
 		this.half = 1;
 		this.awayTurn = 0;
 		this.homeTurn = 0;
+		this.isHomeTurn = false;
 		this.refAgainstAwayTeam = true;
 		this.refAgainstHomeTeam = true;
 		this.gameStage = GameStage.START_UP;
@@ -109,5 +117,57 @@ public class GameState {
 	public Team getAwayTeam() {
 		return awayTeam;
 	}
+
+	public Team getKickingTeam() {
+		return kickingTeam;
+	}
+
+	public void setKickingTeam(Team kickingTeam) {
+		this.kickingTeam = kickingTeam;
+	}
+
+	public Team getReceivingTeam() {
+		return receivingTeam;
+	}
+
+	public void setReceivingTeam(Team receivingTeam) {
+		this.receivingTeam = receivingTeam;
+	}
+
+	public DiceRoll getCurrentDiceRoll() {
+		return currentDiceRoll;
+	}
+
+	public Block getCurrentBlock() {
+		return currentBlock;
+	}
+
+	public void setCurrentBlock(Block currentBlock) {
+		this.currentBlock = currentBlock;
+	}
+
+	public void setCurrnetDiceRoll(DiceRoll diceRoll) {
+		this.currentDiceRoll = diceRoll;
+	}
+
+	public boolean isHomeTurn() {
+		return isHomeTurn;
+	}
+
+	public void setHomeTurn(boolean isHomeTurn) {
+		this.isHomeTurn = isHomeTurn;
+	}
+
+	public void incAwayTurn() {
+		awayTurn++;
+		
+	}
+	
+	public void incHomeTurn() {
+		homeTurn++;
+		
+	}
+	
+	
 	
 }

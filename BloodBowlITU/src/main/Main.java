@@ -17,14 +17,22 @@ public class Main {
 	private static InputManager inputManager;
 	private static Renderer renderer;
 	private static GameMaster gameMaster;
+	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		
-		//DiceTester.testDices();
+		//test();
+		
 		initialize();
 		startGame();
+	}
+	
+	public static void test(){
+		
+		DiceTester.testDices();
+		
 	}
 
 	public static void initialize(){
@@ -40,16 +48,27 @@ public class Main {
 
 		long startTime = new Date().getTime();
 		
+		loop(startTime);
+	
+		
+	}
+
+	private static void loop(long startTime) {
+
 		while(true){
 			startTime = new Date().getTime();
 			
 			gameMaster.update();
+			
 			renderer.renderFrame();
 			
 			long delta = new Date().getTime() - startTime;
 			try {
+				
 				Thread.sleep(Math.max(1,(1000/renderer.getFps() - delta)));
-			} catch (InterruptedException e) {e.printStackTrace();}	
-		}		
+				
+			} catch (InterruptedException e) {e.printStackTrace();}
+			
+		}
 	}
 }

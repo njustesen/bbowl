@@ -1,5 +1,7 @@
 package models;
 
+import models.dice.D6;
+
 public class CoinToss {
 	
 	boolean tossed;
@@ -46,7 +48,21 @@ public class CoinToss {
 	public void setHomeReceives(boolean homeReceives) {
 		this.homeReceives = homeReceives;
 	}
-	
-	
+
+	public void Toss() {
+		
+		// Toss coin
+		D6 d = new D6();
+		d.roll();
+		CoinToss toss = new CoinToss();
+		if(d.getResultAsInt() > 3){
+			toss.setResult(true);
+		} else {
+			toss.setResult(false);
+		}
+		
+		tossed = true;
+		
+	}
 	
 }

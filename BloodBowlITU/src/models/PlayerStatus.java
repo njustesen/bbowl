@@ -2,15 +2,19 @@ package models;
 
 public class PlayerStatus {
 	
-	protected Standing standing;
-	protected PlayerTurn turn;
-	protected int sprints;
+	private Standing standing;
+	private PlayerTurn turn;
+	private boolean isBlitzing;
+	private int movementUsed;
+	private boolean movedToBlock;
 	
 	public PlayerStatus() {
 		super();
 		this.standing = Standing.UP;
 		this.turn = PlayerTurn.USED;
-		this.sprints = 0;
+		this.movementUsed = 0;
+		this.isBlitzing = false;
+		this.movedToBlock = false;
 	}
 
 	public Standing getStanding() {
@@ -29,12 +33,34 @@ public class PlayerStatus {
 		this.turn = turn;
 	}
 
-	public int getSprints() {
-		return sprints;
+	public boolean isBlitzing() {
+		return isBlitzing;
 	}
 
-	public void setSprints(int sprints) {
-		this.sprints = sprints;
+	public void setBlitzing(boolean isBlitzing) {
+		this.isBlitzing = isBlitzing;
 	}
+
+	public int getMovementUsed() {
+		return movementUsed;
+	}
+
+	public void setMovementUsed(int movementUsed) {
+		this.movementUsed = movementUsed;
+	}
+
+	public void moveOneSquare() {
+		movementUsed++;
+	}
+
+	public boolean hasMovedToBlock() {
+		return movedToBlock;
+	}
+
+	public void setMovedToBlock(boolean movementUsedToBlock) {
+		this.movedToBlock = movementUsedToBlock;
+	}
+	
+	
 	
 }
