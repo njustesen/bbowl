@@ -18,20 +18,62 @@ public class GameMaster {
 	}
 	
 	public void update(){
-		
+	/*	
 		switch(gameState.getGameStage()){
 			case START_UP: resolveStartUp(); break;
 			case COIN_TOSS: resolveCoinToss(); break;
+			case KICKING_SETUP: resolveKickingSetup(); break;
+			case RECEIVING_SETUP: resolveReceivingSetup(); break;
+			case KICK_PLACING: resolveKickPlacement(); break;
+			case KICK_OFF: resolveKickOff(); break;
 		default:
 			break;
 		}
-		
+		*/
+	}
+
+	private void resolveKickOff() {
+		KickOffResult kickoff = getKickOffResult();
+		// TODO
+	}
+
+	private KickOffResult getKickOffResult() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private void resolveKickPlacement() {
+		if (event == Event.BALL_PLACEMENT_DONE){
+			gameState.setGameStage(GameStage.KICK_OFF);
+		}
+	}
+
+	private void resolveReceivingSetup() {
+		if (event == Event.SETUP_DONE){
+			gameState.setGameStage(GameStage.KICK_PLACING);
+		}
+	}
+
+	private void resolveKickingSetup() {
+		if (event == Event.SETUP_DONE){
+			gameState.setGameStage(GameStage.RECEIVING_SETUP);
+		}
 	}
 
 	private void resolveStartUp() {
 		if (event == Event.START_GAME){
 			rollForWeather();
 			gameState.setGameStage(GameStage.COIN_TOSS);
+			
+			// Pitch setup
+			gameState.getPitch().getHomeDogout().getReserves().addAll(
+					gameState.getHomeTeam().getPlayers()
+				);
+			
+			gameState.getPitch().getAwayDogout().getReserves().addAll(
+					gameState.getAwayTeam().getPlayers()
+				);
+			
 			event = Event.NONE;
 		}
 	}

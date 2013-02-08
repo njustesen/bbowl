@@ -49,10 +49,7 @@ public class Main {
 			long delta = new Date().getTime() - startTime;
 			try {
 				Thread.sleep(Math.max(1,(1000/renderer.getFps() - delta)));
-			} catch (InterruptedException e) {e.printStackTrace();}
-			
-		}
-	
-		
+			} catch (InterruptedException e) {e.printStackTrace();}	
+		}		
 	}
 }
