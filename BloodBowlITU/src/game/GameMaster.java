@@ -307,35 +307,6 @@ public class GameMaster {
 		default:
 			break;
 		}
-		*/
-	}
-
-	private void resolveKickOff() {
-		KickOffResult kickoff = getKickOffResult();
-		// TODO
-	}
-
-	private KickOffResult getKickOffResult() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private void resolveKickPlacement() {
-		if (event == Event.BALL_PLACEMENT_DONE){
-			gameState.setGameStage(GameStage.KICK_OFF);
-		}
-	}
-
-	private void resolveReceivingSetup() {
-		if (event == Event.SETUP_DONE){
-			gameState.setGameStage(GameStage.KICK_PLACING);
-		}
-	}
-
-	private void resolveKickingSetup() {
-		if (event == Event.SETUP_DONE){
-			gameState.setGameStage(GameStage.RECEIVING_SETUP);
-		}
 	}
 
 	private void defenderKnockedDown(Block block) {
