@@ -8,6 +8,7 @@ import java.awt.FontFormatException;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,6 +20,9 @@ import javax.swing.JPanel;
 
 import models.Player;
 import models.Race;
+import models.Square;
+import models.dice.DiceFace;
+import models.dice.DiceRoll;
 import models.humans.HumanBlitzer;
 import models.humans.HumanCatcher;
 import models.humans.HumanLineman;
@@ -95,6 +99,7 @@ public class Renderer extends JPanel{
 	
 	InputStream is;
 	Font f;
+	private GameMaster gameMaster;
 	
 	public Renderer(int fps, GameMaster gm, InputManager im){
 		this.fps = fps;
@@ -106,6 +111,7 @@ public class Renderer extends JPanel{
 		actionButtonHeight = im.getActionButtonHeight();
 		pitchOrigin = InputManager.getPitchOrigin();
 		diceButtonOrigin = InputManager.getDiceButtonOrigin();
+		gameMaster = gm;
 		
 		this.setPreferredSize(new Dimension(screenWidth, screenHeight));
 		screen = new JFrame();
@@ -200,7 +206,7 @@ public class Renderer extends JPanel{
 	}
 	
 	public void drawPlayer(Graphics g, Player p, int x, int y){
-		int screenX = inputManager.arrayToScreen(x, y).getX()+1;
+		int screenX = inputManager.arrayToScreen(x, y).getX();
 		int screenY = inputManager.arrayToScreen(x, y).getY();
 		if(p.getRace() == Race.HUMANS){
 			if(p.getTitle() == "Blitzer"){
@@ -223,33 +229,14 @@ public class Renderer extends JPanel{
 				g.drawImage(oblackorc.getBufferedImage(), screenX, screenY, null);
 			}
 		}
-		if(p.getTitle() == "Blitzer"){//p == gameMaster.getSelectedPlayer())
+		
+		// Selected
+		if(p == gameMaster.getSelectedPlayer()){
 			g.drawImage(selectedPlayer.getBufferedImage(), screenX-1, screenY, null);
 		}
 	}
 	
-	public void drawDice(Graphics g, int dice, String type){
-		if(type == "D6"){
-			switch(dice){
-				case 1: g.drawImage(dice1.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 2: g.drawImage(dice2.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 3: g.drawImage(dice3.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 4: g.drawImage(dice4.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 5: g.drawImage(dice5.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 6: g.drawImage(dice6.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				default: System.out.println("invalid diceRoll");
-			}
-		}else if(type == "BB"){
-			switch(dice){
-				case 1: g.drawImage(bbDice1.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 2: g.drawImage(bbDice2.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 3: g.drawImage(bbDice3.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 4: g.drawImage(bbDice4.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 5: g.drawImage(bbDice5.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				default: System.out.println("invalid diceRoll");
-			}
-		}
-	}
+	
 
 	public void drawDice(Graphics g, int diceOne, int diceTwo, String type){
 		if(type == "D6"){
@@ -296,21 +283,14 @@ public class Renderer extends JPanel{
 		g.drawImage(background.getImage(), 0, 0, null);
 		g.setColor(Color.WHITE);
 		hoverSquare(g, inputManager.getMouseX(), inputManager.getMouseY());
-		//draw orcs
-		drawPlayer(g, new OrcLineman(1),1,1);
-		drawPlayer(g, new OrcBlackOrc(2),2,2);
-		drawPlayer(g, new OrcBlitzer(3),3,3);
-		drawPlayer(g, new OrcThrower(4),4,4);
-		//draw humans
-		drawPlayer(g, new HumanLineman(5),23,12);
-		drawPlayer(g, new HumanCatcher(6),24,13);
-		drawPlayer(g, new HumanBlitzer(7),25,14);
-		drawPlayer(g, new HumanThrower(8),26,15);
+		
+		drawPlayers(g);
 				
 		drawActionButtons(g);
 		drawDiceButton(g);
 		diceAlert(g,true);
-		drawDice(g, 2, 3, "BB");
+		
+		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
 		
 		Font font = new Font("Arial", Font.PLAIN, 25);	    
 	    g.setFont(font); //<--
@@ -321,6 +301,97 @@ public class Renderer extends JPanel{
 	    g.setFont(font2);
 		g.drawString(team1Name.toString(), 145, 37);
 		g.drawString(team2Name.toString(), screenWidth-278, 37);
+		
+	}
+
+	private void drawDiceRoll(Graphics g, DiceRoll currentDiceRoll) {
+
+		if (gameMaster.getState().getCurrentDiceRoll() != null){
+			
+			int i = 0;
+			for(DiceFace face : gameMaster.getState().getCurrentDiceRoll().getFaces()){
+				BufferedImage img = getDiceImage(face);
+				g.drawImage(img, diceButtonOrigin.getX()-55-i*55, diceButtonOrigin.getY()+10, null);
+				i++;
+			}
+			
+		}	
+	}
+
+	private BufferedImage getDiceImage(DiceFace face) {
+		switch(face){
+			case ONE : return dice1.getBufferedImage();
+			case TWO : return dice2.getBufferedImage();
+			case THREE : return dice3.getBufferedImage();
+			case FOUR : return dice4.getBufferedImage();
+			case FIVE : return dice5.getBufferedImage();
+			case SIX : return dice6.getBufferedImage();
+			case SKULL : return bbDice1.getBufferedImage();
+			case BOTH_DOWN : return bbDice2.getBufferedImage();
+			case PUSH : return bbDice3.getBufferedImage();
+			case DEFENDER_STUMBLES : return bbDice4.getBufferedImage();
+			case DEFENDER_KNOCKED_DOWN: return bbDice5.getBufferedImage();
+			default:
+				return null;
+		}
+
+	}
+	
+	public void drawDice(Graphics g, int dice, String type){
+		if(type == "D6"){
+			switch(dice){
+				case 1: g.drawImage(dice1.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 2: g.drawImage(dice2.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 3: g.drawImage(dice3.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 4: g.drawImage(dice4.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 5: g.drawImage(dice5.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 6: g.drawImage(dice6.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				default: System.out.println("invalid diceRoll");
+			}
+		}else if(type == "BB"){
+			switch(dice){
+				case 1: g.drawImage(bbDice1.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 2: g.drawImage(bbDice2.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 3: g.drawImage(bbDice3.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 4: g.drawImage(bbDice4.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 5: g.drawImage(bbDice5.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				default: System.out.println("invalid diceRoll");
+			}
+		}
+	}
+
+	private void drawPlayers(Graphics g) {
+		
+		// Draw pitch
+		Player[][] playerArr = gameMaster.getState().getPitch().getPlayerArr();
+		
+		for(int y = 0; y < playerArr.length; y++){
+			for(int x = 0; x < playerArr[0].length; x++){
+				
+				if (playerArr[y][x] != null){
+					drawPlayer(g, playerArr[y][x], x, y);
+				}
+				
+			}
+		}
+		
+		// Draw home dugout
+		for(Player p : gameMaster.getState().getPitch().getHomeDogout().getReserves()){
+			
+			int index = gameMaster.getState().getPitch().getHomeDogout().getReserves().indexOf(p);
+			
+			drawPlayer(g, p, index%2 - 1, index/2 + 1);
+			
+		}
+		
+		// Draw away dugout
+		for(Player p : gameMaster.getState().getPitch().getAwayDogout().getReserves()){
+			
+			int index = gameMaster.getState().getPitch().getAwayDogout().getReserves().indexOf(p);
+			
+			drawPlayer(g, p, index%2 + 1 + 26, index/2 + 1);
+			
+		}
 		
 	}
 }

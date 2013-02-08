@@ -39,13 +39,14 @@ public class Main {
 	}
 
 	public static void initialize(){
-		inputManager = new InputManager();
+		
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
 		PlayerAgent humanPlayer = new HumanPlayerAgent(new Coach("Tommy", home));
 		PlayerAgent AI = new HumanPlayerAgent(new Coach("AI", away));
-		Pitch pitch = new Pitch();
+		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), humanPlayer, AI);
+		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(60, gameMaster, inputManager);
 	}
 	

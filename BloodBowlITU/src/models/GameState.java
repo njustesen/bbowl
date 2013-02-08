@@ -1,5 +1,8 @@
 package models;
 
+import java.util.ArrayList;
+
+import models.dice.BB;
 import models.dice.DiceRoll;
 
 public class GameState {
@@ -35,7 +38,16 @@ public class GameState {
 		this.gameStage = GameStage.START_UP;
 		this.weather = Weather.NICE;
 		this.coinToss = new CoinToss();
-		
+		this.currentDiceRoll = new DiceRoll();
+		BB a = new BB();
+		a.roll();
+		BB b = new BB();
+		b.roll();
+		BB c = new BB();
+		c.roll();
+		this.currentDiceRoll.addDice(a);
+		this.currentDiceRoll.addDice(b);
+		this.currentDiceRoll.addDice(c);
 	}
 
 	public Pitch getPitch() {

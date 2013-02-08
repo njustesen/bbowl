@@ -1,5 +1,7 @@
 package models;
 
+import java.util.ArrayList;
+
 import view.InputManager;
 
 public class Pitch {
@@ -9,8 +11,11 @@ public class Pitch {
 	Dugout awayDogout;
 	private InputManager inputManager;
 	
-	public Pitch(){
-		
+	public Pitch(Team home, Team away){
+		ArrayList<Player> reservesHome = home.getPlayers();
+		homeDogout = new Dugout(home, reservesHome, new ArrayList<Player>(), new ArrayList<Player>());
+		ArrayList<Player> reservesAway = away.getPlayers();
+		awayDogout = new Dugout(away, reservesAway, new ArrayList<Player>(), new ArrayList<Player>());
 	}
 	
 

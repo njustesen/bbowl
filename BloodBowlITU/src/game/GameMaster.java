@@ -30,12 +30,23 @@ public class GameMaster {
 	public void update(){
 		
 		switch(state.getGameStage()){
+		case KICK_PLACEMENT : getKickingAgent().takeAction(this, state);	
 		case HOME_TURN : homeAgent.takeAction(this, state);	
 		case AWAY_TURN : awayAgent.takeAction(this, state);	
 		}
 		
 	}
 	
+	private PlayerAgent getKickingAgent() {
+		PlayerAgent kickingAgent = awayAgent;
+		
+		if (state.getKickingTeam() == state.getHomeTeam()){
+			kickingAgent = homeAgent;
+		} 
+		
+		return kickingAgent;
+	}
+
 	/**
 	 * Start the game!
 	 * This will initiate the coin toss game stage.
@@ -182,6 +193,8 @@ public class GameMaster {
 			moveAllowed = true;
 			
 		}
+		
+		moveAllowed = true;
 		
 		// Square occupied?
 		if (state.getPitch().getPlayerArr()[square.getY()][square.getX()] != null){
@@ -630,6 +643,20 @@ public class GameMaster {
 		return false;
 		
 	}
+	
+	public void squareClicked(int x, int y) {
+		
+		if (selectedPlayer != null){
+				
+			removePlayerFromReserves(selectedPlayer);
+			
+			removePlayerFromCurrentSquare(selectedPlayer);
+				
+			placePlayer(selectedPlayer, new Square(x, y));
+			
+		}
+		
+	}
 
 	private Team playerOwner(Player player) {
 		if (state.getHomeTeam().getPlayers().contains(player)){
@@ -693,5 +720,7 @@ public class GameMaster {
 	public GameState getState() {
 		return state;
 	}
+
+	
 
 }

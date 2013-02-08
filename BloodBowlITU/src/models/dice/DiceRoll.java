@@ -8,6 +8,7 @@ public class DiceRoll {
 
 	public DiceRoll() {
 		super();
+		dices = new ArrayList<IDice>();
 	}
 
 	public ArrayList<IDice> getDices() {
