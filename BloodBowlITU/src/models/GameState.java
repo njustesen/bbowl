@@ -1,6 +1,5 @@
 package models;
 
-import game.Block;
 import models.dice.DiceRoll;
 
 public class GameState {
@@ -11,6 +10,7 @@ public class GameState {
 	private int half;
 	private int awayTurn;
 	private int homeTurn;
+	private boolean isHomeTurn;
 	private boolean refAgainstHomeTeam;
 	private boolean refAgainstAwayTeam;
 	private Weather weather;
@@ -29,6 +29,7 @@ public class GameState {
 		this.half = 1;
 		this.awayTurn = 0;
 		this.homeTurn = 0;
+		this.isHomeTurn = false;
 		this.refAgainstAwayTeam = true;
 		this.refAgainstHomeTeam = true;
 		this.gameStage = GameStage.START_UP;
@@ -148,5 +149,25 @@ public class GameState {
 	public void setCurrnetDiceRoll(DiceRoll diceRoll) {
 		this.currentDiceRoll = diceRoll;
 	}
+
+	public boolean isHomeTurn() {
+		return isHomeTurn;
+	}
+
+	public void setHomeTurn(boolean isHomeTurn) {
+		this.isHomeTurn = isHomeTurn;
+	}
+
+	public void incAwayTurn() {
+		awayTurn++;
+		
+	}
+	
+	public void incHomeTurn() {
+		homeTurn++;
+		
+	}
+	
+	
 	
 }

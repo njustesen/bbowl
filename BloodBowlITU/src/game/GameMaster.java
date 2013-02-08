@@ -1,5 +1,7 @@
 package game;
 
+import models.Block;
+import models.BlockSum;
 import models.GameStage;
 import models.GameState;
 import models.Player;
@@ -21,6 +23,12 @@ public class GameMaster {
 	public GameMaster(GameState gameState) {
 		super();
 		this.state = gameState;
+	}
+	
+	public void update(){
+		
+		
+		
 	}
 	
 	/**
@@ -182,7 +190,9 @@ public class GameMaster {
 	public void performBlock(Player attacker, Player defender){
 		
 		// Legal action?
-		if (allowedToBlock(attacker) && nextToEachOther(attacker, defender)){
+		if (allowedToBlock(attacker) && 
+				nextToEachOther(attacker, defender) &&
+				state.getCurrentBlock() == null){
 			
 			DiceRoll roll = new DiceRoll();
 			
@@ -265,7 +275,245 @@ public class GameMaster {
 	
 	private void continueBlock(DiceFace face) {
 		
-		// TODO: block logic
+		switch(face){
+		case SKULL : attackerDown(state.getCurrentBlock());
+		case PUSH : defenderPushed(state.getCurrentBlock());
+		case BOTH_DOWN : bothDown(state.getCurrentBlock());
+		case DEFENDER_STUMBLES : defenderStumples(state.getCurrentBlock());
+		case DEFENDER_KNOCKED_DOWN : defenderKnockedDown(state.getCurrentBlock());
+		default:
+			break;
+		}
+		
+	}
+
+	private void defenderKnockedDown(Block block) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void defenderStumples(Block block) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void bothDown(Block block) {
+		
+		knockDown(block.getDefender());
+		
+		// ball?
+		
+		attackerDown(block);
+		
+	}
+
+	private void defenderPushed(Block block) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void attackerDown(Block block) {
+		
+		knockDown( block.getAttacker() );
+		
+		// ball?
+		
+		endTurn();
+		
+	}
+
+	private void endTurn() {
+		
+		// Any turns left?
+		if (state.isHomeTurn()){
+			
+			if (state.getAwayTurn() < 8){
+				
+				// Away turn
+				state.incAwayTurn();
+				state.setHomeTurn(false);
+				startNewTurn();
+				
+			} else {
+				
+				if (state.getHalf() == 1){
+					
+					startNextHalf();
+					
+				} else {
+					
+					endGame();
+					
+				}
+				
+			}
+			
+		} else {
+			
+			if (state.getHomeTurn() < 8){
+				
+				// Away turn
+				state.incHomeTurn();
+				state.setHomeTurn(true);
+				startNewTurn();
+				
+			} else {
+				
+				if (state.getHalf() == 1){
+					
+					startNextHalf();
+					
+				} else {
+					
+					endGame();
+					
+				}
+				
+			}
+			
+		}
+		
+	}
+
+	private void endGame() {
+		
+		state.setGameStage(GameStage.GAME_ENDED);
+		
+	}
+
+	private void startNextHalf() {
+		
+		clearField();
+		rollForKnockedOut();
+		
+		state.setHalf(state.getHalf() + 1);
+		
+		// Who kicks?
+		if ( state.getCoinToss().isHomeReceives() ){
+			
+			state.setKickingTeam(state.getHomeTeam());
+			state.setReceivingTeam(state.getAwayTeam());
+			
+		} else {
+			
+			state.setKickingTeam(state.getHomeTeam());
+			state.setReceivingTeam(state.getAwayTeam());
+			
+		}
+		
+		state.setGameStage(GameStage.KICKING_SETUP);
+		
+	}
+
+	private void rollForKnockedOut() {
+		
+		D6 da = new D6();
+		
+		// Home team
+		for(Player player : state.getPitch().getHomeDogout().getKnockedOut()){
+			
+			da.roll();
+			
+			if (da.getResultAsInt()> 3){
+				
+				state.getPitch().getHomeDogout().getKnockedOut().remove(player);
+				state.getPitch().getHomeDogout().getReserves().add(player);
+				
+			}
+			
+		}
+		
+		// Away team
+		for(Player player : state.getPitch().getAwayDogout().getKnockedOut()){
+			
+			da.roll();
+			
+			if (da.getResultAsInt() > 3){
+				
+				state.getPitch().getAwayDogout().getKnockedOut().remove(player);
+				state.getPitch().getAwayDogout().getReserves().add(player);
+				
+			}
+			
+		}
+		
+	}
+
+	private void clearField() {
+		
+		// Home team
+		for(Player player : state.getHomeTeam().getPlayers()){
+			
+			if (state.getPitch().isOnPitch(player)){
+				
+				state.getPitch().removePlayer(player);
+				state.getPitch().getHomeDogout().getReserves().add(player);
+				
+			}
+			
+		}
+		
+		// Away team
+		for(Player player : state.getAwayTeam().getPlayers()){
+			
+			if (state.getPitch().isOnPitch(player)){
+				
+				state.getPitch().removePlayer(player);
+				state.getPitch().getAwayDogout().getReserves().add(player);
+				
+			}
+			
+		}
+		
+	}
+
+	private void startNewTurn() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void knockDown(Player player) {
+		
+		// Armour roll
+		D6 da = new D6();
+		D6 db = new D6();
+		da.roll();
+		db.roll();
+		
+		int result = da.getResultAsInt() + db.getResultAsInt();
+		
+		if (result > player.getAV()){
+			
+			// Injury roll
+			da.roll();
+			db.roll();
+			
+			result = da.getResultAsInt() + db.getResultAsInt();
+			
+			if (result < 8){
+				
+				// Stunned
+				player.getPlayerStatus().setStanding(Standing.STUNNED);
+				
+			} else if (result < 10){
+				
+				// Knocked out
+				state.getPitch().removePlayer(player);
+				state.getPitch().getDogout(getPlayerOwner(player)).getKnockedOut().add(player);
+				
+			} else {
+				
+				// Dead and injured
+				state.getPitch().removePlayer(player);
+				state.getPitch().getDogout(getPlayerOwner(player)).getDeadAndInjured().add(player);
+				
+			}
+			
+		} else {
+		
+			player.getPlayerStatus().setStanding(Standing.DOWN);
+			
+		}
 		
 	}
 

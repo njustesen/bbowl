@@ -155,19 +155,19 @@ public class Pitch {
 		}
 		
 		// Home players on the left side in half 1
-		if (playersOnLeftSide && isPlayerHome(team) && half%2==1){
+		if (playersOnLeftSide && isTeamHome(team) && half%2==1){
 			return false;
 		}
 		// Home players on the right side in half 2
-		if (playersOnRightSide && isPlayerHome(team) && half%2==0){
+		if (playersOnRightSide && isTeamHome(team) && half%2==0){
 			return false;
 		}
 		// Away players on the right side in half 1
-		if (playersOnRightSide && !isPlayerHome(team) && half%2==1){
+		if (playersOnRightSide && !isTeamHome(team) && half%2==1){
 			return false;
 		}
 		// Away players on the left side in half 2
-		if (playersOnLeftSide && !isPlayerHome(team) && half%2==0){
+		if (playersOnLeftSide && !isTeamHome(team) && half%2==0){
 			return false;
 		}
 		
@@ -219,7 +219,7 @@ public class Pitch {
 		return null;
 	}
 
-	private boolean isPlayerHome(Team team) {
+	private boolean isTeamHome(Team team) {
 		if (getDogout(team) == getHomeDogout())
 			return true;
 		return false;

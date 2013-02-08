@@ -1,6 +1,5 @@
-package game;
+package models;
 
-import models.Player;
 
 public class Block {
 	

@@ -1,4 +1,4 @@
-package game;
+package models;
 
 public enum BlockSum {
 	ATTACKER_DOUBLE_STRONG, 

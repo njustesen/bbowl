@@ -32,6 +32,7 @@ public enum GameStage {
 	HANDOFF_ACTION,
 	SELECT_PUSH, 
 	PICK_COIN_TOSS_EFFECT,
+	GAME_ENDED
 	
 	
 }
