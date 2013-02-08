@@ -17,17 +17,22 @@ import models.dice.DiceRoll;
 
 public class GameMaster {
 	
-	protected GameState state;
-	protected Player selectedPlayer;
+	private GameState state;
+	private Player selectedPlayer;
+	private PlayerAgent homeAgent;
+	private PlayerAgent awayAgent;
 	
-	public GameMaster(GameState gameState) {
+	public GameMaster(GameState gameState, PlayerAgent homeAgent, PlayerAgent awayAgent) {
 		super();
 		this.state = gameState;
 	}
 	
 	public void update(){
 		
-		
+		switch(state.getGameStage()){
+		case HOME_TURN : homeAgent.takeAction(this, state);	
+		case AWAY_TURN : awayAgent.takeAction(this, state);	
+		}
 		
 	}
 	
@@ -154,6 +159,12 @@ public class GameMaster {
 		
 	}
 	
+	/**
+	 * Place a player on a square.
+	 * 
+	 * @param player
+	 * @param square
+	 */
 	public void placePlayer(Player player, Square square){
 		
 		Team team = getPlayerOwner(player);
@@ -187,6 +198,12 @@ public class GameMaster {
 		
 	}
 	
+	/**
+	 * Performs a block roll.
+	 * 
+	 * @param attacker
+	 * @param defender
+	 */
 	public void performBlock(Player attacker, Player defender){
 		
 		// Legal action?
@@ -254,6 +271,12 @@ public class GameMaster {
 		
 	}
 	
+	/**
+	 * Selects a rolled die.
+	 * 
+	 * @param i
+	 * 		The index of the die in the dice roll.
+	 */
 	public void selectDie(int i){
 		
 		if (state.getCurrentDiceRoll() != null){

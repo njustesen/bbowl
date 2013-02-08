@@ -2,12 +2,15 @@ package main;
 
 import java.util.Date;
 
+import models.Coach;
 import models.GameState;
 import models.Pitch;
 import models.Team;
 import models.TeamFactory;
 
 import game.GameMaster;
+import game.HumanPlayerAgent;
+import game.PlayerAgent;
 import test.DiceTester;
 import view.InputManager;
 import view.Renderer;
@@ -39,8 +42,10 @@ public class Main {
 		inputManager = new InputManager();
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
+		PlayerAgent humanPlayer = new HumanPlayerAgent(new Coach("Tommy", home));
+		PlayerAgent AI = new HumanPlayerAgent(new Coach("AI", away));
 		Pitch pitch = new Pitch();
-		gameMaster = new GameMaster(new GameState(home, away, pitch));
+		gameMaster = new GameMaster(new GameState(home, away, pitch), humanPlayer, AI);
 		renderer = new Renderer(60, gameMaster, inputManager);
 	}
 	
@@ -50,7 +55,6 @@ public class Main {
 		
 		loop(startTime);
 	
-		
 	}
 
 	private static void loop(long startTime) {
