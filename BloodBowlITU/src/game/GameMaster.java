@@ -176,7 +176,7 @@ public class GameMaster {
 	 * @param player
 	 * @param square
 	 */
-	public void placePlayer(Player player, Square square){
+	public void placePlayerIfAllowed(Player player, Square square){
 		
 		Team team = getPlayerOwner(player);
 		boolean moveAllowed = false;
@@ -194,6 +194,7 @@ public class GameMaster {
 			
 		}
 		
+		//For debugging
 		//moveAllowed = true;
 		
 		// Square occupied?
@@ -279,6 +280,7 @@ public class GameMaster {
 			}
 			
 			state.setCurrentBlock(new Block(attacker, defender));
+			state.setAwaitReroll(true);
 			
 		}
 		
@@ -297,15 +299,92 @@ public class GameMaster {
 			// Select face
 			DiceFace face = state.getCurrentDiceRoll().getFaces().get(i);
 			
-			// Continue block?
+			// Continue block/dodge/going
 			if (state.getCurrentBlock() != null){
 				
+				state.setAwaitReroll(false);
 				continueBlock(face);
 				
 			}
+		}
+		
+	}
+	
+	public void reroll(){
+		
+		if (!state.isAwaitingReroll()){
+			return;
+		}
+		
+	 	if (state.getCurrentDodge() != null){
 			
+			state.setAwaitReroll(false);
+			state.getMovingTeam().useReroll();
+			
+			DiceRoll roll = new DiceRoll();
+			D6 d = new D6();
+			d.roll();
+			roll.addDice(d);
+			state.setCurrentDiceRoll(roll);
+			
+			continueDodge(d.getResultAsInt());
+			
+		} else if (state.getCurrentGoingForIt() != null){
+			
+			state.setAwaitReroll(false);
+			state.getMovingTeam().useReroll();
+			
+			DiceRoll roll = new DiceRoll();
+			D6 d = new D6();
+			d.roll();
+			roll.addDice(d);
+			state.setCurrentDiceRoll(roll);
+			
+			continueGoingForIt(d.getResultAsInt());
 			
 		}
+		
+	}
+	
+	private void continueGoingForIt(int result) {
+		
+		if (result > 1){
+			
+			dodgeToMovePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
+			
+		} else {
+			
+			movePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
+			knockDown(state.getCurrentDodge().getPlayer());
+			
+		}
+		
+	}
+
+	private void continueDodge(int result) {
+		
+		performDodge(state.getCurrentDodge().getPlayer(), 
+				state.getCurrentDodge().getSquare(), 
+				result, 
+				state.getCurrentDodge().getSuccess());
+		
+	}
+
+	/**
+	 * Moves a player to a square. 
+	 * 
+	 * @param player
+	 * @param square
+	 */
+	public void movePlayerIfAllowed(Player player, Square square){
+		
+		boolean moveAllowed = moveAllowed(player, square);
+		
+		if (!moveAllowed){
+			return;
+		}
+		
+		dodgeToMovePlayer(player, square);
 		
 	}
 	
