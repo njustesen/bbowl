@@ -165,12 +165,20 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	}
 	
 	private void selectAwayReserve(int reserve) {
-		gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve));
-		
+		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve)){
+			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve));
+		} else {
+			gameMaster.setSelectedPlayer(null);
+		}
 	}
 
 	private void selectHomeReserve(int reserve) {
-		gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve));
+		
+		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve)){
+			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve));
+		} else {
+			gameMaster.setSelectedPlayer(null);
+		}
 		
 	}
 

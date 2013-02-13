@@ -194,7 +194,7 @@ public class GameMaster {
 			
 		}
 		
-		moveAllowed = true;
+		//moveAllowed = true;
 		
 		// Square occupied?
 		if (state.getPitch().getPlayerArr()[square.getY()][square.getX()] != null){
@@ -648,10 +648,7 @@ public class GameMaster {
 		
 		if (selectedPlayer != null){
 				
-			removePlayerFromReserves(selectedPlayer);
-			
-			removePlayerFromCurrentSquare(selectedPlayer);
-				
+			// Places player if allowed to
 			placePlayer(selectedPlayer, new Square(x, y));
 			
 		}
