@@ -22,6 +22,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	private static int screenHeight = 602;
 	private static int actionButtonWidth = 66;
 	private static int actionButtonHeight = 73;
+	private static Point2D actionButtonOrigin = new Point2D(0,517);
 	private static Point2D diceButtonOrigin = new Point2D(736,517);
 	private static Point2D pitchOrigin = new Point2D(60,57);
 	private static int pitchSquareSize = 30;
@@ -32,6 +33,10 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	
 	public static Point2D getPitchOrigin() {
 		return pitchOrigin;
+	}
+
+	public static Point2D getActionButtonOrigin() {
+		return actionButtonOrigin;
 	}
 
 	public static int getPitchSquareSize() {

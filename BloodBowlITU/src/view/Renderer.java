@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import models.Player;
 import models.Race;
 import models.Square;
+import models.Weather;
 import models.dice.DiceFace;
 import models.dice.DiceRoll;
 import models.humans.HumanBlitzer;
@@ -97,11 +98,14 @@ public class Renderer extends JPanel{
 	private BBImage hcatcher = new BBImage("hcatcher1b.png");
 	private BBImage hblitzer = new BBImage("hblitzer.png");
 	
+	private BBImage weather = new BBImage();
+	
 	InputStream is;
 	Font f;
 	private GameMaster gameMaster;
 	
 	public Renderer(int fps, GameMaster gm, InputManager im){
+
 		this.fps = fps;
 		inputManager = im;
 		screenWidth = InputManager.getScreenWidth();
@@ -131,7 +135,20 @@ public class Renderer extends JPanel{
 		greenTile.loopAnimation();
 		roll.loopAnimation();
 		selectedPlayer.loopAnimation();
+		setWeather();
+	}
+	
+	public void setWeather(){
+		Weather w = gameMaster.getState().getWeather();
 		
+		switch(w){
+			case SWELTERING_HEAT: weather.setImage("heat.png"); break;
+			case VERY_SUNNY: weather.setImage("sun.png"); break;
+			case NICE: weather.setImage("nice.png"); break;
+			case POURING_RAIN: weather.setImage("rain.png"); break;
+			case BLIZZARD: weather.setImage("blizzard.png"); break;
+			default: System.out.println("WEATHER?");
+		}
 	}
 	
 	public int getFps(){
@@ -162,23 +179,23 @@ public class Renderer extends JPanel{
 				}
 				g.drawImage(actionOn.getImage(), i*actionButtonWidth, 517, null);
 				switch(i){
-				case 0: g.drawImage(run.getBufferedImage(), i*actionButtonWidth-2, 517+3, null); break;
-				case 1: g.drawImage(block.getBufferedImage(), i*actionButtonWidth-2, 517+3, null); break;
-				case 2: g.drawImage(blitz.getBufferedImage(), i*actionButtonWidth-2, 517+3, null); break;
-				case 3: g.drawImage(foul.getBufferedImage(), i*actionButtonWidth-2, 517+3, null); break;
-				case 4: g.drawImage(pass.getBufferedImage(), i*actionButtonWidth-2, 517+3, null); break;
-				case 5: g.drawImage(handoff.getBufferedImage(), i*actionButtonWidth-2, 517+3, null); break;
+				case 0: g.drawImage(run.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
+				case 1: g.drawImage(block.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
+				case 2: g.drawImage(blitz.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
+				case 3: g.drawImage(foul.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
+				case 4: g.drawImage(pass.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
+				case 5: g.drawImage(handoff.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
 				default: System.out.println("dont have that image");
 				}
 			}else{
 				g.drawImage(actionOff.getImage(), i*actionButtonWidth, 517, null);
 				switch(i){
-				case 0: g.drawImage(run.getBufferedImage(), i*actionButtonWidth-4, 517, null); break;
-				case 1: g.drawImage(block.getBufferedImage(), i*actionButtonWidth-4, 517, null); break;
-				case 2: g.drawImage(blitz.getBufferedImage(), i*actionButtonWidth-4, 517, null); break;
-				case 3: g.drawImage(foul.getBufferedImage(), i*actionButtonWidth-4, 517, null); break;
-				case 4: g.drawImage(pass.getBufferedImage(), i*actionButtonWidth-4, 517, null); break;
-				case 5: g.drawImage(handoff.getBufferedImage(), i*actionButtonWidth-4, 517, null); break;
+				case 0: g.drawImage(run.getBufferedImage(),inputManager.getActionButtonOrigin().getX() + i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
+				case 1: g.drawImage(block.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
+				case 2: g.drawImage(blitz.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
+				case 3: g.drawImage(foul.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
+				case 4: g.drawImage(pass.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
+				case 5: g.drawImage(handoff.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, 517, null); break;
 				default: System.out.println("dont have that image");
 				}
 			}
@@ -278,31 +295,7 @@ public class Renderer extends JPanel{
 			}
 		}
 	}
-	
-	public void paintComponent(Graphics g) {
-		g.drawImage(background.getImage(), 0, 0, null);
-		g.setColor(Color.WHITE);
-		hoverSquare(g, inputManager.getMouseX(), inputManager.getMouseY());
-		
-		drawPlayers(g);
-				
-		drawActionButtons(g);
-		drawDiceButton(g);
-		diceAlert(g,true);
-		
-		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
-		
-		Font font = new Font("Arial", Font.PLAIN, 25);	    
-	    g.setFont(font); //<--
-		g.drawString(team1Score.toString(), 45, 47);
-		g.drawString(team2Score.toString(), screenWidth-58, 47);
-		
-		Font font2 = new Font("Arial", Font.PLAIN, 32);	    
-	    g.setFont(font2);
-		g.drawString(team1Name.toString(), 145, 37);
-		g.drawString(team2Name.toString(), screenWidth-278, 37);
-		
-	}
+
 
 	private void drawDiceRoll(Graphics g, DiceRoll currentDiceRoll) {
 
@@ -314,6 +307,8 @@ public class Renderer extends JPanel{
 				g.drawImage(img, diceButtonOrigin.getX()-55-i*55, diceButtonOrigin.getY()+10, null);
 				i++;
 			}
+			g.drawRect(inputManager.getDiceButtonOrigin().getX()-(i*56)-3, inputManager.getDiceButtonOrigin().getY()+2, i*56, 68);
+			
 			
 		}	
 	}
@@ -392,6 +387,57 @@ public class Renderer extends JPanel{
 			drawPlayer(g, p, index%2 + 1 + 26, index/2 + 1);
 			
 		}
+		
+	}
+	
+	public void drawStats(Graphics g){
+		Player p = gameMaster.getSelectedPlayer();
+		if(p != null){
+			int x = InputManager.getActionButtonOrigin().getX()+6*inputManager.getActionButtonWidth()+5;
+			int y = InputManager.getActionButtonOrigin().getY()+2;
+			g.drawRect(x, y, 140, 68);
+			int movesLeft = p.getMA() - gameMaster.getSelectedPlayer().getPlayerStatus().getMovementUsed();
+			g.drawString(p.getTitle(), x+15, y+15);
+			g.drawString("MA = "+movesLeft+"/"+p.getMA(), x+15, y+35);
+			g.drawString("AG = "+p.getAG(), x+75, y+35);
+			g.drawString("AV = "+p.getAV(), x+15, y+55);
+			g.drawString("ST = "+p.getST(), x+75, y+55);
+		}
+	}
+	
+	public void drawWeather(Graphics g){
+		
+	}
+	
+	public void paintComponent(Graphics g) {
+		g.drawImage(background.getImage(), 0, 0, null);
+		g.setColor(Color.WHITE);
+		hoverSquare(g, inputManager.getMouseX(), inputManager.getMouseY());
+		
+		drawPlayers(g);
+				
+		drawActionButtons(g);
+		drawStats(g);
+		drawDiceButton(g);
+		diceAlert(g,true);
+		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
+		
+		g.drawImage(weather.getBufferedImage(), 845, 535, null);
+		
+		Font font = new Font("Arial", Font.PLAIN, 25);	    
+	    g.setFont(font); //<--
+		g.drawString(team1Score.toString(), 23, 47);
+		g.drawString(team2Score.toString(), screenWidth-38, 47);
+		
+		font = new Font("Arial", Font.PLAIN, 15);	    
+	    g.setFont(font); //<--
+		g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getRerolls(), 125, 37);
+		g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getRerolls(),  screenWidth-178, 37);
+		
+		Font font2 = new Font("Arial", Font.PLAIN, 32);	    
+	    g.setFont(font2);
+		g.drawString(team1Name.toString(), 245, 37);
+		g.drawString(team2Name.toString(), screenWidth-378, 37);
 		
 	}
 }
