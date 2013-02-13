@@ -397,16 +397,18 @@ public class Renderer extends JPanel{
 			int y = InputManager.getActionButtonOrigin().getY()+2;
 			g.drawRect(x, y, 140, 68);
 			int movesLeft = p.getMA() - gameMaster.getSelectedPlayer().getPlayerStatus().getMovementUsed();
-			g.drawString(p.getTitle(), x+15, y+15);
-			g.drawString("MA = "+movesLeft+"/"+p.getMA(), x+15, y+35);
-			g.drawString("AG = "+p.getAG(), x+75, y+35);
-			g.drawString("AV = "+p.getAV(), x+15, y+55);
-			g.drawString("ST = "+p.getST(), x+75, y+55);
+			
+			Font font = new Font("Arial", Font.PLAIN, 16);	    
+		    g.setFont(font); //<--
+			g.drawString(p.getTitle(), x+15, y+17);
+			
+			font = new Font("Arial", Font.PLAIN, 12);	    
+		    g.setFont(font); //<--
+			g.drawString("MA = "+movesLeft+"/"+p.getMA(), x+15, y+37);
+			g.drawString("AG = "+p.getAG(), x+75, y+37);
+			g.drawString("AV = "+p.getAV(), x+15, y+57);
+			g.drawString("ST = "+p.getST(), x+75, y+57);
 		}
-	}
-	
-	public void drawWeather(Graphics g){
-		
 	}
 	
 	public void paintComponent(Graphics g) {
@@ -434,10 +436,10 @@ public class Renderer extends JPanel{
 		g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getRerolls(), 125, 37);
 		g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getRerolls(),  screenWidth-178, 37);
 		
-		Font font2 = new Font("Arial", Font.PLAIN, 32);	    
-	    g.setFont(font2);
-		g.drawString(team1Name.toString(), 245, 37);
-		g.drawString(team2Name.toString(), screenWidth-378, 37);
+		font = new Font("Arial", Font.PLAIN, 32);	    
+	    g.setFont(font);
+		g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
+		g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
 		
 	}
 }
