@@ -671,6 +671,10 @@ public class GameMaster {
 		
 		boolean moveAllowed = false;
 		
+		if (!nextToEachOther(selectedPlayer, square)){
+			return false;
+		}
+		
 		// Turn
 		if (state.getGameStage() == GameStage.HOME_TURN && 
 				state.getHomeTeam() == playerOwner(player)){
@@ -693,6 +697,11 @@ public class GameMaster {
 			if (player.getPlayerStatus().getMovementUsed() < 1){
 				moveAllowed = true;
 			}
+			
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE &&
+				state.getKickingTeam() == playerOwner(player)){
+					
+			moveAllowed = true;
 			
 		}
 		
@@ -1094,12 +1103,88 @@ public class GameMaster {
 	
 	public void squareClicked(int x, int y) {
 		
-		if (selectedPlayer != null){
+		Square square = new Square(x, y);
+		Player clickedPlayer = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
+		
+		if (state.getGameStage() == GameStage.KICKING_SETUP){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
 				
-			// Places player if allowed to
-			placePlayerIfAllowed(selectedPlayer, new Square(x, y));
+				// Places player if allowed to
+				placePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
+		
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
+				
+				// Places player if allowed to
+				placePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.HOME_TURN || 
+				state.getGameStage() == GameStage.AWAY_TURN){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getMovingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.BLITZ){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+			}
+			
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
 			
 		}
+		
+	}
+
+	private boolean nextToEachOther(Player player, Square square) {
+		
+		if (state.getPitch().isOnPitch(player)){
+			
+			Square aPos = state.getPitch().getPlayerPosition(player);
+			
+			// Not equal
+			if (aPos.getX() == square.getX() && aPos.getY() == square.getY()){
+				return false;
+			}
+			
+			// At most one away
+			if (Math.abs( aPos.getX() - square.getX() ) <= 1 ){
+				if (Math.abs( aPos.getY() - square.getY() ) <= 1 ){
+					return true;
+				}
+			}
+			
+		}
+		
+		return false;
 		
 	}
 
