@@ -1,5 +1,10 @@
 package models;
 
+import game.Catch;
+import game.Dodge;
+import game.GoingForIt;
+import game.PickUp;
+
 import java.util.ArrayList;
 
 import models.dice.BB;
@@ -23,6 +28,11 @@ public class GameState {
 	private Team receivingTeam;
 	private GameStage gameStage;
 	private Block currentBlock;
+	private Dodge currentDodge;
+	private GoingForIt currentGoingForIt;
+	private boolean awaitReroll;
+	private PickUp currentPickUp;
+	private Catch currentCatch;
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
 		super();
@@ -38,6 +48,12 @@ public class GameState {
 		this.gameStage = GameStage.START_UP;
 		this.weather = Weather.NICE;
 		this.coinToss = new CoinToss();
+		this.currentDodge = null;
+		this.awaitReroll = false;
+		this.currentGoingForIt = null;
+		this.currentPickUp = null;
+		this.currentCatch = null;
+		// Only for testing purposes - should be null
 		this.currentDiceRoll = new DiceRoll();
 		BB a = new BB();
 		a.roll();
@@ -158,7 +174,7 @@ public class GameState {
 		this.currentBlock = currentBlock;
 	}
 
-	public void setCurrnetDiceRoll(DiceRoll diceRoll) {
+	public void setCurrentDiceRoll(DiceRoll diceRoll) {
 		this.currentDiceRoll = diceRoll;
 	}
 
@@ -179,7 +195,61 @@ public class GameState {
 		homeTurn++;
 		
 	}
+
+	public void setCurrentDodge(Dodge dodge) {
+		this.currentDodge = dodge;
+		
+	}
 	
+	public Dodge getCurrentDodge(){
+		
+		return this.currentDodge;
+	}
+
+	public void setAwaitReroll(boolean b) {
+		this.awaitReroll = b;
+		
+	}
 	
+	public boolean isAwaitingReroll(){
+		return this.awaitReroll;
+	}
+
+	public void setCurrentGoingForIt(GoingForIt goingForIt) {
+		this.currentGoingForIt = goingForIt;
+	}
+	
+	public GoingForIt getCurrentGoingForIt(){
+		
+		return currentGoingForIt;
+	}
+
+	public void setCurrentPickUp(PickUp pickUp) {
+		this.currentPickUp = pickUp;
+		
+	}
+	
+	public PickUp getCurrentPickUp(){
+		return currentPickUp;
+	}
+
+	public Team getMovingTeam() {
+		
+		if (isHomeTurn){
+			return homeTeam;
+		} else {
+			return awayTeam;
+		}
+	}
+
+	public void setCurrentCatch(Catch c) {
+		this.currentCatch = c;
+		
+	}
+	
+	public Catch getCurrentCatch(){
+		
+		return currentCatch;
+	}
 	
 }

@@ -60,6 +60,11 @@ public class PlayerStatus {
 	public void setMovedToBlock(boolean movementUsedToBlock) {
 		this.movedToBlock = movementUsedToBlock;
 	}
+
+	public void useMovement(int i) {
+		movementUsed += i;
+		
+	}
 	
 	
 	

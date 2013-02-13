@@ -1,5 +1,7 @@
 package game;
 
+import java.security.acl.Owner;
+
 import models.Block;
 import models.BlockSum;
 import models.GameStage;
@@ -12,6 +14,7 @@ import models.Team;
 import models.Weather;
 import models.dice.BB;
 import models.dice.D6;
+import models.dice.D8;
 import models.dice.DiceFace;
 import models.dice.DiceRoll;
 
@@ -176,7 +179,7 @@ public class GameMaster {
 	 * @param player
 	 * @param square
 	 */
-	public void placePlayer(Player player, Square square){
+	public void placePlayerIfAllowed(Player player, Square square){
 		
 		Team team = getPlayerOwner(player);
 		boolean moveAllowed = false;
@@ -194,6 +197,7 @@ public class GameMaster {
 			
 		}
 		
+		//For debugging
 		//moveAllowed = true;
 		
 		// Square occupied?
@@ -279,6 +283,7 @@ public class GameMaster {
 			}
 			
 			state.setCurrentBlock(new Block(attacker, defender));
+			state.setAwaitReroll(true);
 			
 		}
 		
@@ -297,18 +302,461 @@ public class GameMaster {
 			// Select face
 			DiceFace face = state.getCurrentDiceRoll().getFaces().get(i);
 			
-			// Continue block?
+			// Continue block/dodge/going
 			if (state.getCurrentBlock() != null){
 				
+				state.setAwaitReroll(false);
 				continueBlock(face);
 				
 			}
+		}
+		
+	}
+	
+	public void reroll(){
+		
+		if (!state.isAwaitingReroll()){
+			return;
+		}
+		
+	 	if (state.getCurrentDodge() != null){
 			
+			state.setAwaitReroll(false);
+			state.getMovingTeam().useReroll();
+			
+			DiceRoll roll = new DiceRoll();
+			D6 d = new D6();
+			d.roll();
+			roll.addDice(d);
+			state.setCurrentDiceRoll(roll);
+			
+			continueDodge(d.getResultAsInt());
+			
+		} else if (state.getCurrentGoingForIt() != null){
+			
+			state.setAwaitReroll(false);
+			state.getMovingTeam().useReroll();
+			
+			DiceRoll roll = new DiceRoll();
+			D6 d = new D6();
+			d.roll();
+			roll.addDice(d);
+			state.setCurrentDiceRoll(roll);
+			
+			continueGoingForIt(d.getResultAsInt());
 			
 		}
 		
 	}
 	
+	private void continueGoingForIt(int result) {
+		
+		if (result > 1){
+			
+			dodgeToMovePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
+			
+		} else {
+			
+			movePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
+			knockDown(state.getCurrentDodge().getPlayer());
+			
+		}
+		
+	}
+
+	private void continueDodge(int result) {
+		
+		performDodge(state.getCurrentDodge().getPlayer(), 
+				state.getCurrentDodge().getSquare(), 
+				result, 
+				state.getCurrentDodge().getSuccess());
+		
+	}
+
+	/**
+	 * Moves a player to a square. 
+	 * 
+	 * @param player
+	 * @param square
+	 */
+	public void movePlayerIfAllowed(Player player, Square square){
+		
+		boolean moveAllowed = moveAllowed(player, square);
+		
+		if (!moveAllowed){
+			return;
+		}
+		
+		dodgeToMovePlayer(player, square);
+		
+	}
+	
+	private void dodgeToMovePlayer(Player player, Square square) {
+
+		// Dodge
+		int zones = 0;
+		if (isInTackleZone(player)){
+			
+			zones = numberOfTackleZones(player, square);
+			
+		}
+		
+		int success = getDodgeSuccesRoll(player, zones);
+		
+		DiceRoll roll = new DiceRoll();
+		D6 d = new D6();
+		roll.addDice(d);
+		d.roll();
+		int result = d.getResultAsInt();
+		
+		state.setCurrentDiceRoll(roll);
+		
+		performDodge(player, square, result, success);
+		
+	}
+
+	private void performDodge(Player player, Square square, int result, int success) {
+		
+		// Success?
+		if (result == 6 || (result != 1 && result > success)){
+			
+			// Move
+			movePlayer(player, square);
+			
+		} else {
+			
+			// Reroll?
+			if (ableToReroll(getPlayerOwner(player))){
+				
+				// Prepare for reroll usage
+				state.setCurrentDodge(new Dodge(player, square, success));
+				state.setAwaitReroll(true);
+				
+			} else {
+
+				// Player fall
+				movePlayer(player, square);
+				knockDown(player);
+				endTurn();
+				
+			}
+		}
+		
+	}
+
+	private boolean ableToReroll(Team team) {
+		if (team.getTeamStatus().getRerolls() > 0 &&
+				!team.getTeamStatus().rerolledThisTurn()){
+			return true;
+		}
+		return false;
+	}
+
+	private int getDodgeSuccesRoll(Player player, int zones) {
+		
+		int roll = 6 - player.getAG() + zones;
+		
+		return Math.max( 1, Math.min(6, roll) );
+	}
+
+	private int numberOfTackleZones(Player player, Square square) {
+		
+		int num = 0;
+		
+		for(int y = -1; y <= 1; y++){
+			for(int x = -1; x <= 1; x++){
+				
+				Square test = new Square(square.getX() + x, square.getY() + y);
+				
+				Player p = state.getPitch().getPlayerArr()[test.getY()][test.getX()]; 
+				
+				// Opposite team?
+				if (p != null &&
+						getPlayerOwner(p) != getPlayerOwner(player)){
+					
+					num++;
+					
+				}
+			}
+		}
+		
+		return num;
+		
+	}
+
+	private boolean isInTackleZone(Player player) {
+		
+		Square square = state.getPitch().getPlayerPosition(player);
+		
+		for(int y = -1; y <= 1; y++){
+			for(int x = -1; x <= 1; x++){
+				
+				Square test = new Square(square.getX() + x, square.getY() + y);
+				
+				Player p = state.getPitch().getPlayerArr()[test.getY()][test.getX()]; 
+				
+				// Opposite team?
+				if (p != null &&
+						getPlayerOwner(p) != getPlayerOwner(player)){
+					
+					return true;
+					
+				}
+			}
+		}
+		
+		return false;
+		
+	}
+
+	private void movePlayer(Player player, Square square) {
+
+		// Use movement
+		if (player.getPlayerStatus().getStanding() == Standing.DOWN){
+			
+			player.getPlayerStatus().useMovement(3 + 1);
+			
+		} else {
+			
+			player.getPlayerStatus().useMovement(3 + 1);
+
+		}
+		
+		// Move player
+		removePlayerFromCurrentSquare(player);
+		movePlayerToSquare(player, square);
+		
+		// Pick up ball
+		Square ballOn = state.getPitch().getBall().getSquare();
+		if (ballOn.getX() == square.getX() && ballOn.getY() == square.getY()){
+			
+			pickUpBall();
+			
+		}
+		
+	}
+
+	private void pickUpBall() {
+		
+		Square square = state.getPitch().getBall().getSquare();
+		
+		Player player = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
+		
+		if (player == null || square == null){	
+			return;
+		}
+		
+		int zones = numberOfTackleZones(player, square);
+		int success = 6 - player.getAG() + zones;
+		success = Math.max( 1, Math.min(6, success) );
+		
+		// Roll
+		DiceRoll roll = new DiceRoll();
+		D6 d = new D6();
+		roll.addDice(d);
+		d.roll();
+		state.setCurrentDiceRoll(roll);
+		
+		if (d.getResultAsInt() == 6 || 
+				(d.getResultAsInt() != 1 && d.getResultAsInt() > success)){
+			
+			state.getPitch().getBall().setUnderControl(true);
+			
+		} else if (ableToReroll(getPlayerOwner(player))) {
+			
+			state.setCurrentPickUp(new PickUp(player, square, success));
+			state.setAwaitReroll(true);
+			
+		} else {
+			
+			scatterBall();
+			
+			// End turn?
+			// TODO: check to see if ball was thrown or scattered, maybe?
+			if (getPlayerOwner(player) == state.getMovingTeam()){
+				
+				endTurn();
+				
+			}
+			
+		}
+		
+	}
+
+	private void scatterBall() {
+		
+		int result = (int) (Math.random() * 8 + 1);
+		Square ballOn = state.getPitch().getBall().getSquare();
+		
+		switch (result){
+		case 1 : ballOn = new Square(ballOn.getX() - 1, ballOn.getY() - 1);
+		case 2 : ballOn = new Square(ballOn.getX(), ballOn.getY() - 1);
+		case 3 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() - 1);
+		case 4 : ballOn = new Square(ballOn.getX() - 1, ballOn.getY());
+		case 5 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY());
+		case 6 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() + 1);
+		case 7 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() + 1);
+		case 8 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() + 1);
+		}
+		
+		state.getPitch().getBall().setSquare(ballOn);
+		
+		Player player = state.getPitch().getPlayerArr()[ballOn.getY()][ballOn.getX()];
+		
+		// Land on player
+		if (player != null){
+			
+			catchBall();
+			
+		}
+		
+		// Outside pitch
+		// TODO 
+	}
+
+	private void catchBall() {
+		
+		Square square = state.getPitch().getBall().getSquare();
+		
+		Player player = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
+		
+		if (player == null || square == null){	
+			return;
+		}
+		
+		int zones = numberOfTackleZones(player, square);
+		int success = 6 - player.getAG() + zones;
+		success = Math.max( 1, Math.min(6, success) );
+		
+		// Roll
+		DiceRoll roll = new DiceRoll();
+		D6 d = new D6();
+		roll.addDice(d);
+		d.roll();
+		state.setCurrentDiceRoll(roll);
+		
+		if (d.getResultAsInt() == 6 || 
+				(d.getResultAsInt() != 1 && d.getResultAsInt() > success)){
+			
+			state.getPitch().getBall().setUnderControl(true);
+			
+		} else if (ableToReroll(getPlayerOwner(player))) {
+			
+			state.setCurrentCatch(new Catch(player, square, success));
+			state.setAwaitReroll(true);
+			
+		} else {
+			
+			scatterBall();
+			
+			// End turn? 
+			// TODO: check to see if ball was thrown or scattered
+			if (getPlayerOwner(player) == state.getMovingTeam()){
+				
+				endTurn();
+				
+			}
+			
+		}
+		
+	}
+
+	private void movePlayerToSquare(Player player, Square square) {
+		
+		state.getPitch().getPlayerArr()[square.getY()][square.getX()] = player;
+		
+	}
+
+	private boolean moveAllowed(Player player, Square square) {
+		
+		boolean moveAllowed = false;
+		
+		// Turn
+		if (state.getGameStage() == GameStage.HOME_TURN && 
+				state.getHomeTeam() == playerOwner(player)){
+			
+			moveAllowed = true;
+			
+		} else if (state.getGameStage() == GameStage.AWAY_TURN && 
+				state.getAwayTeam() == playerOwner(player)){
+			
+			moveAllowed = true;
+			
+		} else if (state.getGameStage() == GameStage.BLITZ && 
+				state.getKickingTeam() == playerOwner(player)){
+			
+			moveAllowed = true;
+			
+		} else if (state.getGameStage() == GameStage.QUICK_SNAP && 
+				state.getReceivingTeam() == playerOwner(player)){
+			
+			if (player.getPlayerStatus().getMovementUsed() < 1){
+				moveAllowed = true;
+			}
+			
+		}
+		
+		// Player turn
+		if (player.getPlayerStatus().getTurn() == PlayerTurn.USED){
+			return false;
+		}
+
+		// Movement left
+		if (player.getPlayerStatus().getStanding() == Standing.UP){
+			
+			if (player.getPlayerStatus().getMovementUsed() < player.getMA()){
+				
+				// Move
+				moveAllowed = true;
+				
+			} else if (player.getPlayerStatus().getMovementUsed() < player.getMA() + 2){
+			
+				// Going for it
+				goingForIt(player, square);
+				
+			}
+			
+		} else if (player.getPlayerStatus().getStanding() == Standing.DOWN){
+			
+			if (player.getPlayerStatus().getMovementUsed() + 3 < player.getMA()){
+				
+				// Move
+				moveAllowed = true;
+				
+			}
+			
+		} else if (player.getPlayerStatus().getStanding() == Standing.STUNNED){
+			
+			return false;
+			
+		}
+		
+		// Square occupied?
+		if (state.getPitch().getPlayerArr()[square.getY()][square.getX()] != null){
+			
+			return false;
+			
+		}
+		
+		return moveAllowed;
+	}
+	
+	private void goingForIt(Player player, Square square) {
+		
+		DiceRoll roll = new DiceRoll();
+		D6 d = new D6();
+		roll.addDice(d);
+		d.roll();
+		
+		if (d.getResultAsInt() > 1){
+			dodgeToMovePlayer(player, square);
+		} else {
+			state.setCurrentGoingForIt(new GoingForIt(player, square));
+			state.setAwaitReroll(true);
+		}
+		
+	}
+
 	private void continueBlock(DiceFace face) {
 		
 		switch(face){
@@ -649,7 +1097,7 @@ public class GameMaster {
 		if (selectedPlayer != null){
 				
 			// Places player if allowed to
-			placePlayer(selectedPlayer, new Square(x, y));
+			placePlayerIfAllowed(selectedPlayer, new Square(x, y));
 			
 		}
 		
