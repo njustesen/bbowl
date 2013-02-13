@@ -9,15 +9,17 @@ public class Team {
 	protected int fanFactor;
 	protected int assistantCoaches;
 	protected TeamStatus gameStatus;
+	protected String teamName;
 	
 	public Team(ArrayList<Player> players, int rerolls,
-			int fanFactor, int assistantCoaches, TeamStatus gameStatus) {
+			int fanFactor, int assistantCoaches, TeamStatus gameStatus, String teamName) {
 		super();
 		this.players = players;
 		this.rerolls = rerolls;
 		this.fanFactor = fanFactor;
 		this.assistantCoaches = assistantCoaches;
 		this.gameStatus = gameStatus;
+		this.teamName = teamName;
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -32,6 +34,9 @@ public class Team {
 		return rerolls;
 	}
 
+	public String getTeamName(){
+		return teamName;
+	}
 	public void setRerolls(int rerolls) {
 		this.rerolls = rerolls;
 	}
