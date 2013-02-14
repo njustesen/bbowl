@@ -7,12 +7,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
-<<<<<<< HEAD
-import models.GameStage;
-=======
 import models.Player;
->>>>>>> 481ff5bd45554d04249418a53d7951b0000d2437
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
 	
