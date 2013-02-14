@@ -7,6 +7,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+
+import models.GameStage;
 import models.Player;
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
@@ -101,23 +103,31 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			screenToArray(e.getX(), e.getY());
 		}
 		
-	//	if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
-/*			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&
-					e.getY() < headsCenter.getY()+75 && e.getY() > headsCenter.getY()-75){
-				System.out.println("heads chosen");
-			}else if(e.getX() < tailsCenter.getX()+75 && e.getX() > tailsCenter.getX()-75 &&
-					e.getY() < tailsCenter.getY()+75 && e.getY() > tailsCenter.getY()-75){
-				System.out.println("tails chosen");
-			}
-*/	//	}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
 			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&
 					e.getY() < headsCenter.getY()+75 && e.getY() > headsCenter.getY()-75){
-				System.out.println("kick chosen");
+
+				gameMaster.pickCoinSide(true);
+				
 			}else if(e.getX() < tailsCenter.getX()+75 && e.getX() > tailsCenter.getX()-75 &&
 					e.getY() < tailsCenter.getY()+75 && e.getY() > tailsCenter.getY()-75){
-				System.out.println("receive chosen");
+				
+				gameMaster.pickCoinSide(false);
+				
 			}
-		//}
+		}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&
+					e.getY() < headsCenter.getY()+75 && e.getY() > headsCenter.getY()-75){
+				
+				gameMaster.pickCoinTossEffect(false);
+				
+			}else if(e.getX() < tailsCenter.getX()+75 && e.getX() > tailsCenter.getX()-75 &&
+					e.getY() < tailsCenter.getY()+75 && e.getY() > tailsCenter.getY()-75){
+				
+				gameMaster.pickCoinTossEffect(true);
+				
+			}
+		}
 			
 			if(e.getX() < rerollButtonOrigin.getX()+rerollButtonWidth && e.getX() > rerollButtonOrigin.getX() &&
 					e.getY() < rerollButtonOrigin.getY()+rerollButtonHeight && e.getY() > rerollButtonOrigin.getY()){
@@ -126,7 +136,13 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			
 			if(e.getX() < endTurnButtonOrigin.getX()+actionButtonWidth && e.getX() > endTurnButtonOrigin.getX() &&
 					e.getY() < endTurnButtonOrigin.getY()+actionButtonHeight && e.getY() > endTurnButtonOrigin.getY()){
-				System.out.println("End Turn pressed");
+				
+				if (gameMaster.getState().getGameStage() == GameStage.START_UP){
+					gameMaster.startGame();
+				} else {
+					gameMaster.endPhase();
+				}
+				
 			}
 	}
 	

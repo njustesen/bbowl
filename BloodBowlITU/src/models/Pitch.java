@@ -144,7 +144,7 @@ public class Pitch {
 			}
 			
 			// Count players on right side
-			for(int x = 14; x <= 28; x++){
+			for(int x = 14; x < 28; x++){
 				
 				// If the found player is on the team
 				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){

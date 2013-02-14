@@ -32,13 +32,13 @@ public class GameMaster {
 	}
 	
 	public void update(){
-		
+		/*
 		switch(state.getGameStage()){
 		case KICK_PLACEMENT : getKickingAgent().takeAction(this, state);	
 		case HOME_TURN : homeAgent.takeAction(this, state);	
 		case AWAY_TURN : awayAgent.takeAction(this, state);	
 		}
-		
+		*/
 	}
 	
 	/**
