@@ -8,6 +8,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import models.GameStage;
+
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
 	
 	int mouseX;
@@ -23,8 +25,13 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	private static int actionButtonWidth = 66;
 	private static int actionButtonHeight = 73;
 	private static Point2D actionButtonOrigin = new Point2D(0,517);
-	private static Point2D diceButtonOrigin = new Point2D(736,517);
+	private static Point2D rerollButtonOrigin = new Point2D(742,517);
+	private static int rerollButtonWidth = 31;
+	private static int rerollButtonHeight = 72;
+	private static Point2D endTurnButtonOrigin = new Point2D(rerollButtonOrigin.getX()+32,517);
 	private static Point2D pitchOrigin = new Point2D(60,57);
+	private static Point2D headsCenter = new Point2D(300,300);
+	private static Point2D tailsCenter = new Point2D(600,300);
 	private static int pitchSquareSize = 30;
 	
 	public InputManager(GameMaster gameMaster){
@@ -33,6 +40,10 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	
 	public static Point2D getPitchOrigin() {
 		return pitchOrigin;
+	}
+	
+	public static Point2D getEndTurnButtonOrigin() {
+		return endTurnButtonOrigin;
 	}
 
 	public static Point2D getActionButtonOrigin() {
@@ -83,12 +94,50 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	@Override
 	public void mousePressed(MouseEvent e) {
 		int button = e.getButton();
+		
+		
 		if (button == 1){
 			mouse1Down = true;
 			screenToArray(e.getX(), e.getY());
 		}
+		
+	//	if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
+/*			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&
+					e.getY() < headsCenter.getY()+75 && e.getY() > headsCenter.getY()-75){
+				System.out.println("heads chosen");
+			}else if(e.getX() < tailsCenter.getX()+75 && e.getX() > tailsCenter.getX()-75 &&
+					e.getY() < tailsCenter.getY()+75 && e.getY() > tailsCenter.getY()-75){
+				System.out.println("tails chosen");
+			}
+*/	//	}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&
+					e.getY() < headsCenter.getY()+75 && e.getY() > headsCenter.getY()-75){
+				System.out.println("kick chosen");
+			}else if(e.getX() < tailsCenter.getX()+75 && e.getX() > tailsCenter.getX()-75 &&
+					e.getY() < tailsCenter.getY()+75 && e.getY() > tailsCenter.getY()-75){
+				System.out.println("receive chosen");
+			}
+		//}
+			
+			if(e.getX() < rerollButtonOrigin.getX()+rerollButtonWidth && e.getX() > rerollButtonOrigin.getX() &&
+					e.getY() < rerollButtonOrigin.getY()+rerollButtonHeight && e.getY() > rerollButtonOrigin.getY()){
+				System.out.println("reroll pressed");
+			}
+			
+			if(e.getX() < endTurnButtonOrigin.getX()+actionButtonWidth && e.getX() > endTurnButtonOrigin.getX() &&
+					e.getY() < endTurnButtonOrigin.getY()+actionButtonHeight && e.getY() > endTurnButtonOrigin.getY()){
+				System.out.println("End Turn pressed");
+			}
 	}
 	
+	public static Point2D getHeadsCenter() {
+		return headsCenter;
+	}
+
+	public static Point2D getTailsCenter() {
+		return tailsCenter;
+	}
+
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int button = e.getButton();
@@ -230,7 +279,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	}
 
 	public static Point2D getDiceButtonOrigin() {
-		return diceButtonOrigin;
+		return rerollButtonOrigin;
 	}
 
 }

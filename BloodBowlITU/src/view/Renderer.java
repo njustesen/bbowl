@@ -18,6 +18,7 @@ import java.net.URL;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import models.GameStage;
 import models.Player;
 import models.Race;
 import models.Square;
@@ -50,7 +51,7 @@ public class Renderer extends JPanel{
 	private static int actionButtonHeight;
 	private static InputManager inputManager;
 	private static Point2D pitchOrigin;
-	private static Point2D diceButtonOrigin;
+	private static Point2D rerollButtonOrigin;
 	
 	/////////////////////////
 	/////// graphics ////////
@@ -67,8 +68,15 @@ public class Renderer extends JPanel{
 	private BBImage handoff = new BBImage("handoff.png");
 	private BBImage greenGlow = new BBImage("greenGlow.png");
 	//dice-button
-	private BBImage diceOn = new BBImage("diceButtonOn2.jpg");
-	private BBImage diceOff = new BBImage("diceButtonOff.jpg");
+	private BBImage endTurnOn = new BBImage("endturnon.png");
+	private BBImage endTurnOff = new BBImage("endturnoff.png");
+	//coin
+	private BBImage heads = new BBImage("heads.png");
+	private BBImage tails = new BBImage("tails.png");
+	private BBImage kick = new BBImage("kick.png");
+	private BBImage receive = new BBImage("receive.png");
+	private BBImage kickGlow = new BBImage("kickGlow.png");
+	private BBImage receiveGlow = new BBImage("receiveGlow.png");
 	//dice-images
 	private BBImage bbDice1 = new BBImage("bbdiceSkull.png");
 	private BBImage bbDice2 = new BBImage("bbdiceBothDown.png");
@@ -114,7 +122,7 @@ public class Renderer extends JPanel{
 		actionButtonWidth = im.getActionButtonWidth();
 		actionButtonHeight = im.getActionButtonHeight();
 		pitchOrigin = InputManager.getPitchOrigin();
-		diceButtonOrigin = InputManager.getDiceButtonOrigin();
+		rerollButtonOrigin = InputManager.getDiceButtonOrigin();
 		gameMaster = gm;
 		
 		this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -205,21 +213,20 @@ public class Renderer extends JPanel{
 		}			
 	}
 	
-	public void drawDiceButton(Graphics g){
+	public void drawEndTurnButton(Graphics g){
 			
-			if(inputManager.getMouseX() > diceButtonOrigin.getX() && inputManager.getMouseX() < diceButtonOrigin.getX()+actionButtonWidth &&
-					inputManager.getMouseY() > diceButtonOrigin.getY() && inputManager.getMouseY() < diceButtonOrigin.getX()+actionButtonHeight){				
-				g.drawImage(diceOn.getImage(), diceButtonOrigin.getX(), diceButtonOrigin.getY(), null);
+			if(inputManager.getMouseX() > inputManager.getEndTurnButtonOrigin().getX() && inputManager.getMouseX() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonWidth &&
+					inputManager.getMouseY() > inputManager.getEndTurnButtonOrigin().getY() && inputManager.getMouseY() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonHeight){				
+					g.drawImage(endTurnOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null);
 				}else{
-					g.drawImage(diceOff.getImage(), diceButtonOrigin.getX(), diceButtonOrigin.getY(), null);
+					g.drawImage(endTurnOff.getBufferedImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null);
 				}
 						
 		}
 	
-	public void diceAlert(Graphics g, boolean alert){
-		if(alert){
-			g.drawImage(roll.getBufferedImage(), diceButtonOrigin.getX()+actionButtonWidth+1, diceButtonOrigin.getY(), null);
-		}
+	public void drawReroll(Graphics g){
+
+			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);
 	}
 	
 	public void drawPlayer(Graphics g, Player p, int x, int y){
@@ -258,39 +265,39 @@ public class Renderer extends JPanel{
 	public void drawDice(Graphics g, int diceOne, int diceTwo, String type){
 		if(type == "D6"){
 			switch(diceOne){
-			case 1: g.drawImage(dice1.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-			case 2: g.drawImage(dice2.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-			case 3: g.drawImage(dice3.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-			case 4: g.drawImage(dice4.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-			case 5: g.drawImage(dice5.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-			case 6: g.drawImage(dice6.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
+			case 1: g.drawImage(dice1.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+			case 2: g.drawImage(dice2.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+			case 3: g.drawImage(dice3.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+			case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+			case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+			case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 			default: System.out.println("invalid diceRoll");
 		}
 		switch(diceTwo){
-			case 1: g.drawImage(dice1.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-			case 2: g.drawImage(dice2.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-			case 3: g.drawImage(dice3.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-			case 4: g.drawImage(dice4.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-			case 5: g.drawImage(dice5.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-			case 6: g.drawImage(dice6.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
+			case 1: g.drawImage(dice1.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+			case 2: g.drawImage(dice2.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+			case 3: g.drawImage(dice3.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+			case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+			case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+			case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 			default: System.out.println("invalid diceRoll");
 		}
 			
 		}else if(type == "BB"){
 			switch(diceOne){
-				case 1: g.drawImage(bbDice1.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-				case 2: g.drawImage(bbDice2.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-				case 3: g.drawImage(bbDice3.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-				case 4: g.drawImage(bbDice4.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
-				case 5: g.drawImage(bbDice5.getBufferedImage(), diceButtonOrigin.getX()-110, diceButtonOrigin.getY()+10, null); break;
+				case 1: g.drawImage(bbDice1.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+				case 2: g.drawImage(bbDice2.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
+				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 				default: System.out.println("invalid diceRoll");
 			}
 			switch(diceTwo){
-				case 1: g.drawImage(bbDice1.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-				case 2: g.drawImage(bbDice2.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-				case 3: g.drawImage(bbDice3.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-				case 4: g.drawImage(bbDice4.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
-				case 5: g.drawImage(bbDice5.getBufferedImage(), diceButtonOrigin.getX()-60, diceButtonOrigin.getY()+10, null); break;
+				case 1: g.drawImage(bbDice1.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+				case 2: g.drawImage(bbDice2.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
+				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 				default: System.out.println("invalid diceRoll");
 			}
 		}
@@ -304,7 +311,7 @@ public class Renderer extends JPanel{
 			int i = 0;
 			for(DiceFace face : gameMaster.getState().getCurrentDiceRoll().getFaces()){
 				BufferedImage img = getDiceImage(face);
-				g.drawImage(img, diceButtonOrigin.getX()-55-i*55, diceButtonOrigin.getY()+10, null);
+				g.drawImage(img, rerollButtonOrigin.getX()-55-i*55, rerollButtonOrigin.getY()+10, null);
 				i++;
 			}
 			g.drawRect(inputManager.getDiceButtonOrigin().getX()-(i*56)-3, inputManager.getDiceButtonOrigin().getY()+2, i*56, 68);
@@ -335,21 +342,21 @@ public class Renderer extends JPanel{
 	public void drawDice(Graphics g, int dice, String type){
 		if(type == "D6"){
 			switch(dice){
-				case 1: g.drawImage(dice1.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 2: g.drawImage(dice2.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 3: g.drawImage(dice3.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 4: g.drawImage(dice4.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 5: g.drawImage(dice5.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 6: g.drawImage(dice6.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 1: g.drawImage(dice1.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 2: g.drawImage(dice2.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 3: g.drawImage(dice3.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				default: System.out.println("invalid diceRoll");
 			}
 		}else if(type == "BB"){
 			switch(dice){
-				case 1: g.drawImage(bbDice1.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 2: g.drawImage(bbDice2.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 3: g.drawImage(bbDice3.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 4: g.drawImage(bbDice4.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
-				case 5: g.drawImage(bbDice5.getBufferedImage(), diceButtonOrigin.getX()-85, diceButtonOrigin.getY()+10, null); break;
+				case 1: g.drawImage(bbDice1.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 2: g.drawImage(bbDice2.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
+				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				default: System.out.println("invalid diceRoll");
 			}
 		}
@@ -390,6 +397,25 @@ public class Renderer extends JPanel{
 		
 	}
 	
+	public void drawCoinToss(Graphics g){
+		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
+			g.drawImage(heads.getBufferedImage(), inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, null);
+			g.drawImage(tails.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);
+			g.drawOval(inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, heads.getWidth(), heads.getHeight());
+			g.drawOval(inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, tails.getWidth(), tails.getHeight());
+		}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+			if(inputManager.getMouseX() < inputManager.getHeadsCenter().getX()+heads.getWidth()/2 && inputManager.getMouseX() > inputManager.getHeadsCenter().getX()-heads.getWidth()/2 &&
+					inputManager.getMouseY() < inputManager.getHeadsCenter().getY()+heads.getHeight()/2 && inputManager.getMouseY() > inputManager.getHeadsCenter().getY()-heads.getHeight()/2){
+				g.drawImage(kickGlow.getBufferedImage(), inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, null);
+			}else{g.drawImage(kick.getBufferedImage(), inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, null);}
+			
+			if(inputManager.getMouseX() < inputManager.getTailsCenter().getX()+tails.getWidth()/2 && inputManager.getMouseX() > inputManager.getTailsCenter().getX()-tails.getWidth()/2 &&
+					inputManager.getMouseY() < inputManager.getTailsCenter().getY()+tails.getHeight()/2 && inputManager.getMouseY() > inputManager.getTailsCenter().getY()-tails.getHeight()/2){
+				g.drawImage(receiveGlow.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);
+			}else{g.drawImage(receive.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);}
+		}
+	}
+	
 	public void drawStats(Graphics g){
 		Player p = gameMaster.getSelectedPlayer();
 		if(p != null){
@@ -420,10 +446,10 @@ public class Renderer extends JPanel{
 				
 		drawActionButtons(g);
 		drawStats(g);
-		drawDiceButton(g);
-		diceAlert(g,true);
+		drawEndTurnButton(g);
+		drawReroll(g);
 		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
-		
+		drawCoinToss(g);
 		g.drawImage(weather.getBufferedImage(), 845, 535, null);
 		
 		Font font = new Font("Arial", Font.PLAIN, 25);	    

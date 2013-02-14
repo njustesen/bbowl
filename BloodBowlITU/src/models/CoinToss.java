@@ -10,7 +10,6 @@ public class CoinToss {
 	boolean homeReceives;
 	
 	public CoinToss() {
-		super();
 		this.tossed = false;
 		this.homePicked = false;
 		this.result = false;
