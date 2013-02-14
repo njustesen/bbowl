@@ -8,7 +8,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+<<<<<<< HEAD
 import models.GameStage;
+=======
+import models.Player;
+>>>>>>> 481ff5bd45554d04249418a53d7951b0000d2437
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
 	
@@ -83,12 +87,13 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub	
+		
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub	
+		
+		
 	}
 
 	@Override
@@ -238,17 +243,30 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 
 	private void selectPlayer(int x, int y) {
 		
-		if (gameMaster.getState().getPitch().getPlayerArr()[y][x] != null){
+		Player player = gameMaster.getState().getPitch().getPlayerArr()[y][x];
+		
+		// Player?
+		if (player != null){
 			
-			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getPlayerArr()[y][x]);
+			// Selected player?
+			if (player == gameMaster.getSelectedPlayer()){
+				
+				// Remove selection
+				gameMaster.setSelectedPlayer(null);
+				
+			} else {
+				
+				// Select player
+				gameMaster.setSelectedPlayer(player);
+				
+			}
 			
 		} else {
 			
+			// Clicked on square
 			gameMaster.squareClicked(x,y);
 			
 		}
-		
-		
 		
 	}
 

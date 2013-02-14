@@ -8,17 +8,17 @@ public class Team {
 	protected int rerolls;
 	protected int fanFactor;
 	protected int assistantCoaches;
-	protected TeamStatus gameStatus;
+	protected TeamStatus teamStatus;
 	protected String teamName;
 	
 	public Team(ArrayList<Player> players, int rerolls,
-			int fanFactor, int assistantCoaches, TeamStatus gameStatus, String teamName) {
+			int fanFactor, int assistantCoaches, String teamName) {
 		super();
 		this.players = players;
 		this.rerolls = rerolls;
 		this.fanFactor = fanFactor;
 		this.assistantCoaches = assistantCoaches;
-		this.gameStatus = gameStatus;
+		this.teamStatus = new TeamStatus(4);
 		this.teamName = teamName;
 	}
 
@@ -57,12 +57,17 @@ public class Team {
 		this.assistantCoaches = assistantCoaches;
 	}
 
-	public TeamStatus getGameStatus() {
-		return gameStatus;
+	public TeamStatus getTeamStatus() {
+		return teamStatus;
 	}
 
-	public void setGameStatus(TeamStatus gameStatus) {
-		this.gameStatus = gameStatus;
+	public void setTeamStatus(TeamStatus gameStatus) {
+		this.teamStatus = gameStatus;
+	}
+
+	public void useReroll() {
+		this.rerolls--;
+		
 	}
 	
 }

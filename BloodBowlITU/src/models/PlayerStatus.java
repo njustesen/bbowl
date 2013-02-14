@@ -61,6 +61,9 @@ public class PlayerStatus {
 		this.movedToBlock = movementUsedToBlock;
 	}
 	
+	public void useMovement(int i){
+		this.movementUsed += i;
+	}
 	
 	
 }
