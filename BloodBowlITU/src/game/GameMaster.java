@@ -135,6 +135,65 @@ public class GameMaster {
 		
 	}
 	
+	public void selectAwayReserve(int reserve) {
+		
+		if (reserve >= state.getPitch().getAwayDogout().getReserves().size()){
+			
+			if (selectedPlayer != null){
+				
+				movePlayerToReserves(selectedPlayer, false);
+				
+			}
+			
+		} else if (selectedPlayer != state.getPitch().getAwayDogout().getReserves().get(reserve)){
+			
+			selectedPlayer = state.getPitch().getAwayDogout().getReserves().get(reserve);
+		
+		}
+		
+	}
+
+	public void selectHomeReserve(int reserve) {
+		
+		if (reserve >= state.getPitch().getHomeDogout().getReserves().size()){
+			
+			if (selectedPlayer != null){
+				
+				movePlayerToReserves(selectedPlayer, true);
+				
+			}
+			
+		} else if (selectedPlayer != state.getPitch().getHomeDogout().getReserves().get(reserve)){
+			
+			selectedPlayer = state.getPitch().getHomeDogout().getReserves().get(reserve);
+		
+		}
+		
+	}
+	
+	private void movePlayerToReserves(Player player, boolean home) {
+		
+		if (playerOwner(player) == state.getHomeTeam() && home){
+			
+			removePlayerFromCurrentSquare(player);
+			
+			removePlayerFromReserves(player);
+			
+			state.getPitch().getHomeDogout().getReserves().add(selectedPlayer);
+			
+			
+		} else if (playerOwner(player) == state.getAwayTeam() && !home){
+			
+			removePlayerFromCurrentSquare(player);
+			
+			removePlayerFromReserves(player);
+			
+			state.getPitch().getAwayDogout().getReserves().add(selectedPlayer);
+			
+		}
+		
+	}
+	
 	/**
 	 * Start the game!
 	 * This will initiate the coin toss game stage.

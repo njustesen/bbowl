@@ -222,36 +222,18 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			int reserveX = getMouseX()/30;
 			int reserveY = ((getMouseY()-pitchOrigin.getY())/30)*2;
 			int reserve = reserveX + reserveY;
-			selectHomeReserve(reserve);
+			gameMaster.selectHomeReserve(reserve);
 		}else if(getMouseX() > getScreenWidth()-2*pitchSquareSize && getMouseX() < getScreenWidth() &&
 				getMouseY() > pitchOrigin.getY() && getMouseY() < 8*pitchSquareSize + pitchOrigin.getY()){
 			int reserveX = (getMouseX()-getScreenWidth()+2*pitchSquareSize)/30;
 			int reserveY = ((getMouseY()-pitchOrigin.getY())/30)*2;
 			int reserve = reserveX + reserveY;
-			selectAwayReserve(reserve);
+			gameMaster.selectAwayReserve(reserve);
 		}else 
 			System.out.println("mouse not over pitch");
 			return null;
 	}
 	
-	private void selectAwayReserve(int reserve) {
-		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve)){
-			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve));
-		} else {
-			gameMaster.setSelectedPlayer(null);
-		}
-	}
-
-	private void selectHomeReserve(int reserve) {
-		
-		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve)){
-			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve));
-		} else {
-			gameMaster.setSelectedPlayer(null);
-		}
-		
-	}
-
 	private void selectPlayer(int x, int y) {
 		
 		Player player = gameMaster.getState().getPitch().getPlayerArr()[y][x];
