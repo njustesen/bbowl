@@ -144,6 +144,20 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 				}
 				
 			}
+			
+			clickReserves(e.getX(), e.getY(), true);
+	}
+	
+	public void clickReserves(int x, int y, boolean home){
+		if(home){
+			if(x > 0 && x < 60 && y > 60 && y < 300){
+				System.out.println("home reserve clicked");
+			}
+		}else{
+			if(x > screenWidth - 60 && x < screenWidth && y > 60 && y < 300){
+				System.out.println("away reserve clicked");
+			}
+		}
 	}
 	
 	public static Point2D getHeadsCenter() {
