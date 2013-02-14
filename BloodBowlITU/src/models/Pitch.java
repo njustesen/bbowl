@@ -1,7 +1,5 @@
 package models;
 
-import java.util.ArrayList;
-
 import view.InputManager;
 
 public class Pitch {
@@ -156,24 +154,16 @@ public class Pitch {
 			
 		}
 		
-		// Home players on the left side in half 1
-		if (playersOnLeftSide && isTeamHome(team) && half%2==1){
-			return false;
+		// Home players on the left side
+		if (playersOnLeftSide && isTeamHome(team)){
+			return true;
 		}
-		// Home players on the right side in half 2
-		if (playersOnRightSide && isTeamHome(team) && half%2==0){
-			return false;
-		}
-		// Away players on the right side in half 1
-		if (playersOnRightSide && !isTeamHome(team) && half%2==1){
-			return false;
-		}
-		// Away players on the left side in half 2
-		if (playersOnLeftSide && !isTeamHome(team) && half%2==0){
-			return false;
+		// Away players on the right
+		if (playersOnRightSide && !isTeamHome(team)){
+			return true;
 		}
 		
-		return true;
+		return false;
 	}
 
 	public void removePlayer(Player player) {

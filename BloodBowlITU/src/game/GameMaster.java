@@ -151,13 +151,8 @@ public class GameMaster {
 			state.setGameStage(GameStage.COIN_TOSS);
 			
 			// Move all players to reserve
-			state.getPitch().getHomeDogout().getReserves().addAll(
-					state.getHomeTeam().getPlayers()
-				);
-
-			state.getPitch().getAwayDogout().getReserves().addAll(
-					state.getAwayTeam().getPlayers()
-				);
+			state.getPitch().getHomeDogout().putPlayersInReserves();
+			state.getPitch().getAwayDogout().putPlayersInReserves();
 			
 		}
 		
@@ -242,6 +237,7 @@ public class GameMaster {
 			if (state.getPitch().isSetupLegal(state.getKickingTeam(), state.getHalf())){
 				
 				state.setGameStage(GameStage.RECEIVING_SETUP);
+				selectedPlayer = null;
 				
 			}
 			
@@ -251,6 +247,7 @@ public class GameMaster {
 			if (state.getPitch().isSetupLegal(state.getReceivingTeam(), state.getHalf())){
 					
 				state.setGameStage(GameStage.KICK_PLACEMENT);
+				selectedPlayer = null;
 				
 			}
 			
@@ -1121,7 +1118,7 @@ public class GameMaster {
 	}
 
 	private void startNewTurn() {
-		// TODO Auto-generated method stub
+		selectedPlayer = null;
 		
 	}
 
