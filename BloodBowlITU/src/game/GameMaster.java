@@ -27,8 +27,8 @@ public class GameMaster {
 		this.state = gameState;
 		
 		// For debugging
-		this.state.setGameStage(GameStage.KICKING_SETUP);
-		this.state.setKickingTeam(this.state.getHomeTeam());
+		//this.state.setGameStage(GameStage.KICKING_SETUP);
+		//this.state.setKickingTeam(this.state.getHomeTeam());
 	}
 	
 	public void update(){
