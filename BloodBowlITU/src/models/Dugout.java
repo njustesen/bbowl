@@ -14,10 +14,10 @@ public class Dugout {
 		this.reserves = new ArrayList<Player>();
 		this.knockedOut = new ArrayList<Player>();
 		this.deadAndInjured = new ArrayList<Player>();
-		putPlayersInReserves();
+		//putPlayersInReserves();
 	}
 
-	private void putPlayersInReserves() {
+	public void putPlayersInReserves() {
 		
 		for(Player p : team.getPlayers()){
 			reserves.add(p);
