@@ -8,13 +8,21 @@ public class Dugout {
 	protected ArrayList<Player> knockedOut;
 	protected ArrayList<Player> deadAndInjured;
 	
-	public Dugout(Team team, ArrayList<Player> reserves,
-			ArrayList<Player> knockedOut, ArrayList<Player> deadAndInjured) {
+	public Dugout(Team team) {
 		super();
 		this.team = team;
-		this.reserves = reserves;
-		this.knockedOut = knockedOut;
-		this.deadAndInjured = deadAndInjured;
+		this.reserves = new ArrayList<Player>();
+		this.knockedOut = new ArrayList<Player>();
+		this.deadAndInjured = new ArrayList<Player>();
+		putPlayersInReserves();
+	}
+
+	private void putPlayersInReserves() {
+		
+		for(Player p : team.getPlayers()){
+			reserves.add(p);
+		}
+		
 	}
 
 	public Team getTeam() {

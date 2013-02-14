@@ -12,12 +12,9 @@ public class Pitch {
 	private InputManager inputManager;
 	
 	public Pitch(Team home, Team away){
-		ArrayList<Player> reservesHome = home.getPlayers();
-		homeDogout = new Dugout(home, reservesHome, new ArrayList<Player>(), new ArrayList<Player>());
-		ArrayList<Player> reservesAway = away.getPlayers();
-		awayDogout = new Dugout(away, reservesAway, new ArrayList<Player>(), new ArrayList<Player>());
+		homeDogout = new Dugout(home);
+		awayDogout = new Dugout(away);
 	}
-	
 
 	public boolean isSetupLegal(Team team, int half) {
 		
@@ -189,11 +186,11 @@ public class Pitch {
 				if (playerArr[y][x] == player){
 					
 					playerArr[y][x] = null;
-					return;
 					
 				}
 			}
 		}
+		
 	}
 
 	public boolean isOnPitch(Player player) {

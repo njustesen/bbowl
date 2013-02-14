@@ -25,6 +25,10 @@ public class GameMaster {
 	public GameMaster(GameState gameState, PlayerAgent homeAgent, PlayerAgent awayAgent) {
 		super();
 		this.state = gameState;
+		
+		// For debugging
+		this.state.setGameStage(GameStage.KICKING_SETUP);
+		this.state.setKickingTeam(this.state.getHomeTeam());
 	}
 	
 	public void update(){
@@ -1440,7 +1444,5 @@ public class GameMaster {
 	public GameState getState() {
 		return state;
 	}
-
-	
 
 }
