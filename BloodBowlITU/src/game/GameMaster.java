@@ -37,16 +37,100 @@ public class GameMaster {
 		
 	}
 	
-	private PlayerAgent getKickingAgent() {
-		PlayerAgent kickingAgent = awayAgent;
+	/**
+	 * Ends the current phase.
+	 * Should only be called during the following phases:
+	 * - KICKING_SETUP
+	 * - RECEIVING_SETUP
+	 * - HOME_TURN
+	 * - AWAY_TURN
+	 * - KICK_PLACEMENT
+	 * - QUICK_SNAP
+	 */
+	public void endPhase(){
 		
-		if (state.getKickingTeam() == state.getHomeTeam()){
-			kickingAgent = homeAgent;
-		} 
+		switch(state.getGameStage()){
+			case KICKING_SETUP : endSetup(); break;
+			case RECEIVING_SETUP : endSetup(); break;
+			case HOME_TURN : endTurn(); break;
+			case AWAY_TURN : endTurn(); break;
+			case KICK_PLACEMENT : kickBall(); break;
+			case BLITZ : endTurn(); break;
+			case QUICK_SNAP : endTurn(); break;
+		default:
+			break;
+		}
 		
-		return kickingAgent;
 	}
-
+	
+	/**
+	 * A square on the pitch was clicked.
+	 * @param x
+	 * @param y
+	 */
+	public void squareClicked(int x, int y) {
+		
+		Square square = new Square(x, y);
+		//Player clickedPlayer = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
+		
+		if (state.getGameStage() == GameStage.KICKING_SETUP){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Places player if allowed to
+				placePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
+		
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
+				
+				// Places player if allowed to
+				placePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.HOME_TURN || 
+				state.getGameStage() == GameStage.AWAY_TURN){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getMovingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.BLITZ){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+			}
+			
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		}
+		
+	}
+	
 	/**
 	 * Start the game!
 	 * This will initiate the coin toss game stage.
@@ -310,12 +394,16 @@ public class GameMaster {
 		
 	}
 	
+	/**
+	 * Rerolls the current dice roll.
+	 */
 	public void reroll(){
 		
 		if (!state.isAwaitingReroll()){
 			return;
 		}
 		
+		// Dodge/going/block
 	 	if (state.getCurrentDodge() != null){
 			
 			state.setAwaitReroll(false);
@@ -342,7 +430,37 @@ public class GameMaster {
 			
 			continueGoingForIt(d.getResultAsInt());
 			
+		} else if (state.getCurrentBlock() != null){
+
+			// TODO
+			
+		} else if (state.getCurrentPickUp() != null){
+
+			// TODO
+			
+		} else if (state.getCurrentCatch() != null){
+
+			// TODO
+			
 		}
+		
+	}
+	
+	/**
+	 * Moves a player to a square. 
+	 * 
+	 * @param player
+	 * @param square
+	 */
+	public void movePlayerIfAllowed(Player player, Square square){
+		
+		boolean moveAllowed = moveAllowed(player, square);
+		
+		if (!moveAllowed){
+			return;
+		}
+		
+		dodgeToMovePlayer(player, square);
 		
 	}
 	
@@ -370,23 +488,7 @@ public class GameMaster {
 		
 	}
 
-	/**
-	 * Moves a player to a square. 
-	 * 
-	 * @param player
-	 * @param square
-	 */
-	public void movePlayerIfAllowed(Player player, Square square){
-		
-		boolean moveAllowed = moveAllowed(player, square);
-		
-		if (!moveAllowed){
-			return;
-		}
-		
-		dodgeToMovePlayer(player, square);
-		
-	}
+	
 	
 	private void dodgeToMovePlayer(Player player, Square square) {
 
@@ -609,6 +711,50 @@ public class GameMaster {
 		
 		// Outside pitch
 		// TODO 
+	}
+	
+	private void scatterKickedBall() {
+		int d8 = (int) (Math.random() * 8 + 1);
+		int d6 = (int) (Math.random() * 6 + 1);
+		
+		Square ballOn = state.getPitch().getBall().getSquare();
+		
+		while(d6 > 0){
+			ballOn = state.getPitch().getBall().getSquare();
+			
+			switch (d8){
+				case 1 : ballOn = new Square(ballOn.getX() - 1, ballOn.getY() - 1);
+				case 2 : ballOn = new Square(ballOn.getX(), ballOn.getY() - 1);
+				case 3 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() - 1);
+				case 4 : ballOn = new Square(ballOn.getX() - 1, ballOn.getY());
+				case 5 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY());
+				case 6 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() + 1);
+				case 7 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() + 1);
+				case 8 : ballOn = new Square(ballOn.getX() + 1, ballOn.getY() + 1);
+			}
+			
+			state.getPitch().getBall().setSquare(ballOn);
+			
+			d6--;
+			
+			// Outside pitch
+			// TODO : gamestage placeballonplayer
+			
+		}
+
+		Player player = state.getPitch().getPlayerArr()[ballOn.getY()][ballOn.getX()];
+		
+		// Land on player
+		if (player != null){
+			
+			catchBall();
+			
+		} else {
+			
+			scatterBall();
+			
+		}
+		
 	}
 
 	private void catchBall() {
@@ -862,6 +1008,20 @@ public class GameMaster {
 			
 		}
 		
+		// TODO: blitz
+		
+		// TODO: quick snap
+		
+	}
+	
+	private PlayerAgent getKickingAgent() {
+		PlayerAgent kickingAgent = awayAgent;
+		
+		if (state.getKickingTeam() == state.getHomeTeam()){
+			kickingAgent = homeAgent;
+		} 
+		
+		return kickingAgent;
 	}
 
 	private void endGame() {
@@ -1098,68 +1258,7 @@ public class GameMaster {
 		
 	}
 	
-	public void squareClicked(int x, int y) {
-		
-		Square square = new Square(x, y);
-		Player clickedPlayer = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
-		
-		if (state.getGameStage() == GameStage.KICKING_SETUP){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
-				
-				// Places player if allowed to
-				placePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
-		
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
-				
-				// Places player if allowed to
-				placePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.HOME_TURN || 
-				state.getGameStage() == GameStage.AWAY_TURN){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getMovingTeam()){
-				
-				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.BLITZ){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
-				
-				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
-				
-				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
-			}
-			
-		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
-				
-				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		}
-		
-	}
+	
 
 	private boolean nextToEachOther(Player player, Square square) {
 		
@@ -1213,6 +1312,100 @@ public class GameMaster {
 			return state.getAwayTeam();
 		}
 
+	}
+	
+	private void kickBall() {
+		// TODO Auto-generated method stub
+		state.setGameStage(GameStage.KICK_OFF);
+		
+		rollForKickOff();
+		
+		state.getPitch().getBall().setOnGround(true);
+		
+		scatterKickedBall();
+		
+		// If no other phase started
+		if (state.getGameStage() == GameStage.KICK_OFF){
+			endTurn();
+		}
+		
+	}
+	
+	private void rollForKickOff(){
+		
+		D6 da = new D6();
+		D6 db = new D6();
+		da.roll(); 
+		db.roll();
+		int roll = da.getResultAsInt() + db.getResultAsInt();
+		switch(roll){
+			case 2: getTheRef(); break;
+			case 3: riot(); break;
+			case 4: perfectDefense(); break;
+			case 5: highKick(); break;
+			case 6: cheeringFans(); break;
+			case 7: changingWeather(); break;
+			case 8: brilliantCoaching(); break;
+			case 9: quickSnap(); break;
+			case 10: blitz(); break;
+			case 11: throwARock(); break;
+			case 12: pitchInvasion(); break;
+		}
+		
+	}
+
+	private void pitchInvasion() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void throwARock() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void blitz() {
+		// TODO Auto-generated method stub
+		state.setGameStage(GameStage.BLITZ);
+	}
+
+	private void quickSnap() {
+		// TODO Auto-generated method stub
+		state.setGameStage(GameStage.QUICK_SNAP);
+	}
+
+	private void brilliantCoaching() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void changingWeather() {
+		rollForWeather();
+	}
+
+	private void cheeringFans() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void highKick() {
+		// TODO Auto-generated method stub
+		state.setGameStage(GameStage.HIGH_KICK);
+	}
+
+	private void perfectDefense() {
+		// TODO Auto-generated method stub
+		state.setGameStage(GameStage.PERFECT_DEFENSE);
+	}
+
+	private void riot() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void getTheRef() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private void rollForWeather() {

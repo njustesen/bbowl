@@ -4,6 +4,7 @@ public class Ball {
 	Square square;
 	boolean inGame;
 	boolean underControl;
+	private boolean onGround;
 	
 	public Ball(Square square, boolean inGame, boolean underControl) {
 		super();
@@ -34,6 +35,16 @@ public class Ball {
 
 	public void setUnderControl(boolean underControl) {
 		this.underControl = underControl;
+	}
+	
+	public boolean isOnGround(){
+		
+		return this.onGround;
+	}
+
+	public void setOnGround(boolean b) {
+		this.onGround = true;
+		
 	}
 	
 	
