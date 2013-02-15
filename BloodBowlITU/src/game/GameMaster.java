@@ -251,7 +251,7 @@ public class GameMaster {
 		if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
 			
 			// If home picked correct
-			if (state.getCoinToss().isHomePicked() && state.getCoinToss().isResult()){
+			if (state.getCoinToss().isHomePicked() == state.getCoinToss().isResult()){
 				
 				// Home chooses to receive or kick
 				state.getCoinToss().setHomeReceives(receive);
