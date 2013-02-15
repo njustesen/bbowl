@@ -1,19 +1,18 @@
-package game;
+package models.actions;
 
 import models.Player;
 import models.Square;
+import models.dice.DiceRoll;
 
-public class Catch {
+public class GoingForIt {
 
 	private Player player;
 	private Square square;
-	private int success;
 
-	public Catch(Player player, Square square, int success) {
+	public GoingForIt(Player player, Square square) {
 		
 		this.player = player;
 		this.square = square;
-		this.success = success;
 		
 	}
 
@@ -32,13 +31,4 @@ public class Catch {
 	public void setSquare(Square square) {
 		this.square = square;
 	}
-
-	public int getSuccess() {
-		return success;
-	}
-
-	public void setSuccess(int success) {
-		this.success = success;
-	}
-	
 }

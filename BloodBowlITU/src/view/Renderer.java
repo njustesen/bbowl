@@ -155,7 +155,7 @@ public class Renderer extends JPanel{
 			case NICE: weather.setImage("nice.png"); break;
 			case POURING_RAIN: weather.setImage("rain.png"); break;
 			case BLIZZARD: weather.setImage("blizzard.png"); break;
-			default: System.out.println("WEATHER?");
+			default: //System.out.println("WEATHER?");
 		}
 	}
 	
@@ -183,7 +183,7 @@ public class Renderer extends JPanel{
 					inputManager.getMouseY() > 517 && inputManager.getMouseY() < 517+actionButtonHeight){
 				if(inputManager.mouse1Down){
 					int n = i+1;
-					System.out.println("ActionButton "+n+" pressed");
+					//System.out.println("ActionButton "+n+" pressed");
 				}
 				g.drawImage(actionOn.getImage(), i*actionButtonWidth, 517, null);
 				switch(i){
@@ -193,7 +193,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(foul.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
 				case 4: g.drawImage(pass.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
 				case 5: g.drawImage(handoff.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
-				default: System.out.println("dont have that image");
+				default: //System.out.println("dont have that image");
 				}
 			}else{
 				g.drawImage(actionOff.getImage(), i*actionButtonWidth, 517, null);
@@ -204,7 +204,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(foul.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
 				case 4: g.drawImage(pass.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
 				case 5: g.drawImage(handoff.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, 517, null); break;
-				default: System.out.println("dont have that image");
+				default: //System.out.println("dont have that image");
 				}
 			}
 			if(i == 2){ //(i == gamestate.getSelectedAction())
@@ -271,7 +271,7 @@ public class Renderer extends JPanel{
 			case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 			case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 			case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
-			default: System.out.println("invalid diceRoll");
+			default: //System.out.println("invalid diceRoll");
 		}
 		switch(diceTwo){
 			case 1: g.drawImage(dice1.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
@@ -280,7 +280,7 @@ public class Renderer extends JPanel{
 			case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 			case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 			case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
-			default: System.out.println("invalid diceRoll");
+			default: //System.out.println("invalid diceRoll");
 		}
 			
 		}else if(type == "BB"){
@@ -290,7 +290,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
-				default: System.out.println("invalid diceRoll");
+				default: //System.out.println("invalid diceRoll");
 			}
 			switch(diceTwo){
 				case 1: g.drawImage(bbDice1.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
@@ -298,7 +298,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
-				default: System.out.println("invalid diceRoll");
+				default: //System.out.println("invalid diceRoll");
 			}
 		}
 	}
@@ -348,7 +348,7 @@ public class Renderer extends JPanel{
 				case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
-				default: System.out.println("invalid diceRoll");
+				default: //System.out.println("invalid diceRoll");
 			}
 		}else if(type == "BB"){
 			switch(dice){
@@ -357,7 +357,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
-				default: System.out.println("invalid diceRoll");
+				default: //System.out.println("invalid diceRoll");
 			}
 		}
 	}

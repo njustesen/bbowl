@@ -1,18 +1,21 @@
-package game;
+package models.actions;
 
 import models.Player;
 import models.Square;
 
-public class PickUp {
+
+public class Catch {
 
 	private Player player;
 	private Square square;
 	private int success;
 
-	public PickUp(Player player, Square square, int success) {
+	public Catch(Player player, Square square, int success) {
+		
 		this.player = player;
 		this.square = square;
 		this.success = success;
+		
 	}
 
 	public Player getPlayer() {
@@ -38,5 +41,5 @@ public class PickUp {
 	public void setSuccess(int success) {
 		this.success = success;
 	}
-
+	
 }

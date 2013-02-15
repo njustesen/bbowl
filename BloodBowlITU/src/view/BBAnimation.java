@@ -25,7 +25,7 @@ public class BBAnimation implements Runnable{
 		folderPath = "media/pictures/"+folderName;
 		File folder = new File(folderPath);
 	    File[] listOfFiles = folder.listFiles();
-	    System.out.println("listOfFiles.length = "+listOfFiles.length);
+	    //FSystem.out.println("listOfFiles.length = "+listOfFiles.length);
 	    animation = new BBImage [listOfFiles.length];  
 	    for (int i = 0; i < listOfFiles.length; i++) {
 	      if (listOfFiles[i].isFile()) {
@@ -48,7 +48,7 @@ public class BBAnimation implements Runnable{
 	
 	public void loopAnimation(){
 		if(!running){
-			System.out.println("new Thread created");
+			//System.out.println("new Thread created");
 		Thread aniThread = new Thread(this);
 		aniThread.start();
 		}
@@ -57,7 +57,7 @@ public class BBAnimation implements Runnable{
 	@Override
 	public void run() {
 		running = true;
-		System.out.println("RUN CALLED");
+		//System.out.println("RUN CALLED");
 			for(int i = lastImage; i <= animation.length; i++){
 				currentImage = animation[lastImage];
 				try {
