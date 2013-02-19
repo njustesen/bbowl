@@ -1,7 +1,8 @@
-package game;
+package models.actions;
 
 import models.Player;
 import models.Square;
+
 
 public class Dodge {
 

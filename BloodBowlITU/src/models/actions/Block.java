@@ -1,4 +1,6 @@
-package models;
+package models.actions;
+
+import models.Player;
 
 
 public class Block {

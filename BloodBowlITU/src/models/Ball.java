@@ -6,8 +6,11 @@ public class Ball {
 	boolean underControl;
 	private boolean onGround;
 	
+	public Ball() {
+		
+	}
+	
 	public Ball(Square square, boolean inGame, boolean underControl) {
-		super();
 		this.square = square;
 		this.inGame = inGame;
 		this.underControl = underControl;

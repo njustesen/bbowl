@@ -53,11 +53,10 @@ public class CoinToss {
 		// Toss coin
 		D6 d = new D6();
 		d.roll();
-		CoinToss toss = new CoinToss();
 		if(d.getResultAsInt() > 3){
-			toss.setResult(true);
+			result = true;
 		} else {
-			toss.setResult(false);
+			result = false;
 		}
 		
 		tossed = true;
