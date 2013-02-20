@@ -276,6 +276,21 @@ public class Pitch {
 	public void setAwayDogout(Dugout awayDogout) {
 		this.awayDogout = awayDogout;
 	}
+
+	public boolean isBallInsidePitch() {
+		if (ball.getSquare().getX() >=0 &&
+				ball.getSquare().getX() < playerArr[0].length){
+			
+			if (ball.getSquare().getY() >=0 &&
+					ball.getSquare().getY() < playerArr.length){
+				
+				return true;
+				
+			}
+			
+		}
+		return false;
+	}
 	
 }
 

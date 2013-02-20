@@ -8,6 +8,7 @@ public enum GameStage {
 	KICKING_SETUP,
 	RECEIVING_SETUP,
 	KICK_PLACEMENT,
+	PLACE_BALL_ON_PLAYER,
 	KICK_OFF,
 	QUICK_SNAP,
 	BLITZ,
@@ -15,6 +16,6 @@ public enum GameStage {
 	HIGH_KICK,
 	HOME_TURN,
 	AWAY_TURN,
-	GAME_ENDED
+	GAME_ENDED, 
 	
 }

@@ -2,9 +2,6 @@ package models;
 
 
 import game.GameLog;
-
-import java.util.ArrayList;
-
 import models.actions.Block;
 import models.actions.Catch;
 import models.actions.Dodge;
@@ -21,10 +18,10 @@ public class GameState {
 	private int half;
 	private int awayTurn;
 	private int homeTurn;
-	private boolean isHomeTurn;
 	private boolean refAgainstHomeTeam;
 	private boolean refAgainstAwayTeam;
 	private Weather weather;
+	private boolean gust;
 	private DiceRoll currentDiceRoll;
 	private CoinToss coinToss;
 	private Team kickingTeam;
@@ -36,6 +33,7 @@ public class GameState {
 	private boolean awaitReroll;
 	private PickUp currentPickUp;
 	private Catch currentCatch;
+	private boolean playerPlaced;
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
 		super();
@@ -45,17 +43,18 @@ public class GameState {
 		this.half = 1;
 		this.awayTurn = 0;
 		this.homeTurn = 0;
-		this.isHomeTurn = false;
 		this.refAgainstAwayTeam = true;
 		this.refAgainstHomeTeam = true;
 		this.gameStage = GameStage.START_UP;
 		this.weather = Weather.NICE;
+		this.gust = false;
 		this.coinToss = new CoinToss();
 		this.currentDodge = null;
 		this.awaitReroll = false;
 		this.currentGoingForIt = null;
 		this.currentPickUp = null;
 		this.currentCatch = null;
+		this.playerPlaced = false;
 		// Only for testing purposes - should be null
 		this.currentDiceRoll = new DiceRoll();
 		BB a = new BB();
@@ -131,6 +130,14 @@ public class GameState {
 		}
 		this.weather = weather;
 	}
+	
+	public boolean isGust() {
+		return gust;
+	}
+
+	public void setGust(boolean gust) {
+		this.gust = gust;
+	}
 
 	public CoinToss getCoinToss() {
 		return coinToss;
@@ -188,14 +195,6 @@ public class GameState {
 		this.currentDiceRoll = diceRoll;
 	}
 
-	public boolean isHomeTurn() {
-		return isHomeTurn;
-	}
-
-	public void setHomeTurn(boolean isHomeTurn) {
-		this.isHomeTurn = isHomeTurn;
-	}
-
 	public void incAwayTurn() {
 		awayTurn++;
 		
@@ -243,15 +242,6 @@ public class GameState {
 		return currentPickUp;
 	}
 
-	public Team getMovingTeam() {
-		
-		if (isHomeTurn){
-			return homeTeam;
-		} else {
-			return awayTeam;
-		}
-	}
-
 	public void setCurrentCatch(Catch c) {
 		this.currentCatch = c;
 		
@@ -261,7 +251,13 @@ public class GameState {
 		
 		return currentCatch;
 	}
-	
-	
+
+	public boolean isPlayerPlaced() {
+		return playerPlaced;
+	}
+
+	public void setPlayerPlaced(boolean playerPlaced) {
+		this.playerPlaced = playerPlaced;
+	}
 	
 }
