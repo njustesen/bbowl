@@ -458,7 +458,7 @@ public class Renderer extends JPanel{
 	}
 	
 	public void drawBall(Graphics g){
-		if(gameMaster.getState().getPitch().getBall() != null){
+		if(gameMaster.getState().getPitch().getBall().getSquare() != null){
 			int ballX = gameMaster.getState().getPitch().getBall().getSquare().getX();
 			int ballY = gameMaster.getState().getPitch().getBall().getSquare().getY();
 			int screenX = inputManager.arrayToScreen(ballX, ballY).getX();
