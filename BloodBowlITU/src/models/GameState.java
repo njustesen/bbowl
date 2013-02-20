@@ -2,9 +2,6 @@ package models;
 
 
 import game.GameLog;
-
-import java.util.ArrayList;
-
 import models.actions.Block;
 import models.actions.Catch;
 import models.actions.Dodge;
@@ -25,6 +22,7 @@ public class GameState {
 	private boolean refAgainstHomeTeam;
 	private boolean refAgainstAwayTeam;
 	private Weather weather;
+	private boolean gust;
 	private DiceRoll currentDiceRoll;
 	private CoinToss coinToss;
 	private Team kickingTeam;
@@ -50,6 +48,7 @@ public class GameState {
 		this.refAgainstHomeTeam = true;
 		this.gameStage = GameStage.START_UP;
 		this.weather = Weather.NICE;
+		this.gust = false;
 		this.coinToss = new CoinToss();
 		this.currentDodge = null;
 		this.awaitReroll = false;
@@ -130,6 +129,14 @@ public class GameState {
 			case BLIZZARD : GameLog.push("Weather changed to blizzard."); break;
 		}
 		this.weather = weather;
+	}
+	
+	public boolean isGust() {
+		return gust;
+	}
+
+	public void setGust(boolean gust) {
+		this.gust = gust;
 	}
 
 	public CoinToss getCoinToss() {

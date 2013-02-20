@@ -4,6 +4,8 @@ public class TeamStatus {
 	int score;
 	int rerolls;
 	boolean rerolledThisTurn;
+	int fans;
+	int FAME;
 	int babes;
 	
 	public TeamStatus(int rerolls) {
@@ -12,6 +14,8 @@ public class TeamStatus {
 		this.rerolls = rerolls;
 		this.rerolledThisTurn = false;
 		this.babes = 0;
+		this.fans = 0;
+		this.FAME = 0;
 	}
 	
 	public TeamStatus(int score, int rerolls, int babes) {
@@ -20,6 +24,8 @@ public class TeamStatus {
 		this.rerolls = rerolls;
 		this.babes = babes;
 		this.rerolledThisTurn = false;
+		this.fans = 0;
+		this.FAME = 0;
 	}
 
 	public int getScore() {
@@ -56,6 +62,26 @@ public class TeamStatus {
 	
 	public void setRerolledThisTurn(boolean b){
 		rerolledThisTurn = b;
+	}
+
+	public int getFans() {
+		return fans;
+	}
+
+	public void setFans(int fans) {
+		this.fans = fans;
+	}
+
+	public int getFAME() {
+		return FAME;
+	}
+
+	public void setFAME(int fAME) {
+		FAME = fAME;
+	}
+
+	public boolean isRerolledThisTurn() {
+		return rerolledThisTurn;
 	}
 	
 }

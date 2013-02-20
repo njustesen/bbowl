@@ -1,6 +1,6 @@
 package game;
 
-import models.Ball;
+import java.util.ArrayList;
 import models.BlockSum;
 import models.GameStage;
 import models.GameState;
@@ -254,6 +254,9 @@ public class GameMaster {
 		// Legal action?
 		if (state.getGameStage() == GameStage.START_UP){
 			
+			// Roll for fans and FAME
+			rollForFans();
+			
 			// Roll for weather
 			rollForWeather();
 			
@@ -270,6 +273,52 @@ public class GameMaster {
 		
 	}
 	
+	private void rollForFans() {
+		
+		// Fans
+		D6 a = new D6();
+		D6 b = new D6();
+		a.roll();
+		b.roll();
+		int homeFans = 1000 * (a.getResultAsInt() + b.getResultAsInt() + state.getHomeTeam().getFanFactor());
+		a.roll();
+		b.roll();
+		int awayFans = 1000 * (a.getResultAsInt() + b.getResultAsInt() + state.getAwayTeam().getFanFactor());
+		
+		state.getHomeTeam().getTeamStatus().setFans(homeFans);
+		state.getAwayTeam().getTeamStatus().setFans(awayFans);
+		
+		// FAME
+		if (homeFans <= awayFans){
+			state.getHomeTeam().getTeamStatus().setFAME(0);
+		}
+		if (awayFans <= homeFans){
+			state.getAwayTeam().getTeamStatus().setFAME(0);
+		}
+		
+		if (homeFans > awayFans){
+			state.getHomeTeam().getTeamStatus().setFAME(1);
+		}
+		if (awayFans > homeFans){
+			state.getAwayTeam().getTeamStatus().setFAME(1);
+		}
+		
+		if (homeFans > awayFans){
+			state.getHomeTeam().getTeamStatus().setFAME(1);
+		}
+		if (awayFans > homeFans){
+			state.getAwayTeam().getTeamStatus().setFAME(1);
+		}
+		
+		if (homeFans >= awayFans * 2){
+			state.getHomeTeam().getTeamStatus().setFAME(2);
+		}
+		if (awayFans >= homeFans * 2){
+			state.getAwayTeam().getTeamStatus().setFAME(2);
+		}
+		
+	}
+
 	/**
 	 * Home team picks a coin side.
 	 * @param heads
@@ -612,7 +661,7 @@ public class GameMaster {
 		} else {
 			
 			movePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
-			knockDown(state.getCurrentDodge().getPlayer());
+			knockDown(state.getCurrentDodge().getPlayer(), true);
 			
 		}
 		
@@ -674,7 +723,7 @@ public class GameMaster {
 
 				// Player fall
 				movePlayer(player, square);
-				knockDown(player);
+				knockDown(player, true);
 				endTurn();
 				
 			}
@@ -1073,7 +1122,7 @@ public class GameMaster {
 
 	private void bothDown(Block block) {
 		
-		knockDown(block.getDefender());
+		knockDown(block.getDefender(), true);
 		
 		// ball?
 		
@@ -1088,7 +1137,7 @@ public class GameMaster {
 
 	private void attackerDown(Block block) {
 		
-		knockDown( block.getAttacker() );
+		knockDown( block.getAttacker(), true );
 		
 		// ball?
 		
@@ -1268,7 +1317,7 @@ public class GameMaster {
 		
 	}
 
-	private void knockDown(Player player) {
+	private void knockDown(Player player, boolean armourRoll) {
 		
 		// Armour roll
 		D6 da = new D6();
@@ -1278,7 +1327,7 @@ public class GameMaster {
 		
 		int result = da.getResultAsInt() + db.getResultAsInt();
 		
-		if (result > player.getAV()){
+		if (result > player.getAV() || !armourRoll){
 			
 			// Injury roll
 			da.roll();
@@ -1411,8 +1460,6 @@ public class GameMaster {
 		
 	}
 	
-	
-
 	private boolean nextToEachOther(Player player, Square square) {
 		
 		if (state.getPitch().isOnPitch(player)){
@@ -1528,14 +1575,116 @@ public class GameMaster {
 		
 	}
 
+	/**
+	 * Pitch Invasion:  Both coaches roll a D6 for each 
+	 * opposing player on the pitch and add their FAME 
+	 * (see page 18) to the roll. If a roll is 6 or more after 
+	 * modification then the player is Stunned (players with 
+	 * the Ball & Chain skill are KO'd). A roll of 1 before 
+	 * adding FAME will always have no effect.
+	 */
 	private void pitchInvasion() {
-		// TODO Auto-generated method stub
+		
 		GameLog.push("Pitch invasion!");
+	
+		invadeTeam(state.getHomeTeam());
+		
+		invadeTeam(state.getAwayTeam());
+		
 	}
 
+	/**
+	 * Throw a Rock: An enraged fan hurls a large rock at 
+	 * one of the players on the opposing team.  Each 
+	 * coach rolls a D6 and adds their FAME (see page 
+	 * 18) to the roll. The fans of the team that rolls higher 
+	 * are the ones that threw the rock. In the case of a tie 
+	 * a rock is thrown at each team! Decide randomly 
+	 * which player in the other team was hit (only players 
+	 * on the pitch are eligible) and roll for the effects of 
+	 * the injury straight away. No Armour roll is required.
+	 */
 	private void throwARock() {
-		// TODO Auto-generated method stub
+		
 		GameLog.push("Throw a rock!");
+	
+		D6 home = new D6();
+		D6 away = new D6();
+		
+		home.roll();
+		away.roll();
+		
+		int homeResult = home.getResultAsInt() + 
+				state.getHomeTeam().getTeamStatus().getFAME();
+		
+		int awayResult = away.getResultAsInt() + 
+				state.getAwayTeam().getTeamStatus().getFAME();
+		
+		if (homeResult >= awayResult){
+			GameLog.push(state.getHomeTeam().getTeamName() + " threw a rock.");
+			
+			// Injure random away player
+			throwRockAt(state.getAwayTeam());
+			
+		}
+		if (awayResult >= homeResult){
+			GameLog.push(state.getAwayTeam().getTeamName() + " threw a rock.");
+			
+			// Injure random home player
+			throwRockAt(state.getHomeTeam());
+			
+		}
+		
+	}
+	
+	private void invadeTeam(Team team) {
+		
+		for(Player p : team.getPlayers()){
+			
+			if (state.getPitch().isOnPitch(p)){
+				
+				D6 d = new D6();
+				
+				d.roll();
+				
+				int result = d.getResultAsInt() + 
+						state.getHomeTeam().getTeamStatus().getFAME();
+				
+				if (d.getResultAsInt() == 1){
+					
+					continue;
+					
+				} else if (result >= 6){
+					
+					p.getPlayerStatus().setStanding(Standing.STUNNED);
+					
+				}
+				
+			}
+			
+		}
+		
+	}
+
+	private void throwRockAt(Team team) {
+		
+		ArrayList<Player> targets = new ArrayList<Player>();
+		
+		for(Player p : team.getPlayers()){
+			
+			if (state.getPitch().isOnPitch(p)){
+				targets.add(p);
+			}
+			
+		}
+		
+		int ran = (int)(Math.random()*targets.size());
+		
+		Player target = targets.get(ran);
+		
+		// Knock down player with no armour save
+		knockDown(target, false);
+		
 	}
 
 	private void blitz() {
@@ -1550,14 +1699,61 @@ public class GameMaster {
 		GameLog.push("Quck snap!");
 	}
 
+	/**
+	 * Brilliant Coaching: Each coach rolls a D3 and adds 
+	 * their FAME (see page 18) and the number of 
+	 * assistant coaches on their team to the score. The 
+	 * team with the highest total gets an extra team re-roll 
+	 * this half thanks to the brilliant instruction provided 
+	 * by the coaching staff. In case of a tie both teams get 
+	 * an extra team re-roll. 
+	 */
 	private void brilliantCoaching() {
-		// TODO Auto-generated method stub
+		
 		GameLog.push("Brilliant coaching!");
+		
+		D3 home = new D3();
+		D3 away = new D3();
+		
+		home.roll();
+		away.roll();
+		
+		int homeResult = home.getResultAsInt() + 
+				state.getHomeTeam().getTeamStatus().getFAME() + 
+				state.getHomeTeam().getAssistantCoaches();
+		
+		int awayResult = away.getResultAsInt() + 
+				state.getAwayTeam().getTeamStatus().getFAME() + 
+				state.getAwayTeam().getAssistantCoaches();
+		
+		if (homeResult >= awayResult){
+			int rr = state.getHomeTeam().getTeamStatus().getRerolls() + 1;
+			state.getHomeTeam().getTeamStatus().setRerolls(rr);
+			GameLog.push(state.getHomeTeam().getTeamName() + " gets an extra reroll.");
+		}
+		if (awayResult >= homeResult){
+			int rr = state.getAwayTeam().getTeamStatus().getRerolls() + 1;
+			state.getAwayTeam().getTeamStatus().setRerolls(rr);
+			GameLog.push(state.getAwayTeam().getTeamName() + " gets an extra reroll.");
+		}
+		
 	}
 
+	/**
+	 * Changing Weather: Make a new roll on the Weather 
+	 * table (see page 20). Apply the new Weather roll. If 
+	 * the new Weather roll was a ‘Nice’ result, then a 
+	 * gentle gust of wind makes the ball scatter one extra 
+	 * square in a random direction before landing.  
+	 */
 	private void changingWeather() {
-		GameLog.push("Chaning weather!");
+		GameLog.push("Changing weather!");
 		rollForWeather();
+		
+		// Gentle gust
+		if (state.getWeather() == Weather.NICE){
+			state.setGust(true);
+		}
 	}
 
 	/**
@@ -1573,6 +1769,8 @@ public class GameMaster {
 	 */
 	private void cheeringFans() {
 		
+		GameLog.push("Cheering fans!");
+		
 		D3 home = new D3();
 		D3 away = new D3();
 		
@@ -1580,14 +1778,12 @@ public class GameMaster {
 		away.roll();
 		
 		int homeResult = home.getResultAsInt() + 
-				state.getHomeTeam().getFanFactor() + 
+				state.getHomeTeam().getTeamStatus().getFAME() + 
 				state.getHomeTeam().getCheerleaders();
 		
 		int awayResult = away.getResultAsInt() + 
-				state.getAwayTeam().getFanFactor() + 
+				state.getAwayTeam().getTeamStatus().getFAME() + 
 				state.getAwayTeam().getCheerleaders();
-		
-		GameLog.push("Cheering fans!");
 		
 		if (homeResult >= awayResult){
 			int rr = state.getHomeTeam().getTeamStatus().getRerolls() + 1;
@@ -1632,11 +1828,12 @@ public class GameMaster {
 	 */
 	private void riot() {
 		
+		GameLog.push("Riot!");
+		
 		D6 d = new D6();
 		d.roll();
 		if (d.getResultAsInt() <= 3){
 			
-			GameLog.push("Riot!");
 			GameLog.push("The referee lets the clock run on during the fight.");
 			
 			// End half?
