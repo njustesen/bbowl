@@ -16,6 +16,7 @@ import models.actions.Dodge;
 import models.actions.GoingForIt;
 import models.actions.PickUp;
 import models.dice.BB;
+import models.dice.D3;
 import models.dice.D6;
 import models.dice.DiceFace;
 import models.dice.DiceRoll;
@@ -1109,15 +1110,7 @@ public class GameMaster {
 				
 			} else {
 				
-				if (state.getHalf() == 1){
-					
-					startNextHalf();
-					
-				} else {
-					
-					endGame();
-					
-				}
+				endHalf();
 				
 			}
 			
@@ -1164,6 +1157,20 @@ public class GameMaster {
 	}
 	 */
 	
+	private void endHalf() {
+		
+		if (state.getHalf() == 1){
+			
+			startNextHalf();
+			
+		} else {
+			
+			endGame();
+			
+		}
+		
+	}
+
 	private void endGame() {
 		
 		state.setGameStage(GameStage.GAME_ENDED);
@@ -1553,9 +1560,47 @@ public class GameMaster {
 		rollForWeather();
 	}
 
+	/**
+	 * Cheering Fans:  Each coach rolls a  D3  and 
+	 * adds their team’s FAME (see page 18) 
+	 * and the number of cheerleaders on their 
+	 * team to the score. 
+	 * The team with the highest score is 
+	 * inspired by their fans' 
+	 * cheering and gets an extra re-roll this half. 
+	 * If both teams have the same score, then 
+	 * both teams get a reroll.
+	 */
 	private void cheeringFans() {
-		// TODO Auto-generated method stub
+		
+		D3 home = new D3();
+		D3 away = new D3();
+		
+		home.roll();
+		away.roll();
+		
+		int homeResult = home.getResultAsInt() + 
+				state.getHomeTeam().getFanFactor() + 
+				state.getHomeTeam().getCheerleaders();
+		
+		int awayResult = away.getResultAsInt() + 
+				state.getAwayTeam().getFanFactor() + 
+				state.getAwayTeam().getCheerleaders();
+		
 		GameLog.push("Cheering fans!");
+		
+		if (homeResult >= awayResult){
+			int rr = state.getHomeTeam().getTeamStatus().getRerolls() + 1;
+			state.getHomeTeam().getTeamStatus().setRerolls(rr);
+			GameLog.push(state.getHomeTeam().getTeamName() + " gets an extra reroll.");
+		}
+		if (awayResult >= homeResult){
+			int rr = state.getAwayTeam().getTeamStatus().getRerolls() + 1;
+			state.getAwayTeam().getTeamStatus().setRerolls(rr);
+			GameLog.push(state.getAwayTeam().getTeamName() + " gets an extra reroll.");
+		}
+		
+		
 	}
 
 	private void highKick() {
@@ -1570,14 +1615,67 @@ public class GameMaster {
 		state.setGameStage(GameStage.PERFECT_DEFENSE);
 	}
 
+	/**
+	 * 	The trash talk between two opposing players 
+	 *	explodes and rapidly degenerates, involving the rest 
+	 *	of the players. Roll a D6. On a 1-3, the referee lets the 
+	 *	clock run on during the fight; both teams’ turn markers 
+	 *	are moved  forward  along the turn track a number of 
+	 *	spaces equal to the D6 roll. If this takes the number of 
+	 *	turns to 8 or more for both teams, then the half ends. 
+	 *	On a roll of 4-6 the referee resets the clock back to 
+	 *	before the fight started, so both teams turn markers 
+	 *	are moved one space back along the track. The turn 
+	 *	marker may not be moved back before turn 1; if this 
+	 *	would happen do not move the Turn marker in either 
+	 * 	direction. 
+	 */
 	private void riot() {
-		// TODO Auto-generated method stub
-		GameLog.push("Riot!");
+		
+		D6 d = new D6();
+		d.roll();
+		if (d.getResultAsInt() <= 3){
+			
+			GameLog.push("Riot!");
+			GameLog.push("The referee lets the clock run on during the fight.");
+			
+			// End half?
+			if (state.getHomeTurn() + d.getResultAsInt() >= 8 && 
+					state.getAwayTurn() + d.getResultAsInt() >= 8){
+				
+				endHalf();
+				
+			} else {
+				
+				// Move turn markers forward
+				state.setHomeTurn(state.getHomeTurn() + d.getResultAsInt());
+				state.setAwayTurn(state.getAwayTurn() + d.getResultAsInt());
+				
+			}
+			
+		} else {
+			
+			GameLog.push("The referee resets the clock back to before the fight started.");
+			
+			// Move turn makers one backwards
+			state.setHomeTurn(Math.max(1, state.getHomeTurn() - 1));
+			state.setAwayTurn(Math.max(1, state.getAwayTurn() - 1));
+			
+		}
+		
 	}
 
+	/**
+	 * Get the Ref: The fans exact gruesome revenge on the 
+	 * referee for some of the dubious decisions he has 
+	 * made, either during this match or in the past. His 
+	 * replacement is so intimidated that for the rest of the 
+	 * half he will not send players from either team off for
+	 */
 	private void getTheRef() {
-		// TODO Auto-generated method stub
-		GameLog.push("Get the ref!");
+		state.setRefAgainstHomeTeam(false);
+		state.setRefAgainstAwayTeam(false);
+		GameLog.push("Get the ref! No players from either team will be send off the field for making a foul nor be banned for using secret weapons.");
 	}
 
 	private void rollForWeather() {

@@ -8,6 +8,7 @@ public class Team {
 	protected int rerolls;
 	protected int fanFactor;
 	protected int assistantCoaches;
+	protected int cheerleaders;
 	protected TeamStatus teamStatus;
 	protected String teamName;
 	
@@ -20,6 +21,7 @@ public class Team {
 		this.assistantCoaches = assistantCoaches;
 		this.teamStatus = new TeamStatus(4);
 		this.teamName = teamName;
+		this.cheerleaders = 0;
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -55,6 +57,14 @@ public class Team {
 
 	public void setAssistantCoaches(int assistantCoaches) {
 		this.assistantCoaches = assistantCoaches;
+	}
+
+	public int getCheerleaders() {
+		return cheerleaders;
+	}
+
+	public void setCheerleaders(int cheerleaders) {
+		this.cheerleaders = cheerleaders;
 	}
 
 	public TeamStatus getTeamStatus() {
