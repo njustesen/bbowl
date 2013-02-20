@@ -46,11 +46,11 @@ public class GameMaster {
 		}
 		*/
 		
-		String msg = GameLog.poll();
+	  /*String msg = GameLog.poll();
 		if (msg != "" && msg != null){
 			System.out.println(msg);
 		}
-		
+	  */
 	}
 	
 	/**

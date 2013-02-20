@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.Point;
@@ -19,6 +20,8 @@ import java.net.URL;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import models.GameStage;
 import models.Player;
@@ -52,9 +55,11 @@ public class Renderer extends JPanel{
 	private static int pitchSquareSize;
 	private static int actionButtonWidth;
 	private static int actionButtonHeight;
+	private static int logLength = 200;
 	private static InputManager inputManager;
 	private static Point2D pitchOrigin;
 	private static Point2D rerollButtonOrigin;
+	
 	
 	/////////////////////////
 	/////// graphics ////////
@@ -118,10 +123,12 @@ public class Renderer extends JPanel{
 	private BBImage hblitzer = new BBImage("hblitzer.png");
 	
 	private BBImage weather = new BBImage();
-	
-	InputStream is;
+	private static InputStream is;
 	Font f;
+	Font standard = new Font("Arial", Font.PLAIN, 25);
 	private GameMaster gameMaster;
+	
+	String fullMessage = "";
 	
 	private ArrayList <GameStage> inactivePitch = new ArrayList();
 	
@@ -258,9 +265,24 @@ public class Renderer extends JPanel{
 		}
 		
 	
-	public void drawReroll(Graphics g){
+	public void drawRerollNamesAndScore(Graphics g){
 
-			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);
+			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);		
+			Font font = new Font("Arial", Font.PLAIN, 15);	    
+		    g.setFont(font); //<--
+			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getRerolls(), 125, 37);
+			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getRerolls(),  screenWidth-178, 37);
+			
+			font = new Font("Arial", Font.PLAIN, 22);	    
+		    g.setFont(font);
+			g.drawString(team1Score.toString(), 23, 47);
+			g.drawString(team2Score.toString(), screenWidth-38, 47);
+			
+			font = new Font("Arial", Font.PLAIN, 32);	    
+		    g.setFont(font);
+			g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
+			g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
+			g.setFont(standard);
 	}
 	
 	public void drawPlayer(Graphics g, Player p, int x, int y){
@@ -456,7 +478,7 @@ public class Renderer extends JPanel{
 				g.drawString("TAILS", 300, 120);
 			}
 			
-			font = new Font("Arial", Font.PLAIN, 20);	    
+			font = new Font("Arial", Font.PLAIN, 15);	    
 		    g.setFont(font);
 		    
 		    String coinTossWinner;
@@ -501,14 +523,33 @@ public class Renderer extends JPanel{
 	}
 	
 	public void drawGameLog(Graphics g){
-		if(GameLog.poll() != ""){
-			g.drawString(GameLog.poll(), 20, 602);
+		
+		Font f = new Font("Arial", Font.PLAIN, 14);
+		g.setFont(f);
+		g.setColor(Color.BLACK);
+		
+		while(GameLog.peek() != ""){
+			String message = "<"+GameLog.poll()+">";
+			fullMessage =  message + "  " + fullMessage;
 		}
+		if(fullMessage.length() > logLength){
+			fullMessage = fullMessage.substring(0, logLength);
+		}
+		g.drawString(fullMessage, 50, 622);		
+		f = new Font("Arial", Font.PLAIN, 16);
+		g.setFont(f);
+		g.drawString("log:", 20, 622);
+		g.setColor(Color.WHITE);
+		System.out.println(fullMessage);
 	}
 	
-	public void paintComponent(Graphics g) {
+	public void paintComponent(Graphics g) {  
+	    g.setFont(standard); //<--
+	    g.setColor(Color.WHITE);
+	    
+	    g.fillRect(0,0,screenWidth,screenHeight);
 		g.drawImage(background.getImage(), 0, 0, null);
-		g.setColor(Color.WHITE);
+		
 		hoverSquare(g, inputManager.getMouseX(), inputManager.getMouseY());
 		
 		drawPlayers(g);
@@ -516,26 +557,11 @@ public class Renderer extends JPanel{
 		drawActionButtons(g);
 		drawStats(g);
 		drawEndTurnButton(g);
-		drawReroll(g);
+		drawRerollNamesAndScore(g);
 		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
 		drawCoinToss(g);
 		drawGameLog(g);
 		g.drawImage(weather.getBufferedImage(), 845, 535, null);
-		
-		Font font = new Font("Arial", Font.PLAIN, 25);	    
-	    g.setFont(font); //<--
-		g.drawString(team1Score.toString(), 23, 47);
-		g.drawString(team2Score.toString(), screenWidth-38, 47);
-		
-		font = new Font("Arial", Font.PLAIN, 15);	    
-	    g.setFont(font); //<--
-		g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getRerolls(), 125, 37);
-		g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getRerolls(),  screenWidth-178, 37);
-		
-		font = new Font("Arial", Font.PLAIN, 32);	    
-	    g.setFont(font);
-		g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
-		g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
 		
 		System.out.println("stage = "+gameMaster.getState().getGameStage());
 		

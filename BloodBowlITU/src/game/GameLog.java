@@ -21,4 +21,12 @@ public class GameLog {
 		return "";
 	}
 	
+	public static String peek(){
+		if (messeges.size() > 0){
+			return messeges.peek();
+		}
+		
+		return "";
+	}
+	
 }
