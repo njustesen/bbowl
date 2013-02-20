@@ -367,13 +367,13 @@ public class GameMaster {
 			// Toss the coin
 			state.getCoinToss().Toss();
 			
-			if (state.getCoinToss().isResult() == heads){
+			if (state.getCoinToss().isResult() == state.getCoinToss().isHomePicked()){
 				GameLog.push("Home team won the coin toss and will select to kick or receive.");
 			} else {
 				GameLog.push("Away team won the coin toss and will select to kick or receive.");
 			}
 			
-			// Go to coin toss
+			// Go to pick coin toss effect
 			state.setGameStage(GameStage.PICK_COIN_TOSS_EFFECT);
 			
 		}

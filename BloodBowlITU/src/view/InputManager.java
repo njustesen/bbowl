@@ -98,7 +98,6 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	public void mousePressed(MouseEvent e) {
 		int button = e.getButton();
 		
-		
 		if (button == 1){
 			mouse1Down = true;
 			screenToArray(e.getX(), e.getY());
