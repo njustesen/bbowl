@@ -700,6 +700,23 @@ public class GameMaster {
 		
 	}
 	
+	/**
+	 * Selects an action to the selected player.
+	 * @param action
+	 */
+	public void selectAction(PlayerTurn action){
+		
+		// Only if allowed
+		if (selectedPlayer != null && 
+				playerOwner(selectedPlayer) == getMovingTeam() &&
+				selectedPlayer.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			
+			selectedPlayer.getPlayerStatus().setTurn(action);
+			
+		}
+		
+	}
+	
 	private void continueGoingForIt(int result) {
 		
 		if (result > 1){
