@@ -270,8 +270,8 @@ public class Renderer extends JPanel{
 			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);		
 			Font font = new Font("Arial", Font.PLAIN, 15);	    
 		    g.setFont(font); //<--
-			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getRerolls(), 125, 37);
-			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getRerolls(),  screenWidth-178, 37);
+			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getTeamStatus().getRerolls(), 125, 37);
+			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getTeamStatus().getRerolls(),  screenWidth-178, 37);
 			
 			font = new Font("Arial", Font.PLAIN, 22);	    
 		    g.setFont(font);
