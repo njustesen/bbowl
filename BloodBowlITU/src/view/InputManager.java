@@ -10,7 +10,6 @@ import java.awt.event.MouseMotionListener;
 
 import models.GameStage;
 import models.Player;
-import models.Square;
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
 	
@@ -65,8 +64,8 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	
 	public boolean isKeyToggled(String key){
 			char c = key.charAt(0);
-			//if(keysDown[((int)c)])
-				//System.out.println(key+" is down");
+			if(keysDown[((int)c)])
+				System.out.println(key+" is down");
 			return keysToggled[((int)c)];	
 		}
 	
@@ -132,7 +131,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			
 			if(e.getX() < rerollButtonOrigin.getX()+rerollButtonWidth && e.getX() > rerollButtonOrigin.getX() &&
 					e.getY() < rerollButtonOrigin.getY()+rerollButtonHeight && e.getY() > rerollButtonOrigin.getY()){
-				//System.out.println("reroll pressed");
+				System.out.println("reroll pressed");
 			}
 			
 			if(e.getX() < endTurnButtonOrigin.getX()+actionButtonWidth && e.getX() > endTurnButtonOrigin.getX() &&
@@ -183,7 +182,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		//System.out.println("keycode is "+e.getKeyCode());
+		System.out.println("keycode is "+e.getKeyCode());
 		keysDown[e.getKeyCode()]=true;		
 	}
 
@@ -230,24 +229,70 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			int pitchY = getMouseY()-pitchOrigin.getY();
 			int squareX = pitchX/30+1;
 			int squareY = pitchY/30+1;
-			gameMaster.squareClicked( new Square(squareX, squareY));
+			selectPlayer(squareX, squareY);
 			 return new Point2D(squareX, squareY);	 
 		}else if(getMouseX() > 0 && getMouseX() < 2*pitchSquareSize + pitchOrigin.getX() &&
 				getMouseY() > pitchOrigin.getY() && getMouseY() < 8*pitchSquareSize + pitchOrigin.getY()){
 			int reserveX = getMouseX()/30;
 			int reserveY = ((getMouseY()-pitchOrigin.getY())/30)*2;
 			int reserve = reserveX + reserveY;
-			gameMaster.selectHomeReserve(reserve);
+			selectHomeReserve(reserve);
 		}else if(getMouseX() > getScreenWidth()-2*pitchSquareSize && getMouseX() < getScreenWidth() &&
 				getMouseY() > pitchOrigin.getY() && getMouseY() < 8*pitchSquareSize + pitchOrigin.getY()){
 			int reserveX = (getMouseX()-getScreenWidth()+2*pitchSquareSize)/30;
 			int reserveY = ((getMouseY()-pitchOrigin.getY())/30)*2;
 			int reserve = reserveX + reserveY;
-			gameMaster.selectAwayReserve(reserve);
+			selectAwayReserve(reserve);
+		}else 
+			System.out.println("mouse not over pitch");
+			return null;
+	}
+	
+	private void selectAwayReserve(int reserve) {
+		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve)){
+			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve));
 		} else {
-			//System.out.println("mouse not over pitch");
+			gameMaster.setSelectedPlayer(null);
 		}
-		return null;
+	}
+
+	private void selectHomeReserve(int reserve) {
+		
+		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve)){
+			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve));
+		} else {
+			gameMaster.setSelectedPlayer(null);
+		}
+		
+	}
+
+	private void selectPlayer(int x, int y) {
+		
+		Player player = gameMaster.getState().getPitch().getPlayerArr()[y][x];
+		
+		// Player?
+		if (player != null){
+			
+			// Selected player?
+			if (player == gameMaster.getSelectedPlayer()){
+				
+				// Remove selection
+				gameMaster.setSelectedPlayer(null);
+				
+			} else {
+				
+				// Select player
+				gameMaster.setSelectedPlayer(player);
+				
+			}
+			
+		} else {
+			
+			// Clicked on square
+			gameMaster.squareClicked(x,y);
+			
+		}
+		
 	}
 
 	public Point2D mouseOverArray(){

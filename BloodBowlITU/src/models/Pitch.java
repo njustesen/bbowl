@@ -1,57 +1,34 @@
 package models;
 
-import game.GameLog;
 import view.InputManager;
 
 public class Pitch {
-	private Player[][] playerArr = new Player[17][28];
-	private Ball ball;
-	private Dugout homeDogout;
-	private Dugout awayDogout;
-	private Team homeTeam;
-	private Team awayTeam;
+	Player[][] playerArr = new Player[17][28];
+	Ball ball;
+	Dugout homeDogout;
+	Dugout awayDogout;
 	private InputManager inputManager;
 	
 	public Pitch(Team home, Team away){
 		homeDogout = new Dugout(home);
 		awayDogout = new Dugout(away);
-		this.homeTeam = home;
-		this.awayTeam = away;
-		ball = new Ball();
 	}
 
 	public boolean isSetupLegal(Team team, int half) {
 		
-		if (!requiredNumberOnPitch(team)){
-			GameLog.push("Illegal number of players on the field!");
+		if (!requiredNumberOnPitch(team))
 			return false;
-		}
 
-		if (!onlyTeamPlayersOnTeamHalf(team, half)){
-			GameLog.push("Some players are on the wrong side of the field!");
+		if (!onlyTeamPlayersOnTeamHalf(team, half))
 			return false;
-		}
 			
-		if (!legalWideZones(team)){
-			GameLog.push("A maximum of two players are allowed in each flank zone.");
+		if (!legalWideZones(team))
 			return false;
-		}
 			
-		if (!legalScrimmage(team)){
-			GameLog.push("A minimum of three players are required on the line of scrimmage.");
+		if (!legalScrimmage(team))
 			return false;
-		}
 		
 		return true;
-	}
-	
-	public boolean ballCorreclyPlaced(Team kickingTeam) {
-		if (kickingTeam == homeTeam && ball.getSquare().getX() >= 14){
-			return true;
-		} if (kickingTeam == homeTeam && ball.getSquare().getX() <= 13){
-			return true;
-		}
-		return false;
 	}
 	
 	private boolean requiredNumberOnPitch(Team team) {

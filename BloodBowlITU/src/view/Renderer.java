@@ -70,6 +70,14 @@ public class Renderer extends JPanel{
 	//dice-button
 	private BBImage endTurnOn = new BBImage("endturnon.png");
 	private BBImage endTurnOff = new BBImage("endturnoff.png");
+	private BBImage endSetupOn = new BBImage("endsetupon.png");
+	private BBImage endSetupOff = new BBImage("endsetupoff.png");
+	private BBImage placeBallOn = new BBImage("placeballon.png");
+	private BBImage placeBallOff = new BBImage("placeballoff.png");
+	private BBImage startGameOn = new BBImage("startgameon.png");
+	private BBImage startGameOff = new BBImage("startgameoff.png");
+	//ball
+	private BBImage ball = new BBImage("ball.png");
 	//coin
 	private BBImage heads = new BBImage("heads.png");
 	private BBImage tails = new BBImage("tails.png");
@@ -155,7 +163,7 @@ public class Renderer extends JPanel{
 			case NICE: weather.setImage("nice.png"); break;
 			case POURING_RAIN: weather.setImage("rain.png"); break;
 			case BLIZZARD: weather.setImage("blizzard.png"); break;
-			default: //System.out.println("WEATHER?");
+			default: System.out.println("WEATHER?");
 		}
 	}
 	
@@ -183,7 +191,7 @@ public class Renderer extends JPanel{
 					inputManager.getMouseY() > 517 && inputManager.getMouseY() < 517+actionButtonHeight){
 				if(inputManager.mouse1Down){
 					int n = i+1;
-					//System.out.println("ActionButton "+n+" pressed");
+					System.out.println("ActionButton "+n+" pressed");
 				}
 				g.drawImage(actionOn.getImage(), i*actionButtonWidth, 517, null);
 				switch(i){
@@ -193,7 +201,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(foul.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
 				case 4: g.drawImage(pass.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
 				case 5: g.drawImage(handoff.getBufferedImage(), i*actionButtonWidth-2, inputManager.getActionButtonOrigin().getY()+3, null); break;
-				default: //System.out.println("dont have that image");
+				default: System.out.println("dont have that image");
 				}
 			}else{
 				g.drawImage(actionOff.getImage(), i*actionButtonWidth, 517, null);
@@ -204,7 +212,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(foul.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
 				case 4: g.drawImage(pass.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, inputManager.getActionButtonOrigin().getY(), null); break;
 				case 5: g.drawImage(handoff.getBufferedImage(),inputManager.getActionButtonOrigin().getX() +  i*actionButtonWidth-4, 517, null); break;
-				default: //System.out.println("dont have that image");
+				default: System.out.println("dont have that image");
 				}
 			}
 			if(i == 2){ //(i == gamestate.getSelectedAction())
@@ -214,15 +222,29 @@ public class Renderer extends JPanel{
 	}
 	
 	public void drawEndTurnButton(Graphics g){
-			
+
 			if(inputManager.getMouseX() > inputManager.getEndTurnButtonOrigin().getX() && inputManager.getMouseX() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonWidth &&
-					inputManager.getMouseY() > inputManager.getEndTurnButtonOrigin().getY() && inputManager.getMouseY() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonHeight){				
-					g.drawImage(endTurnOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null);
-				}else{
-					g.drawImage(endTurnOff.getBufferedImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null);
+					inputManager.getMouseY() > inputManager.getEndTurnButtonOrigin().getY() && inputManager.getMouseY() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonHeight){
+			
+				switch(gameMaster.getState().getGameStage()){
+					case START_UP: g.drawImage(startGameOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case KICKING_SETUP: g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case RECEIVING_SETUP:  g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case KICK_PLACEMENT: g.drawImage(placeBallOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					default: g.drawImage(startGameOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 				}
-						
+				
+				}else{
+					switch(gameMaster.getState().getGameStage()){
+					case START_UP: g.drawImage(startGameOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case KICKING_SETUP: g.drawImage(endSetupOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case RECEIVING_SETUP:  g.drawImage(endSetupOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case KICK_PLACEMENT: g.drawImage(placeBallOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					default: g.drawImage(startGameOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					}
+				}	
 		}
+		
 	
 	public void drawReroll(Graphics g){
 
@@ -271,7 +293,7 @@ public class Renderer extends JPanel{
 			case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 			case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 			case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
-			default: //System.out.println("invalid diceRoll");
+			default: System.out.println("invalid diceRoll");
 		}
 		switch(diceTwo){
 			case 1: g.drawImage(dice1.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
@@ -280,7 +302,7 @@ public class Renderer extends JPanel{
 			case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 			case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 			case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
-			default: //System.out.println("invalid diceRoll");
+			default: System.out.println("invalid diceRoll");
 		}
 			
 		}else if(type == "BB"){
@@ -290,7 +312,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
-				default: //System.out.println("invalid diceRoll");
+				default: System.out.println("invalid diceRoll");
 			}
 			switch(diceTwo){
 				case 1: g.drawImage(bbDice1.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
@@ -298,7 +320,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-60, rerollButtonOrigin.getY()+10, null); break;
-				default: //System.out.println("invalid diceRoll");
+				default: System.out.println("invalid diceRoll");
 			}
 		}
 	}
@@ -348,7 +370,7 @@ public class Renderer extends JPanel{
 				case 4: g.drawImage(dice4.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(dice5.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 6: g.drawImage(dice6.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
-				default: //System.out.println("invalid diceRoll");
+				default: System.out.println("invalid diceRoll");
 			}
 		}else if(type == "BB"){
 			switch(dice){
@@ -357,7 +379,7 @@ public class Renderer extends JPanel{
 				case 3: g.drawImage(bbDice3.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 4: g.drawImage(bbDice4.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
 				case 5: g.drawImage(bbDice5.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
-				default: //System.out.println("invalid diceRoll");
+				default: System.out.println("invalid diceRoll");
 			}
 		}
 	}
@@ -401,8 +423,6 @@ public class Renderer extends JPanel{
 		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
 			g.drawImage(heads.getBufferedImage(), inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, null);
 			g.drawImage(tails.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);
-			g.drawOval(inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, heads.getWidth(), heads.getHeight());
-			g.drawOval(inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, tails.getWidth(), tails.getHeight());
 		}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
 			if(inputManager.getMouseX() < inputManager.getHeadsCenter().getX()+heads.getWidth()/2 && inputManager.getMouseX() > inputManager.getHeadsCenter().getX()-heads.getWidth()/2 &&
 					inputManager.getMouseY() < inputManager.getHeadsCenter().getY()+heads.getHeight()/2 && inputManager.getMouseY() > inputManager.getHeadsCenter().getY()-heads.getHeight()/2){
@@ -437,13 +457,23 @@ public class Renderer extends JPanel{
 		}
 	}
 	
+	public void drawBall(Graphics g){
+		if(gameMaster.getState().getPitch().getBall() != null){
+			int ballX = gameMaster.getState().getPitch().getBall().getSquare().getX();
+			int ballY = gameMaster.getState().getPitch().getBall().getSquare().getY();
+			int screenX = inputManager.arrayToScreen(ballX, ballY).getX();
+			int screenY = inputManager.arrayToScreen(ballX, ballY).getY();
+			g.drawImage(ball.getBufferedImage(), screenX, screenY, null);
+		}
+	}
+	
 	public void paintComponent(Graphics g) {
 		g.drawImage(background.getImage(), 0, 0, null);
 		g.setColor(Color.WHITE);
 		hoverSquare(g, inputManager.getMouseX(), inputManager.getMouseY());
 		
 		drawPlayers(g);
-				
+		drawBall(g);
 		drawActionButtons(g);
 		drawStats(g);
 		drawEndTurnButton(g);
