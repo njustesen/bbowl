@@ -27,6 +27,10 @@ public class TeamStatus {
 		this.fans = 0;
 		this.FAME = 0;
 	}
+	
+	public void reset() {
+		this.rerolledThisTurn = false;
+	}
 
 	public int getScore() {
 		return score;

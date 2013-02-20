@@ -3,7 +3,12 @@ package models;
 public enum PlayerTurn {
 
 	UNUSED,
-	USING_NOW,
+	MOVE_ACTION,
+	PASS_ACTION,
+	BLITZ_ACTION,
+	HAND_OFF_ACTION,
+	FOUL_ACTION,
+	BLOCK_ACTION,
 	USED;
 	
 }
