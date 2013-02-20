@@ -1,6 +1,6 @@
 package game;
 
-import models.Ball;
+import models.Block;
 import models.BlockSum;
 import models.GameStage;
 import models.GameState;
@@ -10,11 +10,6 @@ import models.Square;
 import models.Standing;
 import models.Team;
 import models.Weather;
-import models.actions.Block;
-import models.actions.Catch;
-import models.actions.Dodge;
-import models.actions.GoingForIt;
-import models.actions.PickUp;
 import models.dice.BB;
 import models.dice.D6;
 import models.dice.DiceFace;
@@ -24,8 +19,8 @@ public class GameMaster {
 	
 	private GameState state;
 	private Player selectedPlayer;
-	//private PlayerAgent homeAgent;
-	//private PlayerAgent awayAgent;
+	private PlayerAgent homeAgent;
+	private PlayerAgent awayAgent;
 	
 	public GameMaster(GameState gameState, PlayerAgent homeAgent, PlayerAgent awayAgent) {
 		super();
@@ -44,12 +39,6 @@ public class GameMaster {
 		case AWAY_TURN : awayAgent.takeAction(this, state);	
 		}
 		*/
-		
-		String msg = GameLog.poll();
-		if (msg != "" && msg != null){
-			System.out.println(msg);
-		}
-		
 	}
 	
 	/**
@@ -79,50 +68,11 @@ public class GameMaster {
 	}
 	
 	/**
-	 * A square was clicked.
-	 * @param square
-	 */
-	public void squareClicked(Square square) {
-		
-		// Kick placement?
-		if (state.getGameStage() == GameStage.KICK_PLACEMENT){
-			placeBall(square);
-			return;
-		}
-		
-		Player player = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
-		
-		// Player?
-		if (player != null){
-			
-			// Selected player?
-			if (player == selectedPlayer){
-				
-				// Remove selection
-				selectedPlayer = null;
-				
-			} else {
-				
-				// Select player
-				selectedPlayer = player;
-				
-			}
-			
-		} else {
-			
-			// Clicked on square
-			emptySquareClicked(square.getX(),square.getY());
-			
-		}
-		
-	}
-	
-	/**
-	 * An empty square on the pitch was clicked.
+	 * A square on the pitch was clicked.
 	 * @param x
 	 * @param y
 	 */
-	public void emptySquareClicked(int x, int y) {
+	public void squareClicked(int x, int y) {
 		
 		Square square = new Square(x, y);
 		//Player clickedPlayer = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
@@ -185,65 +135,6 @@ public class GameMaster {
 		
 	}
 	
-	public void selectAwayReserve(int reserve) {
-		
-		if (reserve >= state.getPitch().getAwayDogout().getReserves().size()){
-			
-			if (selectedPlayer != null){
-				
-				movePlayerToReserves(selectedPlayer, false);
-				
-			}
-			
-		} else if (selectedPlayer != state.getPitch().getAwayDogout().getReserves().get(reserve)){
-			
-			selectedPlayer = state.getPitch().getAwayDogout().getReserves().get(reserve);
-		
-		}
-		
-	}
-
-	public void selectHomeReserve(int reserve) {
-		
-		if (reserve >= state.getPitch().getHomeDogout().getReserves().size()){
-			
-			if (selectedPlayer != null){
-				
-				movePlayerToReserves(selectedPlayer, true);
-				
-			}
-			
-		} else if (selectedPlayer != state.getPitch().getHomeDogout().getReserves().get(reserve)){
-			
-			selectedPlayer = state.getPitch().getHomeDogout().getReserves().get(reserve);
-		
-		}
-		
-	}
-	
-	private void movePlayerToReserves(Player player, boolean home) {
-		
-		if (playerOwner(player) == state.getHomeTeam() && home){
-			
-			removePlayerFromCurrentSquare(player);
-			
-			removePlayerFromReserves(player);
-			
-			state.getPitch().getHomeDogout().getReserves().add(selectedPlayer);
-			
-			
-		} else if (playerOwner(player) == state.getAwayTeam() && !home){
-			
-			removePlayerFromCurrentSquare(player);
-			
-			removePlayerFromReserves(player);
-			
-			state.getPitch().getAwayDogout().getReserves().add(selectedPlayer);
-			
-		}
-		
-	}
-	
 	/**
 	 * Start the game!
 	 * This will initiate the coin toss game stage.
@@ -263,8 +154,6 @@ public class GameMaster {
 			state.getPitch().getHomeDogout().putPlayersInReserves();
 			state.getPitch().getAwayDogout().putPlayersInReserves();
 			
-			GameLog.push("The game has started!");
-			
 		}
 		
 	}
@@ -282,20 +171,8 @@ public class GameMaster {
 			// Set coin side pick
 			state.getCoinToss().setHomePicked(heads);
 			
-			if (heads){
-				GameLog.push("Home team picked heads.");
-			} else {
-				GameLog.push("Home team picked tails.");
-			}
-			
 			// Toss the coin
 			state.getCoinToss().Toss();
-			
-			if (state.getCoinToss().isResult() == heads){
-				GameLog.push("Home team won the coin toss and will select to kick or receive.");
-			} else {
-				GameLog.push("Away team won the coin toss and will select to kick or receive.");
-			}
 			
 			// Go to coin toss
 			state.setGameStage(GameStage.PICK_COIN_TOSS_EFFECT);
@@ -315,20 +192,16 @@ public class GameMaster {
 		if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
 			
 			// If home picked correct
-			if (state.getCoinToss().isHomePicked() == state.getCoinToss().isResult()){
+			if (state.getCoinToss().isHomePicked() && state.getCoinToss().isResult()){
 				
 				// Home chooses to receive or kick
 				state.getCoinToss().setHomeReceives(receive);
 				if (receive){
 					state.setReceivingTeam(state.getHomeTeam());
 					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to recieve the ball.");
-					GameLog.push("Away team sets up first.");
 				} else {
 					state.setKickingTeam(state.getHomeTeam());
 					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to kick the ball.");
-					GameLog.push("Home team sets up first.");
 				}
 				
 			} else {
@@ -338,13 +211,9 @@ public class GameMaster {
 				if (!receive){
 					state.setReceivingTeam(state.getHomeTeam());
 					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to recieve the ball.");
-					GameLog.push("Away team sets up first.");
 				} else {
 					state.setKickingTeam(state.getHomeTeam());
 					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to kick the ball.");
-					GameLog.push("Home team sets up first.");
 				}
 				
 			}
@@ -370,9 +239,6 @@ public class GameMaster {
 				state.setGameStage(GameStage.RECEIVING_SETUP);
 				selectedPlayer = null;
 				
-				GameLog.push("Kicking team is done setting up.");
-				GameLog.push("Receiving team now has to setup.");
-				
 			}
 			
 		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
@@ -382,9 +248,6 @@ public class GameMaster {
 					
 				state.setGameStage(GameStage.KICK_PLACEMENT);
 				selectedPlayer = null;
-				
-				GameLog.push("Receiving team is done setting up.");
-				GameLog.push("Kicking team now has to place the ball.");
 				
 			}
 			
@@ -1152,7 +1015,6 @@ public class GameMaster {
 		
 	}
 	
-	/*
 	private PlayerAgent getKickingAgent() {
 		PlayerAgent kickingAgent = awayAgent;
 		
@@ -1162,8 +1024,7 @@ public class GameMaster {
 		
 		return kickingAgent;
 	}
-	 */
-	
+
 	private void endGame() {
 		
 		state.setGameStage(GameStage.GAME_ENDED);
@@ -1335,12 +1196,6 @@ public class GameMaster {
 		
 		return false;
 	}
-	
-	private void placeBall(Square square) {
-		
-		state.getPitch().getBall().setSquare(square);
-		
-	}
 
 	private boolean allowedToBlock(Player player) {
 		
@@ -1461,43 +1316,22 @@ public class GameMaster {
 	}
 	
 	private void kickBall() {
-		
-		// Ball not placed?
-		if (state.getPitch().getBall().getSquare() == null){
-			GameLog.push("The ball has not been placed!");
-			return;
-		}
-		
-		// Ball corectly placed?
-		if (!state.getPitch().ballCorreclyPlaced(state.getKickingTeam())){
-			GameLog.push("The ball has not been placed correctly!");
-			return;
-		}
-		
+		// TODO Auto-generated method stub
 		state.setGameStage(GameStage.KICK_OFF);
 		
 		rollForKickOff();
 		
-		// If special kick off phase started
-		if (state.getGameStage() != GameStage.KICK_OFF){
-			
-			return;
-		}
-		
-		endKickOffPhase();
-		
-	}
-
-	private void endKickOffPhase() {
+		state.getPitch().getBall().setOnGround(true);
 		
 		scatterKickedBall();
 		
-		state.getPitch().getBall().setOnGround(true);
-
-		endTurn();
+		// If no other phase started
+		if (state.getGameStage() == GameStage.KICK_OFF){
+			endTurn();
+		}
 		
 	}
-
+	
 	private void rollForKickOff(){
 		
 		D6 da = new D6();
@@ -1523,61 +1357,56 @@ public class GameMaster {
 
 	private void pitchInvasion() {
 		// TODO Auto-generated method stub
-		GameLog.push("Pitch invasion!");
+		
 	}
 
 	private void throwARock() {
 		// TODO Auto-generated method stub
-		GameLog.push("Throw a rock!");
+		
 	}
 
 	private void blitz() {
 		// TODO Auto-generated method stub
 		state.setGameStage(GameStage.BLITZ);
-		GameLog.push("Blitz!");
 	}
 
 	private void quickSnap() {
 		// TODO Auto-generated method stub
 		state.setGameStage(GameStage.QUICK_SNAP);
-		GameLog.push("Quck snap!");
 	}
 
 	private void brilliantCoaching() {
 		// TODO Auto-generated method stub
-		GameLog.push("Brilliant coaching!");
+		
 	}
 
 	private void changingWeather() {
-		GameLog.push("Chaning weather!");
 		rollForWeather();
 	}
 
 	private void cheeringFans() {
 		// TODO Auto-generated method stub
-		GameLog.push("Cheering fans!");
+		
 	}
 
 	private void highKick() {
 		// TODO Auto-generated method stub
-		GameLog.push("High kick!");
 		state.setGameStage(GameStage.HIGH_KICK);
 	}
 
 	private void perfectDefense() {
 		// TODO Auto-generated method stub
-		GameLog.push("Perfect defense!");
 		state.setGameStage(GameStage.PERFECT_DEFENSE);
 	}
 
 	private void riot() {
 		// TODO Auto-generated method stub
-		GameLog.push("Riot!");
+		
 	}
 
 	private void getTheRef() {
 		// TODO Auto-generated method stub
-		GameLog.push("Get the ref!");
+		
 	}
 
 	private void rollForWeather() {

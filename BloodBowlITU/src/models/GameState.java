@@ -1,15 +1,12 @@
 package models;
 
-
-import game.GameLog;
+import game.Catch;
+import game.Dodge;
+import game.GoingForIt;
+import game.PickUp;
 
 import java.util.ArrayList;
 
-import models.actions.Block;
-import models.actions.Catch;
-import models.actions.Dodge;
-import models.actions.GoingForIt;
-import models.actions.PickUp;
 import models.dice.BB;
 import models.dice.DiceRoll;
 
@@ -122,13 +119,6 @@ public class GameState {
 	}
 
 	public void setWeather(Weather weather) {
-		switch(weather){
-			case SWELTERING_HEAT : GameLog.push("Weather changed to swealtering heat."); break;
-			case VERY_SUNNY : GameLog.push("Weather changed to very sunny."); break;
-			case NICE : GameLog.push("Weather changed to nice."); break;
-			case POURING_RAIN : GameLog.push("Weather changed to pouring rain."); break;
-			case BLIZZARD : GameLog.push("Weather changed to blizzard."); break;
-		}
 		this.weather = weather;
 	}
 
