@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -33,6 +35,7 @@ import models.orcs.OrcBlackOrc;
 import models.orcs.OrcBlitzer;
 import models.orcs.OrcLineman;
 import models.orcs.OrcThrower;
+import game.GameLog;
 import game.GameMaster;
 
 public class Renderer extends JPanel{
@@ -120,8 +123,14 @@ public class Renderer extends JPanel{
 	Font f;
 	private GameMaster gameMaster;
 	
+	private ArrayList <GameStage> inactivePitch = new ArrayList();
+	
+	
 	public Renderer(int fps, GameMaster gm, InputManager im){
 
+		inactivePitch.add(GameStage.START_UP);
+		inactivePitch.add(GameStage.COIN_TOSS);
+		inactivePitch.add(GameStage.PICK_COIN_TOSS_EFFECT);
 		this.fps = fps;
 		inputManager = im;
 		screenWidth = InputManager.getScreenWidth();
@@ -180,7 +189,10 @@ public class Renderer extends JPanel{
 				inputManager.getMouseY() > pitchOrigin.getY() && inputManager.getMouseY() < 15*pitchSquareSize + pitchOrigin.getY()){
 			 
 		//	 System.out.println("playerArray ["+inputManager.mouseOverPlayerArrIndex().getX()+"]["+inputManager.mouseOverPlayerArrIndex().getY()+"]");
-			 g.drawImage(greenTile.getBufferedImage(),inputManager.mouseOverArray().getX(),inputManager.mouseOverArray().getY(), null);
+			
+			if(!inactivePitch.contains(gameMaster.getState().getGameStage())){
+				g.drawImage(greenTile.getBufferedImage(),inputManager.mouseOverArray().getX(),inputManager.mouseOverArray().getY(), null);
+			}
 		}
 	}
 	
@@ -227,19 +239,19 @@ public class Renderer extends JPanel{
 					inputManager.getMouseY() > inputManager.getEndTurnButtonOrigin().getY() && inputManager.getMouseY() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonHeight){
 			
 				switch(gameMaster.getState().getGameStage()){
-					case START_UP: g.drawImage(startGameOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
-					case KICKING_SETUP: g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
-					case RECEIVING_SETUP:  g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
-					case KICK_PLACEMENT: g.drawImage(placeBallOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
-					default: g.drawImage(startGameOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
-				}
-				
-				}else{
-					switch(gameMaster.getState().getGameStage()){
 					case START_UP: g.drawImage(startGameOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					case KICKING_SETUP: g.drawImage(endSetupOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					case RECEIVING_SETUP:  g.drawImage(endSetupOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					case KICK_PLACEMENT: g.drawImage(placeBallOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					default: g.drawImage(startGameOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+				}
+				
+				}else{
+					switch(gameMaster.getState().getGameStage()){
+					case START_UP: g.drawImage(startGameOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case KICKING_SETUP: g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case RECEIVING_SETUP:  g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					case KICK_PLACEMENT: g.drawImage(placeBallOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					default: g.drawImage(startGameOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					}
 				}	
@@ -432,7 +444,28 @@ public class Renderer extends JPanel{
 			if(inputManager.getMouseX() < inputManager.getTailsCenter().getX()+tails.getWidth()/2 && inputManager.getMouseX() > inputManager.getTailsCenter().getX()-tails.getWidth()/2 &&
 					inputManager.getMouseY() < inputManager.getTailsCenter().getY()+tails.getHeight()/2 && inputManager.getMouseY() > inputManager.getTailsCenter().getY()-tails.getHeight()/2){
 				g.drawImage(receiveGlow.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);
-			}else{g.drawImage(receive.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);}
+			}else{
+				g.drawImage(receive.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);
+			}
+			
+			Font font = new Font("Arial", Font.PLAIN, 32);	    
+		    g.setFont(font);
+			if(gameMaster.getState().getCoinToss().isResult()){
+				g.drawString("HEADS", 300, 120);
+			}else{
+				g.drawString("TAILS", 300, 120);
+			}
+			
+			font = new Font("Arial", Font.PLAIN, 20);	    
+		    g.setFont(font);
+		    
+		    String coinTossWinner;
+			if(gameMaster.getState().getCoinToss().isHomePicked() == gameMaster.getState().getCoinToss().isResult()){
+				coinTossWinner = gameMaster.getState().getHomeTeam().getTeamName()+" won the coin toss";
+			}else{
+				coinTossWinner = gameMaster.getState().getAwayTeam().getTeamName()+" won the coin toss";
+			}
+			g.drawString(coinTossWinner, 300, 150);
 		}
 	}
 	
@@ -467,6 +500,12 @@ public class Renderer extends JPanel{
 		}
 	}
 	
+	public void drawGameLog(Graphics g){
+		if(GameLog.poll() != ""){
+			g.drawString(GameLog.poll(), 20, 602);
+		}
+	}
+	
 	public void paintComponent(Graphics g) {
 		g.drawImage(background.getImage(), 0, 0, null);
 		g.setColor(Color.WHITE);
@@ -480,6 +519,7 @@ public class Renderer extends JPanel{
 		drawReroll(g);
 		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
 		drawCoinToss(g);
+		drawGameLog(g);
 		g.drawImage(weather.getBufferedImage(), 845, 535, null);
 		
 		Font font = new Font("Arial", Font.PLAIN, 25);	    
@@ -496,6 +536,8 @@ public class Renderer extends JPanel{
 	    g.setFont(font);
 		g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
 		g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
+		
+		System.out.println("stage = "+gameMaster.getState().getGameStage());
 		
 	}
 }
