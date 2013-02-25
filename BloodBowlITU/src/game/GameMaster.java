@@ -359,18 +359,18 @@ public class GameMaster {
 			state.getCoinToss().setHomePicked(heads);
 			
 			if (heads){
-				GameLog.push("Home team picked heads.");
+				GameLog.push(state.getHomeTeam().getTeamName() + " picked heads.");
 			} else {
-				GameLog.push("Home team picked tails.");
+				GameLog.push(state.getHomeTeam().getTeamName() + " picked tails.");
 			}
 			
 			// Toss the coin
 			state.getCoinToss().Toss();
 			
 			if (state.getCoinToss().isResult() == state.getCoinToss().isHomePicked()){
-				GameLog.push("Home team won the coin toss and will select to kick or receive.");
+				GameLog.push(state.getHomeTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
 			} else {
-				GameLog.push("Away team won the coin toss and will select to kick or receive.");
+				GameLog.push(state.getAwayTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
 			}
 			
 			// Go to pick coin toss effect
@@ -398,13 +398,13 @@ public class GameMaster {
 				if (receive){
 					state.setReceivingTeam(state.getHomeTeam());
 					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to recieve the ball.");
-					GameLog.push("Away team sets up first.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " selected to recieve the ball.");
+					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
 				} else {
 					state.setKickingTeam(state.getHomeTeam());
 					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to kick the ball.");
-					GameLog.push("Home team sets up first.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " selected to kick the ball.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
 				}
 				
 			} else {
@@ -414,13 +414,13 @@ public class GameMaster {
 				if (!receive){
 					state.setReceivingTeam(state.getHomeTeam());
 					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to recieve the ball.");
-					GameLog.push("Away team sets up first.");
+					GameLog.push(state.getAwayTeam().getTeamName() + " selected to kick the ball.");
+					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
 				} else {
 					state.setKickingTeam(state.getHomeTeam());
 					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push("Home team selected to kick the ball.");
-					GameLog.push("Home team sets up first.");
+					GameLog.push(state.getAwayTeam().getTeamName() + " selected to receive the ball.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
 				}
 				
 			}
@@ -446,8 +446,8 @@ public class GameMaster {
 				state.setGameStage(GameStage.RECEIVING_SETUP);
 				selectedPlayer = null;
 				
-				GameLog.push("Kicking team is done setting up.");
-				GameLog.push("Receiving team now has to setup.");
+				GameLog.push(state.getKickingTeam().getTeamName() + " is done setting up.");
+				GameLog.push(state.getReceivingTeam().getTeamName() + " now has to setup.");
 				
 			}
 			
@@ -459,8 +459,8 @@ public class GameMaster {
 				state.setGameStage(GameStage.KICK_PLACEMENT);
 				selectedPlayer = null;
 				
-				GameLog.push("Receiving team is done setting up.");
-				GameLog.push("Kicking team now has to place the ball.");
+				GameLog.push(state.getReceivingTeam().getTeamName() + " is done setting up.");
+				GameLog.push(state.getKickingTeam().getTeamName() + " now has to place the ball.");
 				
 			}
 			
