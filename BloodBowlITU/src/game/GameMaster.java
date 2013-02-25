@@ -866,7 +866,7 @@ private void rollForFans() {
 			
 		} else {
 			
-			player.getPlayerStatus().useMovement(3 + 1);
+			player.getPlayerStatus().useMovement(1);
 
 		}
 		
@@ -1108,87 +1108,111 @@ private void rollForFans() {
 
 	private boolean moveAllowed(Player player, Square square) {
 		
-		boolean moveAllowed = false;
-		
+		// Legal square
 		if (!nextToEachOther(selectedPlayer, square)){
 			return false;
 		}
 		
+		// Square occupied?
+		if (state.getPitch().getPlayerArr()[square.getY()][square.getX()] != null){
+			return false;
+		}
+		
 		// Turn
-		if (state.getGameStage() == GameStage.HOME_TURN && 
-				state.getHomeTeam() == playerOwner(player)){
-			
-			moveAllowed = true;
-			
-		} else if (state.getGameStage() == GameStage.AWAY_TURN && 
-				state.getAwayTeam() == playerOwner(player)){
-			
-			moveAllowed = true;
-			
-		} else if (state.getGameStage() == GameStage.BLITZ && 
-				state.getKickingTeam() == playerOwner(player)){
-			
-			moveAllowed = true;
-			
-		} else if (state.getGameStage() == GameStage.QUICK_SNAP && 
-				state.getReceivingTeam() == playerOwner(player)){
-			
-			if (player.getPlayerStatus().getMovementUsed() < 1){
-				moveAllowed = true;
-			}
-			
-		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE &&
-				state.getKickingTeam() == playerOwner(player)){
-					
-			moveAllowed = true;
-			
+		if (!isPlayerTurn(player)){
+			return false;
 		}
 		
 		// Player turn
 		if (player.getPlayerStatus().getTurn() == PlayerTurn.USED){
 			return false;
 		}
-
-		// Movement left
-		if (player.getPlayerStatus().getStanding() == Standing.UP){
+		
+		// Enough move left?
+		boolean moveLeft = playerMovementLeft(player);
+		
+		if (!moveLeft){
 			
-			if (player.getPlayerStatus().getMovementUsed() < player.getMA()){
+			// Able to sprint
+			if (player.getPlayerStatus().getMovementUsed() < player.getMA() + 2 && 
+					player.getPlayerStatus().getStanding() == Standing.UP){
 				
-				// Move
-				moveAllowed = true;
-				
-			} else if (player.getPlayerStatus().getMovementUsed() < player.getMA() + 2){
-			
 				// Going for it
 				goingForIt(player, square);
 				
 			}
 			
-		} else if (player.getPlayerStatus().getStanding() == Standing.DOWN){
+		} else {
+			return true;
+		}
+		
+		return false;
+		
+	}
+	
+	private boolean playerMovementLeft(Player player) {
+
+		boolean movementLeft = false;
+		if (player.getPlayerStatus().getStanding() == Standing.UP){
 			
-			if (player.getPlayerStatus().getMovementUsed() + 3 < player.getMA()){
+			if (player.getPlayerStatus().getMovementUsed() == 0 && 
+					state.getGameStage() == GameStage.QUICK_SNAP){
 				
-				// Move
-				moveAllowed = true;
+				// Quick snap move
+				movementLeft = true;
+				
+			} else if (player.getPlayerStatus().getMovementUsed() < player.getMA()){
+				
+				// Normal move
+				movementLeft = true;
 				
 			}
 			
-		} else if (player.getPlayerStatus().getStanding() == Standing.STUNNED){
-			
-			return false;
-			
+		} else if (player.getPlayerStatus().getStanding() == Standing.DOWN && 
+				player.getPlayerStatus().getMovementUsed() + 3 < player.getMA()){
+
+				// Stand up and move
+				movementLeft = true;
+				
 		}
 		
-		// Square occupied?
-		if (state.getPitch().getPlayerArr()[square.getY()][square.getX()] != null){
-			
-			return false;
-			
-		}
-		
-		return moveAllowed;
+		return movementLeft;
 	}
-	
+
+	private boolean isPlayerTurn(Player player) {
+		
+		boolean playerTurn = false;
+		
+		if (state.getGameStage() == GameStage.HOME_TURN && 
+				state.getHomeTeam() == playerOwner(player)){
+			
+			playerTurn = true;
+			
+		} else if (state.getGameStage() == GameStage.AWAY_TURN && 
+				state.getAwayTeam() == playerOwner(player)){
+			
+			playerTurn = true;
+			
+		} else if (state.getGameStage() == GameStage.BLITZ && 
+				state.getKickingTeam() == playerOwner(player)){
+			
+			playerTurn = true;
+			
+		} else if (state.getGameStage() == GameStage.QUICK_SNAP && 
+				state.getReceivingTeam() == playerOwner(player)){
+			
+			playerTurn = true;
+			
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE &&
+				state.getKickingTeam() == playerOwner(player)){
+					
+			playerTurn = true;
+			
+		}
+		
+		return playerTurn;
+	}
+
 	private void goingForIt(Player player, Square square) {
 		
 		DiceRoll roll = new DiceRoll();
@@ -1197,7 +1221,11 @@ private void rollForFans() {
 		d.roll();
 		
 		if (d.getResultAsInt() > 1){
+			
+			player.getPlayerStatus().setMovementUsed(player.getPlayerStatus().getMovementUsed());
+			
 			dodgeToMovePlayer(player, square);
+			
 		} else {
 			state.setCurrentGoingForIt(new GoingForIt(player, square));
 			state.setAwaitReroll(true);
