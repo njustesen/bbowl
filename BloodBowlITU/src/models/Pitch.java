@@ -291,6 +291,29 @@ public class Pitch {
 		}
 		return false;
 	}
+
+	public boolean isBallOnTeamSide(Team team) {
+		
+		// Ball on left side
+		if (ball.getSquare().getX() < 13){
+			
+			if (isTeamHome(team)){
+				return true;
+			} else {
+				return false;
+			}
+			
+		} else {
+			
+			if (isTeamHome(team)){
+				return false;
+			} else {
+				return true;
+			}
+			
+		}
+		
+	}
 	
 }
 
