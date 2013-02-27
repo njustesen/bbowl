@@ -55,7 +55,9 @@ public class GameState {
 		this.currentPickUp = null;
 		this.currentCatch = null;
 		this.playerPlaced = false;
+		this.currentDiceRoll = null;
 		// Only for testing purposes - should be null
+		/*
 		this.currentDiceRoll = new DiceRoll();
 		BB a = new BB();
 		a.roll();
@@ -66,6 +68,7 @@ public class GameState {
 		this.currentDiceRoll.addDice(a);
 		this.currentDiceRoll.addDice(b);
 		this.currentDiceRoll.addDice(c);
+		*/
 	}
 
 	public Pitch getPitch() {

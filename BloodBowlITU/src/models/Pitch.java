@@ -48,7 +48,7 @@ public class Pitch {
 	public boolean ballCorreclyPlaced(Team kickingTeam) {
 		if (kickingTeam == homeTeam && ball.getSquare().getX() >= 14){
 			return true;
-		} if (kickingTeam == homeTeam && ball.getSquare().getX() <= 13){
+		} if (kickingTeam == awayTeam && ball.getSquare().getX() <= 13){
 			return true;
 		}
 		return false;
@@ -178,15 +178,15 @@ public class Pitch {
 		}
 		
 		// Home players on the left side
-		if (playersOnLeftSide && isTeamHome(team)){
-			return true;
+		if (playersOnRightSide && isTeamHome(team)){
+			return false;
 		}
 		// Away players on the right
-		if (playersOnRightSide && !isTeamHome(team)){
-			return true;
+		if (playersOnLeftSide && !isTeamHome(team)){
+			return false;
 		}
 		
-		return false;
+		return true;
 	}
 
 	public void removePlayer(Player player) {
@@ -290,6 +290,29 @@ public class Pitch {
 			
 		}
 		return false;
+	}
+
+	public boolean isBallOnTeamSide(Team team) {
+		
+		// Ball on left side
+		if (ball.getSquare().getX() < 13){
+			
+			if (isTeamHome(team)){
+				return true;
+			} else {
+				return false;
+			}
+			
+		} else {
+			
+			if (isTeamHome(team)){
+				return false;
+			} else {
+				return true;
+			}
+			
+		}
+		
 	}
 	
 }
