@@ -278,11 +278,11 @@ public class Pitch {
 	}
 
 	public boolean isBallInsidePitch() {
-		if (ball.getSquare().getX() >=0 &&
-				ball.getSquare().getX() < playerArr[0].length){
+		if (ball.getSquare().getX() >=1 &&
+				ball.getSquare().getX() < playerArr[0].length-1){
 			
-			if (ball.getSquare().getY() >=0 &&
-					ball.getSquare().getY() < playerArr.length){
+			if (ball.getSquare().getY() >=1 &&
+					ball.getSquare().getY() < playerArr.length-1){
 				
 				return true;
 				

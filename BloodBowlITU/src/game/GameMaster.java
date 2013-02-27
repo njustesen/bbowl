@@ -67,10 +67,12 @@ public class GameMaster {
 	public void endPhase(){
 		
 		// Check if reroll?
+		/*
 		if (state.isAwaitingReroll()){
 			GameLog.push("You cannot end your turn during a dice roll.");
 			return;
 		}
+		*/
 		
 		switch(state.getGameStage()){
 			case KICKING_SETUP : endSetup(); break;
@@ -82,6 +84,7 @@ public class GameMaster {
 			case QUICK_SNAP : endTurn(); break;
 			case HIGH_KICK : endTurn(); break;
 			case PERFECT_DEFENSE : endTurn(); break;
+			case PLACE_BALL_ON_PLAYER : endTurn(); break;
 			default:
 			return;
 		}
@@ -1061,7 +1064,10 @@ private void rollForFans() {
 		state.getPitch().getBall().setOnGround(true);
 		
 		// Landed outside pitch
-		if (!state.getPitch().isBallInsidePitch()){
+		if (!state.getPitch().isBallOnTeamSide(state.getReceivingTeam()) || 
+				!state.getPitch().isBallInsidePitch()){
+			
+			state.setGameStage(GameStage.PLACE_BALL_ON_PLAYER);
 			
 			return;
 			
@@ -1140,9 +1146,15 @@ private void rollForFans() {
 
 	private void movePlayerToSquare(Player player, Square square) {
 		
+		// Move ball?
+		//TODO:moveball
+		
+		// Move player
 		state.getPitch().getPlayerArr()[square.getY()][square.getX()] = player;
 		
 		player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
+		
+		
 		
 	}
 
@@ -1380,12 +1392,14 @@ private void rollForFans() {
 			
 			endKickOffPhase();
 		
-		} else if (state.getGameStage() == GameStage.KICK_OFF || 
-				state.getGameStage() == GameStage.PLACE_BALL_ON_PLAYER){
+		} else if (state.getGameStage() == GameStage.PLACE_BALL_ON_PLAYER){
 			
-			// TODO: is ball placed on player?
-			
-			startNewTurn();
+			if (state.getPitch().getBall().isUnderControl()) {
+				state.setGameStage(GameStage.KICK_OFF);
+				startNewTurn();
+			} else {
+				GameLog.push("Place the ball on a player.");
+			}
 		
 		} else if (state.getGameStage() == GameStage.HIGH_KICK){
 			
@@ -1400,6 +1414,10 @@ private void rollForFans() {
 				endKickOffPhase();
 				
 			}
+		} else if (state.getGameStage() == GameStage.KICK_OFF){
+			
+			startNewTurn();
+			
 		}
 		
 	}
@@ -1817,7 +1835,8 @@ private void rollForFans() {
 		if (!state.getPitch().getBall().isUnderControl())
 			scatterKickedBall();
 		
-		endTurn();
+		if (state.getGameStage() == GameStage.KICK_OFF)
+			endTurn();
 		
 	}
 
@@ -1830,7 +1849,7 @@ private void rollForFans() {
 		int roll = da.getResultAsInt() + db.getResultAsInt();
 		
 		// DEBUGGING
-		//pitchInvasion();
+		//perfectDefense();
 		
 		
 		switch(roll){
@@ -1846,6 +1865,7 @@ private void rollForFans() {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
+		
 		
 	}
 
