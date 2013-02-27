@@ -206,7 +206,7 @@ public class GameMaster {
 			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
 				
 				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
+				placePlayerIfAllowed(selectedPlayer, square);
 				
 			}
 			
@@ -220,7 +220,17 @@ public class GameMaster {
 			
 			if (selectedPlayer != null){
 				
-				movePlayerToReserves(selectedPlayer, false);
+				if (state.getGameStage() == GameStage.KICKING_SETUP && 
+						state.getKickingTeam() == state.getAwayTeam()){
+					
+					movePlayerToReserves(selectedPlayer, false);
+					
+				} else if (state.getGameStage() == GameStage.RECEIVING_SETUP && 
+						state.getReceivingTeam() == state.getAwayTeam()){
+					
+					movePlayerToReserves(selectedPlayer, false);
+					
+				}
 				
 			}
 			
@@ -236,9 +246,19 @@ public class GameMaster {
 		
 		if (reserve >= state.getPitch().getHomeDogout().getReserves().size()){
 			
-			if (selectedPlayer != null){
+			if (selectedPlayer != null && isTeamTurn(state.getAwayTeam())){
 				
-				movePlayerToReserves(selectedPlayer, true);
+				if (state.getGameStage() == GameStage.KICKING_SETUP && 
+						state.getKickingTeam() == state.getHomeTeam()){
+					
+					movePlayerToReserves(selectedPlayer, false);
+					
+				} else if (state.getGameStage() == GameStage.RECEIVING_SETUP && 
+						state.getReceivingTeam() == state.getHomeTeam()){
+					
+					movePlayerToReserves(selectedPlayer, false);
+					
+				}
 				
 			}
 			
@@ -249,7 +269,7 @@ public class GameMaster {
 		}
 		
 	}
-	
+
 	private void movePlayerToReserves(Player player, boolean home) {
 		
 		if (playerOwner(player) == state.getHomeTeam() && home){
@@ -645,7 +665,7 @@ public class GameMaster {
 		}
 		
 		// Dodge
-		if (isInTackleZone(player)){
+		if (isInTackleZone(player) && state.getGameStage() != GameStage.QUICK_SNAP){
 			
 			dodgeToMovePlayer(player, square);
 			
@@ -876,7 +896,9 @@ private void rollForFans() {
 		
 		// Pick up ball
 		Square ballOn = state.getPitch().getBall().getSquare();
-		if (ballOn.getX() == square.getX() && ballOn.getY() == square.getY()){
+		if (ballOn.getX() == square.getX() && 
+				ballOn.getY() == square.getY() && 
+				state.getPitch().getBall().isOnGround()){
 			
 			pickUpBall();
 			
@@ -1128,12 +1150,13 @@ private void rollForFans() {
 			return false;
 		}
 		
-		// Enough move left?
-		boolean moveLeft = playerMovementLeft(player);
+		// Enough movement left?
+		if (playerMovementLeft(player))
+			return true;
 		
-		if (!moveLeft){
+		// Able to sprint
+		if (state.getGameStage() != GameStage.QUICK_SNAP){
 			
-			// Able to sprint
 			if (player.getPlayerStatus().getMovementUsed() < player.getMA() + 2 && 
 					player.getPlayerStatus().getStanding() == Standing.UP){
 				
@@ -1142,8 +1165,6 @@ private void rollForFans() {
 				
 			}
 			
-		} else {
-			return true;
 		}
 		
 		return false;
@@ -1153,15 +1174,24 @@ private void rollForFans() {
 	private boolean playerMovementLeft(Player player) {
 
 		boolean movementLeft = false;
+		
 		if (player.getPlayerStatus().getStanding() == Standing.UP){
 			
-			if (player.getPlayerStatus().getMovementUsed() == 0 && 
-					state.getGameStage() == GameStage.QUICK_SNAP){
+			// Quick snap
+			if (state.getGameStage() == GameStage.QUICK_SNAP){
 				
-				// Quick snap move
-				movementLeft = true;
+				if (player.getPlayerStatus().getMovementUsed() == 0){
+					
+					return true;
+					
+				} 
 				
-			} else if (player.getPlayerStatus().getMovementUsed() < player.getMA()){
+				return false;
+				
+			} 
+
+			// Normal turn
+			if (player.getPlayerStatus().getMovementUsed() < player.getMA()){
 				
 				// Normal move
 				movementLeft = true;
@@ -1206,11 +1236,17 @@ private void rollForFans() {
 		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE &&
 				state.getKickingTeam() == playerOwner(player)){
 					
-			playerTurn = true;
+			//playerTurn = true;
 			
 		}
 		
 		return playerTurn;
+	}
+	
+	private boolean isTeamTurn(Team team) {
+		
+		return isPlayerTurn(team.getPlayers().get(0));
+		
 	}
 
 	private void goingForIt(Player player, Square square) {
@@ -1321,7 +1357,8 @@ private void rollForFans() {
 			}
 			
 		} else if (state.getGameStage() == GameStage.BLITZ || 
-				state.getGameStage() == GameStage.QUICK_SNAP){
+				state.getGameStage() == GameStage.QUICK_SNAP || 
+				state.getGameStage() == GameStage.PERFECT_DEFENSE){
 			
 			endKickOffPhase();
 		
@@ -1330,7 +1367,7 @@ private void rollForFans() {
 			
 			startNewTurn();
 		
-		} 
+		}
 		
 	}
 
@@ -1734,6 +1771,12 @@ private void rollForFans() {
 
 	private void endKickOffPhase() {
 		
+		if (state.getGameStage() == GameStage.PERFECT_DEFENSE && 
+				!state.getPitch().isSetupLegal(state.getKickingTeam(), state.getHalf())){
+			
+			return;
+		}
+		
 		state.setGameStage(GameStage.KICK_OFF);
 		
 		scatterKickedBall();
@@ -1751,6 +1794,11 @@ private void rollForFans() {
 		da.roll(); 
 		db.roll();
 		int roll = da.getResultAsInt() + db.getResultAsInt();
+		
+		// DEBUGGING
+		highKick();
+		
+		/*
 		switch(roll){
 			case 2: getTheRef(); break;
 			case 3: riot(); break;
@@ -1764,6 +1812,7 @@ private void rollForFans() {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
+		*/
 		
 	}
 
@@ -1985,7 +2034,6 @@ private void rollForFans() {
 			state.getAwayTeam().getTeamStatus().setRerolls(rr);
 			GameLog.push(state.getAwayTeam().getTeamName() + " gets an extra reroll.");
 		}
-		
 		
 	}
 
