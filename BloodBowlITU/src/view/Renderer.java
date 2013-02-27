@@ -268,8 +268,15 @@ public class Renderer extends JPanel{
 			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);		
 			Font font = new Font("Arial", Font.PLAIN, 15);	    
 		    g.setFont(font); //<--
-			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getTeamStatus().getRerolls(), 100, 37);
-			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getTeamStatus().getRerolls(),  screenWidth-153, 37);
+			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getTeamStatus().getRerolls(), 100, 27);
+			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getTeamStatus().getRerolls(),  screenWidth-153, 27);
+			//turn
+			font = new Font("Arial", Font.PLAIN, 12);
+		    g.setFont(font);
+			g.drawString("turn "+gameMaster.getState().getHomeTurn()+"/8", 100, 45);
+			g.drawString("turn "+gameMaster.getState().getAwayTurn()+"/8", screenWidth-153, 45);
+			//half
+			g.drawString("half "+gameMaster.getState().getHalf()+"/2", screenWidth-50, 540);
 			//score	
 			Integer homeScore = gameMaster.getState().getHomeTeam().getTeamStatus().getScore();
 			Integer awayScore = gameMaster.getState().getAwayTeam().getTeamStatus().getScore();
@@ -277,15 +284,7 @@ public class Renderer extends JPanel{
 		    g.setFont(font);
 			g.drawString(homeScore.toString(), 23, 47);
 			g.drawString(awayScore.toString(), screenWidth-38, 47);
-			//turn
-			font = new Font("Arial", Font.PLAIN, 12);
-		    g.setFont(font);
-			if(gameMaster.getState().getHomeTeam() == gameMaster.getState().getReceivingTeam()){
-				g.drawString("turn "+gameMaster.getState().getHomeTurn()+"/8", screenWidth-50, 530);
-			}else{
-				g.drawString("turn "+gameMaster.getState().getAwayTurn()+"/8", screenWidth-50, 530);
-			}
-			g.drawString("half "+gameMaster.getState().getHalf()+"/2", screenWidth-50, 545);
+			
 			//team names
 			font = new Font("Arial", Font.PLAIN, 32);	    
 		    g.setFont(font);
@@ -294,13 +293,23 @@ public class Renderer extends JPanel{
 		    	g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
 		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);	
 		    }else if(stage == GameStage.HOME_TURN || 
-		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.KICKING_SETUP) ||
-		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.RECEIVING_SETUP)){
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.RECEIVING_SETUP) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.HIGH_KICK) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.QUICK_SNAP) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.PERFECT_DEFENSE) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.KICK_PLACEMENT) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.BLITZ) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.KICKING_SETUP)){
 		    	g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
 		    	g.setColor(Color.GRAY);
 		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
 		    }else if(stage == GameStage.AWAY_TURN ||
 		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.RECEIVING_SETUP) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.HIGH_KICK) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.QUICK_SNAP) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.PERFECT_DEFENSE) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.KICK_PLACEMENT) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.BLITZ) ||
 		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.KICKING_SETUP)){
 		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
 		    	g.setColor(Color.GRAY);
