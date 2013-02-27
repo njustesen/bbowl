@@ -66,6 +66,12 @@ public class GameMaster {
 	 */
 	public void endPhase(){
 		
+		// Check if reroll?
+		if (state.isAwaitingReroll()){
+			GameLog.push("You cannot end your turn during a dice roll.");
+			return;
+		}
+		
 		switch(state.getGameStage()){
 			case KICKING_SETUP : endSetup(); break;
 			case RECEIVING_SETUP : endSetup(); break;
@@ -143,6 +149,18 @@ public class GameMaster {
 			endTurn();
 			
 		}
+		
+	}
+	
+	private void placePlayerUnderBall(Player player) {
+		
+		Square ballOn = state.getPitch().getBall().getSquare();
+		
+		removePlayerFromCurrentSquare(player);
+		movePlayerToSquare(player, ballOn);
+		
+		state.getPitch().getBall().setOnGround(true);
+		state.getPitch().getBall().setUnderControl(true);
 		
 	}
 
@@ -1365,11 +1383,28 @@ private void rollForFans() {
 		} else if (state.getGameStage() == GameStage.KICK_OFF || 
 				state.getGameStage() == GameStage.PLACE_BALL_ON_PLAYER){
 			
+			// TODO: is ball placed on player?
+			
 			startNewTurn();
 		
+		} else if (state.getGameStage() == GameStage.HIGH_KICK){
+			
+			if (selectedPlayer != null && 
+					playerOwner(selectedPlayer) == state.getReceivingTeam() && 
+					state.getPitch().isOnPitch(selectedPlayer)){
+				
+				// Place player under ball
+				placePlayerUnderBall(selectedPlayer);
+				
+				state.setGameStage(GameStage.KICK_OFF);
+				endKickOffPhase();
+				
+			}
 		}
 		
 	}
+
+	
 
 	private void endHalf() {
 		
@@ -1779,12 +1814,11 @@ private void rollForFans() {
 		
 		state.setGameStage(GameStage.KICK_OFF);
 		
-		scatterKickedBall();
+		if (!state.getPitch().getBall().isUnderControl())
+			scatterKickedBall();
 		
-		// Check if reroll?
-		if (!state.isAwaitingReroll()){
-			endTurn();
-		}
+		endTurn();
+		
 	}
 
 	private void rollForKickOff(){
@@ -1796,9 +1830,9 @@ private void rollForFans() {
 		int roll = da.getResultAsInt() + db.getResultAsInt();
 		
 		// DEBUGGING
-		highKick();
+		//pitchInvasion();
 		
-		/*
+		
 		switch(roll){
 			case 2: getTheRef(); break;
 			case 3: riot(); break;
@@ -1812,7 +1846,6 @@ private void rollForFans() {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
-		*/
 		
 	}
 
@@ -2091,8 +2124,11 @@ private void rollForFans() {
 			GameLog.push("The referee resets the clock back to before the fight started.");
 			
 			// Move turn makers one backwards
-			state.setHomeTurn(Math.max(1, state.getHomeTurn() - 1));
-			state.setAwayTurn(Math.max(1, state.getAwayTurn() - 1));
+			if (state.getHomeTurn() != 0)
+				state.setHomeTurn(Math.max(1, state.getHomeTurn() - 1));
+			
+			if (state.getAwayTurn() != 0)
+				state.setAwayTurn(Math.max(1, state.getAwayTurn() - 1));
 			
 		}
 		
