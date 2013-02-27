@@ -270,8 +270,8 @@ public class Renderer extends JPanel{
 			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);		
 			Font font = new Font("Arial", Font.PLAIN, 15);	    
 		    g.setFont(font); //<--
-			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getTeamStatus().getRerolls(), 125, 37);
-			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getTeamStatus().getRerolls(),  screenWidth-178, 37);
+			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getTeamStatus().getRerolls(), 100, 37);
+			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getTeamStatus().getRerolls(),  screenWidth-153, 37);
 			
 			font = new Font("Arial", Font.PLAIN, 22);	    
 		    g.setFont(font);
@@ -280,8 +280,24 @@ public class Renderer extends JPanel{
 			
 			font = new Font("Arial", Font.PLAIN, 32);	    
 		    g.setFont(font);
-			g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
-			g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
+		    GameStage stage = gameMaster.getState().getGameStage();
+		    if(stage == GameStage.START_UP || stage == GameStage.COIN_TOSS || stage == GameStage.PICK_COIN_TOSS_EFFECT){
+		    	g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
+		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);	
+		    }else if(gameMaster.getState().getHomeTurn() == 1 || 
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.KICKING_SETUP) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.RECEIVING_SETUP)){
+		    	g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
+		    	g.setColor(Color.GRAY);
+		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
+		    }else if(gameMaster.getState().getAwayTurn() == 1 || 
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.RECEIVING_SETUP) ||
+		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.KICKING_SETUP)){
+		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
+		    	g.setColor(Color.GRAY);
+		    	g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
+		    }
+			g.setColor(Color.WHITE);
 			g.setFont(standard);
 	}
 	
