@@ -1,12 +1,15 @@
 package view;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.Point;
@@ -165,12 +168,10 @@ public class Renderer extends JPanel{
 		greenTile.loopAnimation();
 		roll.loopAnimation();
 		selectedPlayer.loopAnimation();
-		setWeather();
 	}
 	
-	public void setWeather(){
+	public void drawWeather(Graphics g){
 		Weather w = gameMaster.getState().getWeather();
-		
 		switch(w){
 			case SWELTERING_HEAT: weather.setImage("heat.png"); break;
 			case VERY_SUNNY: weather.setImage("sun.png"); break;
@@ -179,6 +180,8 @@ public class Renderer extends JPanel{
 			case BLIZZARD: weather.setImage("blizzard.png"); break;
 			default: System.out.println("WEATHER?");
 		}
+		
+		g.drawImage(weather.getBufferedImage(), 845, 545, null);
 	}
 	
 	public int getFps(){
@@ -350,11 +353,31 @@ public class Renderer extends JPanel{
 		}
 		//down and stunned
 		if(p.getPlayerStatus().getStanding() == Standing.STUNNED){
+			Graphics2D g2d = (Graphics2D) g;
+			BasicStroke stroke = new BasicStroke(3);
+			g2d.setStroke(stroke);
+			g2d.setColor(Color.BLACK);
+			g2d.drawLine(screenX, screenY, screenX+30, screenY+30);
+			g2d.drawLine(screenX+30, screenY, screenX, screenY+30);	
+			stroke = new BasicStroke(1);
+			g2d.setStroke(stroke);
+			g.setColor(Color.RED);
 			g.drawLine(screenX, screenY, screenX+30, screenY+30);
-			g.drawLine(screenX+30, screenY, screenX, screenY+30);
+			g.drawLine(screenX+30, screenY, screenX, screenY+30);		
+			
 		}else if(p.getPlayerStatus().getStanding() == Standing.DOWN){
-			g.drawLine(screenX, screenY, screenX+30, screenY+30);
+			Graphics2D g2d = (Graphics2D) g;
+			BasicStroke stroke = new BasicStroke(3);
+			g2d.setStroke(stroke);
+			g2d.setColor(Color.BLACK);
+			g2d.drawLine(screenX, screenY, screenX+30, screenY+30);	
+			stroke = new BasicStroke(1);
+			g2d.setStroke(stroke);
+			g.setColor(Color.RED);
+			g.drawLine(screenX, screenY, screenX+30, screenY+30);	
 		}
+		g.setFont(standard);
+		g.setColor(Color.WHITE);
 	}
 	
 	
@@ -602,7 +625,8 @@ public class Renderer extends JPanel{
 		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
 		drawCoinToss(g);
 		drawGameLog(g);
-		g.drawImage(weather.getBufferedImage(), 845, 545, null);
+		drawWeather(g);
+		
 		
 		System.out.println("stage = "+gameMaster.getState().getGameStage());
 		
