@@ -27,6 +27,8 @@ import models.GameStage;
 import models.Player;
 import models.Race;
 import models.Square;
+import models.Standing;
+import models.Team;
 import models.Weather;
 import models.dice.DiceFace;
 import models.dice.DiceRoll;
@@ -45,10 +47,7 @@ public class Renderer extends JPanel{
 
 	private static int fps;
 	private static JFrame screen;
-	private static Integer team1Score = 0;
-	private static Integer team2Score = 0;
-	private static String team1Name = "ORCSES";
-	private static String team2Name = "HUMANS";
+	
 	//layout
 	private static int screenWidth;
 	private static int screenHeight;
@@ -58,8 +57,7 @@ public class Renderer extends JPanel{
 	private static int logLength = 200;
 	private static InputManager inputManager;
 	private static Point2D pitchOrigin;
-	private static Point2D rerollButtonOrigin;
-	
+	private static Point2D rerollButtonOrigin;	
 	
 	/////////////////////////
 	/////// graphics ////////
@@ -250,7 +248,7 @@ public class Renderer extends JPanel{
 					case KICKING_SETUP: g.drawImage(endSetupOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					case RECEIVING_SETUP:  g.drawImage(endSetupOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					case KICK_PLACEMENT: g.drawImage(placeBallOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
-					default: g.drawImage(startGameOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					default: g.drawImage(endTurnOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 				}
 				
 				}else{
@@ -259,38 +257,49 @@ public class Renderer extends JPanel{
 					case KICKING_SETUP: g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					case RECEIVING_SETUP:  g.drawImage(endSetupOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					case KICK_PLACEMENT: g.drawImage(placeBallOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
-					default: g.drawImage(startGameOn.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
+					default: g.drawImage(endTurnOff.getImage(), inputManager.getEndTurnButtonOrigin().getX(), inputManager.getEndTurnButtonOrigin().getY(), null); break;
 					}
 				}	
 		}
 		
 	
 	public void drawRerollNamesAndScore(Graphics g){
-
+			//rerolls
 			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);		
 			Font font = new Font("Arial", Font.PLAIN, 15);	    
 		    g.setFont(font); //<--
 			g.drawString("rerolls: " + gameMaster.getState().getHomeTeam().getTeamStatus().getRerolls(), 100, 37);
 			g.drawString("rerolls: " + gameMaster.getState().getAwayTeam().getTeamStatus().getRerolls(),  screenWidth-153, 37);
-			
-			font = new Font("Arial", Font.PLAIN, 22);	    
+			//score	
+			Integer homeScore = gameMaster.getState().getHomeTeam().getTeamStatus().getScore();
+			Integer awayScore = gameMaster.getState().getAwayTeam().getTeamStatus().getScore();
+			font = new Font("Arial", Font.PLAIN, 22);
 		    g.setFont(font);
-			g.drawString(team1Score.toString(), 23, 47);
-			g.drawString(team2Score.toString(), screenWidth-38, 47);
-			
+			g.drawString(homeScore.toString(), 23, 47);
+			g.drawString(awayScore.toString(), screenWidth-38, 47);
+			//turn
+			font = new Font("Arial", Font.PLAIN, 12);
+		    g.setFont(font);
+			if(gameMaster.getState().getHomeTeam() == gameMaster.getState().getReceivingTeam()){
+				g.drawString("turn "+gameMaster.getState().getHomeTurn()+"/8", screenWidth-50, 530);
+			}else{
+				g.drawString("turn "+gameMaster.getState().getAwayTurn()+"/8", screenWidth-50, 530);
+			}
+			g.drawString("half "+gameMaster.getState().getHalf()+"/2", screenWidth-50, 545);
+			//team names
 			font = new Font("Arial", Font.PLAIN, 32);	    
 		    g.setFont(font);
 		    GameStage stage = gameMaster.getState().getGameStage();
 		    if(stage == GameStage.START_UP || stage == GameStage.COIN_TOSS || stage == GameStage.PICK_COIN_TOSS_EFFECT){
 		    	g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
 		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);	
-		    }else if(gameMaster.getState().getHomeTurn() == 1 || 
+		    }else if(stage == GameStage.HOME_TURN || 
 		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.KICKING_SETUP) ||
 		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.RECEIVING_SETUP)){
 		    	g.drawString(gameMaster.getState().getHomeTeam().getTeamName(), 245, 37);
 		    	g.setColor(Color.GRAY);
 		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
-		    }else if(gameMaster.getState().getAwayTurn() == 1 || 
+		    }else if(stage == GameStage.AWAY_TURN ||
 		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getHomeTeam() && stage == GameStage.RECEIVING_SETUP) ||
 		    		(gameMaster.getState().getKickingTeam() == gameMaster.getState().getAwayTeam() && stage == GameStage.KICKING_SETUP)){
 		    	g.drawString(gameMaster.getState().getAwayTeam().getTeamName(), screenWidth-378, 37);
@@ -329,6 +338,13 @@ public class Renderer extends JPanel{
 		// Selected
 		if(p == gameMaster.getSelectedPlayer()){
 			g.drawImage(selectedPlayer.getBufferedImage(), screenX-1, screenY, null);
+		}
+		//down and stunned
+		if(p.getPlayerStatus().getStanding() == Standing.STUNNED){
+			g.drawLine(screenX, screenY, screenX+30, screenY+30);
+			g.drawLine(screenX+30, screenY, screenX, screenY+30);
+		}else if(p.getPlayerStatus().getStanding() == Standing.DOWN){
+			g.drawLine(screenX, screenY, screenX+30, screenY+30);
 		}
 	}
 	
@@ -577,7 +593,7 @@ public class Renderer extends JPanel{
 		drawDiceRoll(g, gameMaster.getState().getCurrentDiceRoll());
 		drawCoinToss(g);
 		drawGameLog(g);
-		g.drawImage(weather.getBufferedImage(), 845, 535, null);
+		g.drawImage(weather.getBufferedImage(), 845, 545, null);
 		
 		System.out.println("stage = "+gameMaster.getState().getGameStage());
 		
