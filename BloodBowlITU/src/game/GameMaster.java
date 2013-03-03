@@ -992,15 +992,29 @@ private void rollForFans() {
 
 		}
 		
+		Square playerOn = state.getPitch().getPlayerPosition(player);
+		Square ballOn = state.getPitch().getBall().getSquare();
+		
+		if (playerOn != null &&
+				ballOn != null &&
+				playerOn.getX() == ballOn.getX() && 
+				playerOn.getY() == ballOn.getY() && 
+				state.getPitch().getBall().isUnderControl()){
+			
+			state.getPitch().getBall().setSquare(square);
+			
+		}
+		
 		// Move player
 		removePlayerFromCurrentSquare(player);
 		movePlayerToSquare(player, square);
 		
 		// Pick up ball
-		Square ballOn = state.getPitch().getBall().getSquare();
+		ballOn = state.getPitch().getBall().getSquare();
 		if (ballOn.getX() == square.getX() && 
 				ballOn.getY() == square.getY() && 
-				state.getPitch().getBall().isOnGround()){
+				state.getPitch().getBall().isOnGround() && 
+				!state.getPitch().getBall().isUnderControl()){
 			
 			pickUpBall();
 			
@@ -1227,15 +1241,27 @@ private void rollForFans() {
 
 	private void movePlayerToSquare(Player player, Square square) {
 		
-		// Move ball?
-		//TODO:moveball
+		if (state.getPitch().isOnPitch(player)){
+			square = state.getPitch().getPlayerPosition(player);
+		}
 		
 		// Move player
-		state.getPitch().getPlayerArr()[square.getY()][square.getX()] = player;
-		
+		placePlayerAt(player, square);
+
 		player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
+
+	}
+	
+	private boolean playerHasBall(Player player) {
 		
+		Square ballOn = state.getPitch().getBall().getSquare();
+		Square playerOn = state.getPitch().getPlayerPosition(player);
 		
+		if (ballOn.getX() == playerOn.getX() && ballOn.getY() == playerOn.getY()){
+			return true;
+		}
+		
+		return false;
 	}
 
 	private boolean moveAllowed(Player player, Square square) {
