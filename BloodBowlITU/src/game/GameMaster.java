@@ -1219,7 +1219,7 @@ private void rollForFans() {
 	private Team getMovingTeam() {
 		if (state.getGameStage() == GameStage.HOME_TURN){
 			return state.getHomeTeam();
-		} else if (state.getGameStage() == GameStage.HOME_TURN){
+		} else if (state.getGameStage() == GameStage.AWAY_TURN){
 			return state.getAwayTeam();
 		}
 		return null;
@@ -1435,7 +1435,6 @@ private void rollForFans() {
 			if (state.getAwayTurn() < 8){
 				
 				// Away turn
-				state.incAwayTurn();
 				startNewTurn();
 				
 			} else {
@@ -1449,7 +1448,6 @@ private void rollForFans() {
 			if (state.getHomeTurn() < 8){
 				
 				// Away turn
-				state.incHomeTurn();
 				startNewTurn();
 				
 			} else {
@@ -1530,6 +1528,11 @@ private void rollForFans() {
 		rollForKnockedOut();
 		
 		state.setHalf(state.getHalf() + 1);
+		
+		state.setHomeTurn(0);
+		state.setAwayTurn(0);
+		state.getPitch().getBall().setOnGround(false);
+		state.getPitch().getBall().setSquare(null);
 		
 		// Who kicks?
 		if ( state.getCoinToss().isHomeReceives() ){
