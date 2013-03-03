@@ -24,6 +24,7 @@ import models.dice.DiceRoll;
 
 public class GameMaster {
 	
+	private static final boolean AUTO_SETUP = true;
 	private GameState state;
 	private Player selectedPlayer;
 	//private PlayerAgent homeAgent;
@@ -238,7 +239,7 @@ public class GameMaster {
 	public void selectAwayReserve(int reserve) {
 		
 		if (reserve >= state.getPitch().getAwayDogout().getReserves().size()){
-			
+
 			if (selectedPlayer != null){
 				
 				if (state.getGameStage() == GameStage.KICKING_SETUP && 
@@ -259,6 +260,10 @@ public class GameMaster {
 			
 			selectedPlayer = state.getPitch().getAwayDogout().getReserves().get(reserve);
 		
+		} else {
+			
+			selectedPlayer = null;
+			
 		}
 		
 	}
@@ -267,17 +272,17 @@ public class GameMaster {
 		
 		if (reserve >= state.getPitch().getHomeDogout().getReserves().size()){
 			
-			if (selectedPlayer != null && isTeamTurn(state.getAwayTeam())){
+			if (selectedPlayer != null){
 				
 				if (state.getGameStage() == GameStage.KICKING_SETUP && 
 						state.getKickingTeam() == state.getHomeTeam()){
 					
-					movePlayerToReserves(selectedPlayer, false);
+					movePlayerToReserves(selectedPlayer, true);
 					
 				} else if (state.getGameStage() == GameStage.RECEIVING_SETUP && 
 						state.getReceivingTeam() == state.getHomeTeam()){
 					
-					movePlayerToReserves(selectedPlayer, false);
+					movePlayerToReserves(selectedPlayer, true);
 					
 				}
 				
@@ -287,6 +292,10 @@ public class GameMaster {
 			
 			selectedPlayer = state.getPitch().getHomeDogout().getReserves().get(reserve);
 		
+		}  else {
+			
+			selectedPlayer = null;
+			
 		}
 		
 	}
@@ -439,6 +448,15 @@ public class GameMaster {
 		
 		if (state.getGameStage() == GameStage.KICKING_SETUP){
 			
+			// Auto setup
+			if (state.getPitch().teamPlayersOnPitch(state.getKickingTeam()) == 0 &&
+					AUTO_SETUP){
+				
+				setupTeam(state.getKickingTeam());
+				
+				return;
+			}
+			
 			// Kicking team	
 			if (state.getPitch().isSetupLegal(state.getKickingTeam(), state.getHalf())){
 				
@@ -451,6 +469,14 @@ public class GameMaster {
 			}
 			
 		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
+			
+			// Auto setup
+			if (state.getPitch().teamPlayersOnPitch(state.getReceivingTeam()) == 0 && 
+					 AUTO_SETUP){
+				
+				setupTeam(state.getReceivingTeam());
+				return;
+			}
 			
 			// Receiving team	
 			if (state.getPitch().isSetupLegal(state.getReceivingTeam(), state.getHalf())){
@@ -467,6 +493,61 @@ public class GameMaster {
 		
 	}
 	
+	private void setupTeam(Team team) {
+			
+		ArrayList<Player> placablePlayers = new ArrayList<Player>();
+		
+		for (Player p : state.getPitch().getDogout(team).getReserves()){
+			placablePlayers.add(p);
+		}
+		
+		for (Player p : placablePlayers){
+			
+			// No more players in reserves
+			if (state.getPitch().getDogout(team).getReserves().isEmpty()){
+				break;
+			}
+			
+			// Three on scrimmage?
+			if (state.getPitch().playersOnScrimmage(team) < 3){
+				
+				state.getPitch().placePlayerOnScrimmage(p, team);
+				
+				continue;
+				
+			}
+			
+			// Two on top wide zones
+			if (state.getPitch().playersOnTopWideZones(team) < 2){
+				
+				state.getPitch().placePlayerInTopWideZone(p, team);
+				
+				continue;
+				
+			}
+			
+			// Two on bottom wide zones
+			if (state.getPitch().playersOnBottomWideZones(team) < 2){
+				
+				state.getPitch().placePlayerInBottomWideZone(p, team);
+				
+				continue;
+				
+			}
+			
+			// Place on rest of pitch
+			if (state.getPitch().playersOnPitch(team) < 11){
+				
+				state.getPitch().placePlayerInMidfield(p, team);
+				
+				continue;
+				
+			}
+			
+		}
+		
+	}
+
 	/**
 	 * Place a player on a square.
 	 * 
@@ -1153,7 +1234,6 @@ private void rollForFans() {
 		state.getPitch().getPlayerArr()[square.getY()][square.getX()] = player;
 		
 		player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
-		
 		
 		
 	}

@@ -54,6 +54,26 @@ public class Pitch {
 		return false;
 	}
 	
+	public int playersOnPitch(Team team) {
+		
+		int playersOnPitch = 0;
+
+		// Count players
+		for(int y = 0; y < playerArr.length; y++){
+			for(int x = 0; x < playerArr[0].length; x++){
+				
+				// If the found player is on the team
+				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){
+					
+					playersOnPitch++;
+					
+				}
+			}
+		}
+		
+		return playersOnPitch;
+	}
+	
 	private boolean requiredNumberOnPitch(Team team) {
 		
 		int playersOnPitch = 0;
@@ -233,6 +253,27 @@ public class Pitch {
 		
 		return null;
 	}
+	
+	public int teamPlayersOnPitch(Team team) {
+
+		int playersOnPitch = 0;
+
+		// Count players
+		for(int y = 0; y < playerArr.length; y++){
+			for(int x = 0; x < playerArr[0].length; x++){
+				
+				// If the found player is on the team
+				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){
+					
+					playersOnPitch++;
+					
+				}
+			}
+		}
+		
+		return playersOnPitch;
+		
+	}
 
 	private boolean isTeamHome(Team team) {
 		if (getDogout(team) == getHomeDogout())
@@ -314,6 +355,180 @@ public class Pitch {
 		}
 		
 	}
+
+	public int playersOnScrimmage(Team team) {
+
+		int playersOnScrimmage = 0;
+		int scrimmageLine = 13;
+		
+		if (!isTeamHome(team)){
+			scrimmageLine = 14;
+		}
+
+		// Count players
+		for(int y = 5; y <= 11; y++){
+				
+			// If the found player is on the team
+			if (playerArr[y][scrimmageLine] != null && team.getPlayers().contains(playerArr[y][scrimmageLine])){
+				
+				playersOnScrimmage++;
+				
+			}
+		}
+		
+		return playersOnScrimmage;
+		
+	}
+
+	public int playersOnTopWideZones(Team team) {
+		
+		int playersInTopWideZones = 0;
+
+		// Count players in top
+		for(int y = 1; y <= 4; y++){
+			for(int x = 2; x <= 25; x++){
+				
+				// If the found player is on the team
+				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){
+					
+					playersInTopWideZones++;
+					
+				}
+			}
+		}
+		
+		return playersInTopWideZones;
+		
+	}
+	
+	public int playersOnBottomWideZones(Team team) {
+		
+		int playersInBottomWideZones = 0;
+
+		for(int y = 12; y <= 15; y++){
+			for(int x = 2; x <= 25; x++){
+				
+				// If the found player is on the team
+				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){
+					
+					playersInBottomWideZones++;
+					
+				}
+			}
+		}
+		
+		return playersInBottomWideZones;
+		
+	}
+
+	public void placePlayerInTopWideZone(Player p, Team team) {
+		
+		int start;
+		int end;
+		
+		if (!isTeamHome(team)){
+			start = 14;
+			end = 25;
+		} else {
+			end = 13;
+			start = 2;
+		}
+
+		for(int y = 1; y <= 4; y++){
+			for(int x = start; x <= end; x++){
+				
+				if (playerArr[y][x] == null){
+					
+					playerArr[y][x] = p;
+					
+					getDogout(team).getReserves().remove(p);
+					return;
+				}
+			}
+		}
+		
+	}
+	
+	public void placePlayerOnScrimmage(Player p, Team team) {
+		
+		int scrimmageLine = 13;
+		
+		if (!isTeamHome(team)){
+			scrimmageLine = 14;
+		}
+
+		// Count players
+		for(int y = 5; y <= 11; y++){
+				
+			// If empty place player
+			if (playerArr[y][scrimmageLine] == null){
+				
+				playerArr[y][scrimmageLine] = p;
+				
+				getDogout(team).getReserves().remove(p);
+				return;
+			}
+		}
+		
+	}
+	
+	public void placePlayerInBottomWideZone(Player p, Team team) {
+
+		int start;
+		int end;
+		
+		if (!isTeamHome(team)){
+			start = 14;
+			end = 25;
+		} else {
+			end = 13;
+			start = 2;
+		}
+		
+		for(int y = 12; y <= 15; y++){
+			for(int x = start; x <= end; x++){
+				
+				if (playerArr[y][x] == null){
+					
+					playerArr[y][x] = p;
+					getDogout(team).getReserves().remove(p);
+					return;
+					
+				}
+			}
+		}
+		
+	}
+
+	public void placePlayerInMidfield(Player p, Team team) {
+		
+		int start;
+		int end;
+		
+		if (!isTeamHome(team)){
+			start = 15;
+			end = 25;
+		} else {
+			end = 12;
+			start = 2;
+		}
+		
+		for(int y = 5; y <= 11; y++){
+			for(int x = start; x <= end; x++){
+				
+				if (playerArr[y][x] == null){
+					
+					playerArr[y][x] = p;
+					getDogout(team).getReserves().remove(p);
+					return;
+					
+				}
+			}
+		}
+		
+	}
+	
+	
 	
 }
 
