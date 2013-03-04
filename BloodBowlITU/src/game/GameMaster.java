@@ -6,6 +6,7 @@ import models.GameStage;
 import models.GameState;
 import models.Player;
 import models.PlayerTurn;
+import models.Skill;
 import models.Square;
 import models.Standing;
 import models.Team;
@@ -802,6 +803,11 @@ public class GameMaster {
 			return;
 		}
 		
+		// Player turn
+		if (player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			endTurnForOtherPlayers(playerOwner(player), player);
+		}
+		
 		// Dodge
 		if (isInTackleZone(player) && state.getGameStage() != GameStage.QUICK_SNAP){
 			
@@ -815,7 +821,7 @@ public class GameMaster {
 		}
 		
 	}
-	
+
 	/**
 	 * Selects an action to the selected player.
 	 * @param action
@@ -829,6 +835,16 @@ public class GameMaster {
 			
 			selectedPlayer.getPlayerStatus().setTurn(action);
 			
+		}
+		
+	}
+	
+	private void endTurnForOtherPlayers(Team team, Player player) {
+		
+		for(Player p : team.getPlayers()){
+			if (p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
+				p.getPlayerStatus().setTurn(PlayerTurn.USED);
+			}
 		}
 		
 	}
@@ -954,23 +970,46 @@ public class GameMaster {
 			
 		} else {
 			
-			// Reroll?
-			if (ableToReroll(getPlayerOwner(player))){
+			GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
+			
+			// Dodge skill
+			if (player.getSkills().contains(Skill.DODGE)){
+				
+				DiceRoll dr = new DiceRoll();
+				D6 d = new D6();
+				d.roll();
+				result = d.getResultAsInt();
+				state.setCurrentDiceRoll(dr);
+				
+				if (result == 6 || (result != 1 && result >= success)){
+					
+					GameLog.push("Succeeded dodge - using Dodge skill! Result: " + result + " (" + success + " was needed).");
+				
+					// Move
+					movePlayer(player, square);
+					return;
+				
+				} else {
+					
+					GameLog.push("Failed dodge - using Dodge skill! Result: " + result + " (" + success + " was needed).");
+					
+				}
+				
+			} else if (ableToReroll(getPlayerOwner(player))){
 				
 				// Prepare for reroll usage
 				GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
 				state.setCurrentDodge(new Dodge(player, square, success));
 				state.setAwaitReroll(true);
-				
-			} else {
-
-				// Player fall
-				GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
-				movePlayer(player, square);
-				knockDown(player, true);
-				endTurn();
+				return;
 				
 			}
+			
+			// Player fall
+			movePlayer(player, square);
+			knockDown(player, true);
+			endTurn();
+			
 		}
 		
 	}
