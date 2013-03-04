@@ -76,7 +76,8 @@ public class Team {
 	}
 
 	public void useReroll() {
-		this.rerolls--;
+		this.teamStatus.setRerolledThisTurn(true);
+		this.teamStatus.setRerolls(this.teamStatus.getRerolls() - 1);
 		
 	}
 	

@@ -688,26 +688,59 @@ public class GameMaster {
 			
 			// Select face
 			DiceFace face = state.getCurrentDiceRoll().getFaces().get(i);
+			int result = state.getCurrentDiceRoll().getDices().get(i).getResultAsInt();
 			
 			// Continue block/dodge/going
 			if (state.getCurrentBlock() != null){
 				
 				state.setAwaitReroll(false);
 				continueBlock(face);
+				return;
 				
 			}
+			if (state.getCurrentPickUp() != null){
+					
+				state.setAwaitReroll(false);
+				continuePickUp(result);
+				return;
+				
+			}
+			if (state.getCurrentCatch() != null){
+				
+				state.setAwaitReroll(false);
+				continueCatch(result);
+				return;
+				
+			}
+			if (state.getCurrentDodge() != null){
+				
+				state.setAwaitReroll(false);
+				continueDodge(result);
+				return;
+				
+			}	
+			if (state.getCurrentGoingForIt() != null){
+				
+				state.setAwaitReroll(false);
+				continueGoingForIt(result);
+				return;
+				
+			}	
+			
 		}
 		
 	}
-	
+
 	/**
 	 * Rerolls the current dice roll.
 	 */
 	public void reroll(){
 		
-		if (!state.isAwaitingReroll()){
+		// Anything to reroll?
+		if (!state.isAwaitingReroll() || 
+				state.getCurrentDiceRoll() == null || 
+				!ableToReroll(getMovingTeam()))
 			return;
-		}
 		
 		// Dodge/going/block
 	 	if (state.getCurrentDodge() != null){
@@ -760,6 +793,9 @@ public class GameMaster {
 	 */
 	public void movePlayerIfAllowed(Player player, Square square){
 		
+		if (state.isAwaitingReroll())
+			return;
+		
 		boolean moveAllowed = moveAllowed(player, square);
 		
 		if (!moveAllowed){
@@ -797,7 +833,7 @@ public class GameMaster {
 		
 	}
 	
-private void rollForFans() {
+	private void rollForFans() {
 		
 		// Fans
 		D6 a = new D6();
@@ -845,6 +881,8 @@ private void rollForFans() {
 	
 	private void continueGoingForIt(int result) {
 		
+		state.setAwaitReroll(false);
+		
 		if (result > 1){
 			
 			dodgeToMovePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
@@ -859,6 +897,8 @@ private void rollForFans() {
 	}
 
 	private void continueDodge(int result) {
+		
+		state.setAwaitReroll(false);
 		
 		performDodge(state.getCurrentDodge().getPlayer(), 
 				state.getCurrentDodge().getSquare(), 
@@ -888,7 +928,7 @@ private void rollForFans() {
 	private void performDodge(Player player, Square square, int result, int success) {
 		
 		// Success?
-		if (result == 6 || (result != 1 && result > success)){
+		if (result == 6 || (result != 1 && result >= success)){
 			
 			// Move
 			movePlayer(player, square);
@@ -911,6 +951,20 @@ private void rollForFans() {
 				
 			}
 		}
+		
+	}
+
+	private void continueCatch(int result) {
+		
+		state.setAwaitReroll(false);
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void continuePickUp(int result) {
+		
+		state.setAwaitReroll(false);
+		// TODO Auto-generated method stub
 		
 	}
 
@@ -940,11 +994,13 @@ private void rollForFans() {
 				
 				Player p = state.getPitch().getPlayerArr()[test.getY()][test.getX()]; 
 				
-				// Opposite team?
+				// Opposite team and up
 				if (p != null &&
 						getPlayerOwner(p) != getPlayerOwner(player)){
 					
-					num++;
+					if (p.getPlayerStatus().getStanding() == Standing.UP){
+						num++;
+					}
 					
 				}
 			}
@@ -969,7 +1025,10 @@ private void rollForFans() {
 				if (p != null &&
 						getPlayerOwner(p) != getPlayerOwner(player)){
 					
-					return true;
+					if (p.getPlayerStatus().getStanding() == Standing.UP){
+						return true;
+					}
+					
 					
 				}
 			}
@@ -985,12 +1044,36 @@ private void rollForFans() {
 		if (player.getPlayerStatus().getStanding() == Standing.DOWN){
 			
 			player.getPlayerStatus().useMovement(3 + 1);
+			player.getPlayerStatus().setStanding(Standing.UP);
 			
 		} else {
 			
 			player.getPlayerStatus().useMovement(1);
 
 		}
+		
+		// Move ball
+		if (isBallCarried(player))
+			state.getPitch().getBall().setSquare(square);
+		
+		// Move player
+		removePlayerFromCurrentSquare(player);
+		movePlayerToSquare(player, square);
+		
+		// Pick up ball
+		Square ballOn = state.getPitch().getBall().getSquare();
+		if (ballOn.getX() == square.getX() && 
+				ballOn.getY() == square.getY() && 
+				state.getPitch().getBall().isOnGround() && 
+				!state.getPitch().getBall().isUnderControl()){
+			
+			pickUpBall();
+			
+		}
+		
+	}
+
+	private boolean isBallCarried(Player player) {
 		
 		Square playerOn = state.getPitch().getPlayerPosition(player);
 		Square ballOn = state.getPitch().getBall().getSquare();
@@ -1001,24 +1084,11 @@ private void rollForFans() {
 				playerOn.getY() == ballOn.getY() && 
 				state.getPitch().getBall().isUnderControl()){
 			
-			state.getPitch().getBall().setSquare(square);
+			return true;
 			
 		}
 		
-		// Move player
-		removePlayerFromCurrentSquare(player);
-		movePlayerToSquare(player, square);
-		
-		// Pick up ball
-		ballOn = state.getPitch().getBall().getSquare();
-		if (ballOn.getX() == square.getX() && 
-				ballOn.getY() == square.getY() && 
-				state.getPitch().getBall().isOnGround() && 
-				!state.getPitch().getBall().isUnderControl()){
-			
-			pickUpBall();
-			
-		}
+		return false;
 		
 	}
 
@@ -1044,7 +1114,7 @@ private void rollForFans() {
 		state.setCurrentDiceRoll(roll);
 		
 		if (d.getResultAsInt() == 6 || 
-				(d.getResultAsInt() != 1 && d.getResultAsInt() > success)){
+				(d.getResultAsInt() != 1 && d.getResultAsInt() >= success)){
 			
 			state.getPitch().getBall().setUnderControl(true);
 			
@@ -1251,18 +1321,6 @@ private void rollForFans() {
 		player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
 
 	}
-	
-	private boolean playerHasBall(Player player) {
-		
-		Square ballOn = state.getPitch().getBall().getSquare();
-		Square playerOn = state.getPitch().getPlayerPosition(player);
-		
-		if (ballOn.getX() == playerOn.getX() && ballOn.getY() == playerOn.getY()){
-			return true;
-		}
-		
-		return false;
-	}
 
 	private boolean moveAllowed(Player player, Square square) {
 		
@@ -1378,12 +1436,6 @@ private void rollForFans() {
 		
 		return playerTurn;
 	}
-	
-	private boolean isTeamTurn(Team team) {
-		
-		return isPlayerTurn(team.getPlayers().get(0));
-		
-	}
 
 	private void goingForIt(Player player, Square square) {
 		
@@ -1394,18 +1446,25 @@ private void rollForFans() {
 		
 		if (d.getResultAsInt() > 1){
 			
-			player.getPlayerStatus().setMovementUsed(player.getPlayerStatus().getMovementUsed());
-			
-			dodgeToMovePlayer(player, square);
+			if (isInTackleZone(player))
+				dodgeToMovePlayer(player, square);
+			else 
+				movePlayer(player, square);
 			
 		} else {
-			state.setCurrentGoingForIt(new GoingForIt(player, square));
-			state.setAwaitReroll(true);
+			
+			if (ableToReroll(playerOwner(player))){
+				state.setCurrentGoingForIt(new GoingForIt(player, square));
+				state.setAwaitReroll(true);
+			}
+			
 		}
 		
 	}
 
 	private void continueBlock(DiceFace face) {
+		
+		state.setAwaitReroll(false);
 		
 		switch(face){
 		case SKULL : attackerDown(state.getCurrentBlock());
@@ -1420,15 +1479,17 @@ private void rollForFans() {
 
 	private void defenderKnockedDown(Block block) {
 		// TODO Auto-generated method stub
-		
+		state.setCurrentBlock(null);
 	}
 
 	private void defenderStumples(Block block) {
 		// TODO Auto-generated method stub
-
+		state.setCurrentBlock(null);
 	}
 
 	private void bothDown(Block block) {
+		
+		state.setCurrentBlock(null);
 		
 		knockDown(block.getDefender(), true);
 		
@@ -1440,10 +1501,13 @@ private void rollForFans() {
 
 	private void defenderPushed(Block block) {
 		// TODO Auto-generated method stub
+		state.setCurrentBlock(null);
 		
 	}
 
 	private void attackerDown(Block block) {
+		
+		state.setCurrentBlock(null);
 		
 		knockDown( block.getAttacker(), true );
 		
@@ -1551,6 +1615,10 @@ private void rollForFans() {
 	private void startNextHalf() {
 		
 		clearField();
+		fixStunnedPlayers(state.getHomeTeam());
+		resetStatii(state.getAwayTeam());
+		resetStatii(state.getHomeTeam());
+		standUpAllPlayers();
 		rollForKnockedOut();
 		
 		state.setHalf(state.getHalf() + 1);
@@ -1574,6 +1642,18 @@ private void rollForFans() {
 		}
 		
 		state.setGameStage(GameStage.KICKING_SETUP);
+		
+	}
+
+	private void standUpAllPlayers() {
+		
+		for(Player p : state.getHomeTeam().getPlayers()){
+			p.getPlayerStatus().setStanding(Standing.UP);
+		}
+		
+		for(Player p : state.getAwayTeam().getPlayers()){
+			p.getPlayerStatus().setStanding(Standing.UP);
+		}
 		
 	}
 
@@ -1748,6 +1828,12 @@ private void rollForFans() {
 		
 			player.getPlayerStatus().setStanding(Standing.DOWN);
 			
+		}
+		
+		// Fumble
+		if (isBallCarried(player)){
+			state.getPitch().getBall().setUnderControl(false);
+			scatterBall();
 		}
 		
 	}

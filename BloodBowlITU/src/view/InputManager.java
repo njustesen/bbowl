@@ -131,7 +131,9 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			
 			if(e.getX() < rerollButtonOrigin.getX()+rerollButtonWidth && e.getX() > rerollButtonOrigin.getX() &&
 					e.getY() < rerollButtonOrigin.getY()+rerollButtonHeight && e.getY() > rerollButtonOrigin.getY()){
-				System.out.println("reroll pressed");
+				
+				gameMaster.reroll();
+				
 			}
 			
 			if(e.getX() < endTurnButtonOrigin.getX()+actionButtonWidth && e.getX() > endTurnButtonOrigin.getX() &&
@@ -243,53 +245,6 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			int reserve = reserveX + reserveY;
 			gameMaster.selectAwayReserve(reserve);
 		}
-	}
-	
-	private void selectAwayReserve(int reserve) {
-		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve)){
-			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getAwayDogout().getReserves().get(reserve));
-		} else {
-			gameMaster.setSelectedPlayer(null);
-		}
-	}
-
-	private void selectHomeReserve(int reserve) {
-		
-		if (gameMaster.getSelectedPlayer() != gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve)){
-			gameMaster.setSelectedPlayer(gameMaster.getState().getPitch().getHomeDogout().getReserves().get(reserve));
-		} else {
-			gameMaster.setSelectedPlayer(null);
-		}
-		
-	}
-
-	private void selectPlayer(int x, int y) {
-		
-		Player player = gameMaster.getState().getPitch().getPlayerArr()[y][x];
-		
-		// Player?
-		if (player != null){
-			
-			// Selected player?
-			if (player == gameMaster.getSelectedPlayer()){
-				
-				// Remove selection
-				gameMaster.setSelectedPlayer(null);
-				
-			} else {
-				
-				// Select player
-				gameMaster.setSelectedPlayer(player);
-				
-			}
-			
-		} else {
-			
-			// Clicked on square
-			gameMaster.squareClicked(new Square(x,y));
-			
-		}
-		
 	}
 
 	public Point2D mouseOverArray(){
