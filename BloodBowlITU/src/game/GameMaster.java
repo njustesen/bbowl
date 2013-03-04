@@ -775,12 +775,24 @@ public class GameMaster {
 			// TODO
 			
 		} else if (state.getCurrentPickUp() != null){
+			
+			DiceRoll roll = new DiceRoll();
+			D6 d = new D6();
+			d.roll();
+			roll.addDice(d);
+			state.setCurrentDiceRoll(roll);
 
-			// TODO
+			continuePickUp(d.getResultAsInt());
 			
 		} else if (state.getCurrentCatch() != null){
 
-			// TODO
+			DiceRoll roll = new DiceRoll();
+			D6 d = new D6();
+			d.roll();
+			roll.addDice(d);
+			state.setCurrentDiceRoll(roll);
+
+			continueCatch(d.getResultAsInt());
 			
 		}
 		
@@ -898,29 +910,32 @@ public class GameMaster {
 	private void continueGoingForIt(int result) {
 		
 		state.setAwaitReroll(false);
+		Player player = state.getCurrentGoingForIt().getPlayer();
+		Square square = state.getCurrentGoingForIt().getSquare();
+		state.setCurrentGoingForIt(null);
 		
 		if (result > 1){
 			
 			GameLog.push("Succeeded going for it! Result: " + result + " (" + 2 + " was needed).");
 			
 			// Dodge or move
-			if (isInTackleZone(state.getCurrentGoingForIt().getPlayer()) && 
+			if (isInTackleZone(player) && 
 					state.getGameStage() != GameStage.QUICK_SNAP){
 				
-				dodgeToMovePlayer(state.getCurrentGoingForIt().getPlayer(), state.getCurrentGoingForIt().getSquare());
+				dodgeToMovePlayer(player, square);
 				
 			} else {
 				
 				// Move
-				movePlayer(state.getCurrentGoingForIt().getPlayer(), state.getCurrentGoingForIt().getSquare());
+				movePlayer(player, square);
 				
 			}
 			
 		} else {
 			
 			GameLog.push("Failed going for it! Result: " + result + " (" + 2 + " was needed).");
-			movePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
-			knockDown(state.getCurrentDodge().getPlayer(), true);
+			movePlayer(player, square);
+			knockDown(player, true);
 			endTurn();
 			
 		}
@@ -1017,14 +1032,50 @@ public class GameMaster {
 	private void continueCatch(int result) {
 		
 		state.setAwaitReroll(false);
-		// TODO Auto-generated method stub
+		
+		int success = state.getCurrentCatch().getSuccess();
+		
+		state.setCurrentCatch(null);
+		
+		if (result == 6 || 
+				(result != 1 && result >= success)){
+			
+			state.getPitch().getBall().setUnderControl(true);
+			
+			GameLog.push("Succeeded catch! Result: " + result + " (" + success + " was needed).");
+			
+		} else { 
+				
+			scatterBall();
+			
+			//endTurn(); - If passing
+			
+		}
 		
 	}
 
 	private void continuePickUp(int result) {
 		
 		state.setAwaitReroll(false);
-		// TODO Auto-generated method stub
+		
+		int success = state.getCurrentPickUp().getSuccess();
+		
+		state.setCurrentPickUp(null);
+		
+		if (result == 6 || 
+				(result != 1 && result >= success)){
+			
+			state.getPitch().getBall().setUnderControl(true);
+			
+			GameLog.push("Succeeded pick up! Result: " + result + " (" + success + " was needed).");
+			
+		} else { 
+				
+			scatterBall();
+			
+			endTurn();
+			
+		}
 		
 	}
 
@@ -1172,28 +1223,52 @@ public class GameMaster {
 		roll.addDice(d);
 		d.roll();
 		state.setCurrentDiceRoll(roll);
+		int result = d.getResultAsInt();
 		
-		if (d.getResultAsInt() == 6 || 
-				(d.getResultAsInt() != 1 && d.getResultAsInt() >= success)){
+		if (result == 6 || 
+				(result != 1 && result >= success)){
 			
 			state.getPitch().getBall().setUnderControl(true);
 			
-		} else if (ableToReroll(getPlayerOwner(player))) {
+			GameLog.push("Succeeded pick up! Result: " + result + ", (" + success + " was needed).");
 			
-			state.setCurrentPickUp(new PickUp(player, square, success));
-			state.setAwaitReroll(true);
+		} else { 
 			
-		} else {
+			GameLog.push("Failed pick up! Result: " + result + ", (" + success + " was needed).");
 			
-			scatterBall();
+			if (player.getSkills().contains(Skill.SURE_HANDS)){
 			
-			// End turn?
-			// TODO: check to see if ball was thrown or scattered, maybe?
-			if (getPlayerOwner(player) == getMovingTeam()){
+				// Roll
+				DiceRoll sroll = new DiceRoll();
+				D6 sd = new D6();
+				sroll.addDice(sd);
+				sd.roll();
+				state.setCurrentDiceRoll(sroll);
+				result = d.getResultAsInt();
 				
-				endTurn();
+				if (result == 6 || 
+						(result != 1 && result >= success)){
+					
+					state.getPitch().getBall().setUnderControl(true);
+					GameLog.push("Succeeded pick up - using Sure Hands! Result: " + result + ", (" + success + " was needed).");
+					
+				} else {
+					
+					GameLog.push("Failed pick up - using Sure Hands! Result: " + result + ", (" + success + " was needed).");
+					
+				}
+				
+			} else if (ableToReroll(getPlayerOwner(player))) {
+				
+				state.setCurrentPickUp(new PickUp(player, square, success));
+				state.setAwaitReroll(true);
+				return;
 				
 			}
+				
+			scatterBall();
+			
+			endTurn();
 			
 		}
 		
@@ -1222,7 +1297,7 @@ public class GameMaster {
 		// Land on player
 		if (player != null){
 			
-			catchBall();
+			catchBall(false);
 			
 		}
 			
@@ -1303,7 +1378,7 @@ public class GameMaster {
 		
 		if (player != null){
 			
-			catchBall();
+			catchBall(false);
 			
 		} else {
 			
@@ -1313,7 +1388,7 @@ public class GameMaster {
 		
 	}
 
-	private void catchBall() {
+	private void catchBall(boolean endTurn) {
 		
 		Square square = state.getPitch().getBall().getSquare();
 		
@@ -1333,28 +1408,55 @@ public class GameMaster {
 		roll.addDice(d);
 		d.roll();
 		state.setCurrentDiceRoll(roll);
+		int result = d.getResultAsInt();
 		
-		if (d.getResultAsInt() == 6 || 
-				(d.getResultAsInt() != 1 && d.getResultAsInt() > success)){
+		if (result == 6 || 
+				(result != 1 && result >= success)){
 			
 			state.getPitch().getBall().setUnderControl(true);
 			
-		} else if (ableToReroll(getPlayerOwner(player))) {
+			GameLog.push("Succeeded catch! Result: " + result + ", (" + success + " was needed).");
 			
-			state.setCurrentCatch(new Catch(player, square, success));
-			state.setAwaitReroll(true);
+		} else { 
 			
-		} else {
+			GameLog.push("Failed catch! Result: " + result + ", (" + success + " was needed).");
 			
-			scatterBall();
-			
-			// End turn? 
-			// TODO: check to see if ball was thrown or scattered
-			if (getPlayerOwner(player) == getMovingTeam()){
+			if (player.getSkills().contains(Skill.CATCH)){
+		
+				// Roll
+				DiceRoll sroll = new DiceRoll();
+				D6 sd = new D6();
+				sroll.addDice(sd);
+				sd.roll();
+				state.setCurrentDiceRoll(sroll);
+				result = d.getResultAsInt();
 				
-				endTurn();
+				if (result == 6 || 
+						(result != 1 && d.getResultAsInt() >= success)){
+					
+					state.getPitch().getBall().setUnderControl(true);
+					GameLog.push("Succeeded catch - using Catch! Result: " + result + ", (" + success + " was needed).");
+					
+					return;
+					
+				} else {
+					
+					GameLog.push("Failed catch - using Catch! Result: " + result + ", (" + success + " was needed).");
+					
+				}
+				
+			} else if (ableToReroll(getPlayerOwner(player))) {
+				
+				state.setCurrentCatch(new Catch(player, square, success));
+				state.setAwaitReroll(true);
+				return;
 				
 			}
+				
+			scatterBall();
+			
+			if (endTurn && playerOwner(player) == getMovingTeam())
+				endTurn();
 			
 		}
 		
@@ -1370,11 +1472,7 @@ public class GameMaster {
 	}
 
 	private void movePlayerToSquare(Player player, Square square) {
-		/*
-		if (state.getPitch().isOnPitch(player)){
-			square = state.getPitch().getPlayerPosition(player);
-		}
-		*/
+
 		// Move player
 		placePlayerAt(player, square);
 
@@ -1883,6 +1981,12 @@ public class GameMaster {
 				
 				// Stunned
 				player.getPlayerStatus().setStanding(Standing.STUNNED);
+				
+				// Fumble
+				if (isBallCarried(player)){
+					state.getPitch().getBall().setUnderControl(false);
+					scatterBall();
+				}
 				
 			} else if (result < 10){
 				
