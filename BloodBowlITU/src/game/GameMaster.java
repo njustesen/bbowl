@@ -1685,8 +1685,8 @@ public class GameMaster {
 		
 		clearField();
 		fixStunnedPlayers(state.getHomeTeam());
-		resetStatii(state.getAwayTeam());
-		resetStatii(state.getHomeTeam());
+		resetStatii(state.getAwayTeam(), true);
+		resetStatii(state.getHomeTeam(), true);
 		standUpAllPlayers();
 		rollForKnockedOut();
 		
@@ -1799,16 +1799,16 @@ public class GameMaster {
 				state.setGameStage(GameStage.HOME_TURN);
 				state.incHomeTurn();
 				fixStunnedPlayers(state.getHomeTeam());
-				resetStatii(state.getAwayTeam());
-				resetStatii(state.getHomeTeam());
+				resetStatii(state.getAwayTeam(), false);
+				resetStatii(state.getHomeTeam(), false);
 				
 			} else {
 				
 				state.setGameStage(GameStage.AWAY_TURN);
 				state.incAwayTurn();
 				fixStunnedPlayers(state.getAwayTeam());
-				resetStatii(state.getAwayTeam());
-				resetStatii(state.getHomeTeam());
+				resetStatii(state.getAwayTeam(), false);
+				resetStatii(state.getHomeTeam(), false);
 				
 			}
 			
@@ -1817,22 +1817,25 @@ public class GameMaster {
 			state.setGameStage(GameStage.AWAY_TURN);
 			state.incAwayTurn();
 			fixStunnedPlayers(state.getAwayTeam());
-			resetStatii(state.getHomeTeam());
+			resetStatii(state.getHomeTeam(), false);
 			
 		} else if (state.getGameStage() == GameStage.AWAY_TURN){
 				
 			state.setGameStage(GameStage.HOME_TURN);
 			state.incHomeTurn();
 			fixStunnedPlayers(state.getHomeTeam());
-			resetStatii(state.getAwayTeam());
+			resetStatii(state.getAwayTeam(), false);
 				
 		}
 		
 	}
 
-	private void resetStatii(Team team) {
+	private void resetStatii(Team team, boolean newRerolls) {
 		
-		team.reset();
+		if (newRerolls)
+			team.reset();
+		else 
+			team.getTeamStatus().reset();
 		
 		for(Player p : team.getPlayers()){
 			
@@ -1865,6 +1868,8 @@ public class GameMaster {
 		db.roll();
 		
 		int result = da.getResultAsInt() + db.getResultAsInt();
+		boolean knockedOut = false;
+		boolean deadAndInjured = false;
 		
 		if (result > player.getAV() || !armourRoll){
 			
@@ -1882,14 +1887,13 @@ public class GameMaster {
 			} else if (result < 10){
 				
 				// Knocked out
-				state.getPitch().removePlayer(player);
-				state.getPitch().getDogout(getPlayerOwner(player)).getKnockedOut().add(player);
+				knockedOut = true;
+				
 				
 			} else {
 				
 				// Dead and injured
-				state.getPitch().removePlayer(player);
-				state.getPitch().getDogout(getPlayerOwner(player)).getDeadAndInjured().add(player);
+				deadAndInjured = true;
 				
 			}
 			
@@ -1897,13 +1901,40 @@ public class GameMaster {
 		
 			player.getPlayerStatus().setStanding(Standing.DOWN);
 			
+			// Fumble
+			if (isBallCarried(player)){
+				state.getPitch().getBall().setUnderControl(false);
+				scatterBall();
+			}
+			
 		}
 		
-		// Fumble
-		if (isBallCarried(player)){
-			state.getPitch().getBall().setUnderControl(false);
-			scatterBall();
+		if (knockedOut){
+			player.getPlayerStatus().setStanding(Standing.DOWN);
+			
+			// Fumble
+			if (isBallCarried(player)){
+				state.getPitch().getBall().setUnderControl(false);
+				scatterBall();
+			}
+			
+			state.getPitch().removePlayer(player);
+			state.getPitch().getDogout(getPlayerOwner(player)).getKnockedOut().add(player);
+			
+		} else if (deadAndInjured){
+			player.getPlayerStatus().setStanding(Standing.DOWN);
+			
+			// Fumble
+			if (isBallCarried(player)){
+				state.getPitch().getBall().setUnderControl(false);
+				scatterBall();
+			}
+
+			state.getPitch().removePlayer(player);
+			state.getPitch().getDogout(getPlayerOwner(player)).getDeadAndInjured().add(player);
+			
 		}
+		
 		
 	}
 
