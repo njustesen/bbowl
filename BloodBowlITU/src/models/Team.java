@@ -80,5 +80,11 @@ public class Team {
 		this.teamStatus.setRerolls(this.teamStatus.getRerolls() - 1);
 		
 	}
+
+	public void reset() {
+		teamStatus.reset();
+		this.teamStatus.setRerolls(rerolls);
+		
+	}
 	
 }

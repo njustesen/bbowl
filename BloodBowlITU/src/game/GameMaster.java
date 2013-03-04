@@ -885,12 +885,27 @@ public class GameMaster {
 		
 		if (result > 1){
 			
-			dodgeToMovePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
+			GameLog.push("Succeeded going for it! Result: " + result + " (" + 2 + " was needed).");
+			
+			// Dodge or move
+			if (isInTackleZone(state.getCurrentGoingForIt().getPlayer()) && 
+					state.getGameStage() != GameStage.QUICK_SNAP){
+				
+				dodgeToMovePlayer(state.getCurrentGoingForIt().getPlayer(), state.getCurrentGoingForIt().getSquare());
+				
+			} else {
+				
+				// Move
+				movePlayer(state.getCurrentGoingForIt().getPlayer(), state.getCurrentGoingForIt().getSquare());
+				
+			}
 			
 		} else {
 			
+			GameLog.push("Failed going for it! Result: " + result + " (" + 2 + " was needed).");
 			movePlayer(state.getCurrentDodge().getPlayer(), state.getCurrentGoingForIt().getSquare());
 			knockDown(state.getCurrentDodge().getPlayer(), true);
+			endTurn();
 			
 		}
 		
@@ -927,8 +942,12 @@ public class GameMaster {
 
 	private void performDodge(Player player, Square square, int result, int success) {
 		
+		state.setCurrentDodge(null);
+		
 		// Success?
 		if (result == 6 || (result != 1 && result >= success)){
+			
+			GameLog.push("Succeeded dodge! Result: " + result + " (" + success + " was needed).");
 			
 			// Move
 			movePlayer(player, square);
@@ -939,12 +958,14 @@ public class GameMaster {
 			if (ableToReroll(getPlayerOwner(player))){
 				
 				// Prepare for reroll usage
+				GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
 				state.setCurrentDodge(new Dodge(player, square, success));
 				state.setAwaitReroll(true);
 				
 			} else {
 
 				// Player fall
+				GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
 				movePlayer(player, square);
 				knockDown(player, true);
 				endTurn();
@@ -1310,11 +1331,11 @@ public class GameMaster {
 	}
 
 	private void movePlayerToSquare(Player player, Square square) {
-		
+		/*
 		if (state.getPitch().isOnPitch(player)){
 			square = state.getPitch().getPlayerPosition(player);
 		}
-		
+		*/
 		// Move player
 		placePlayerAt(player, square);
 
@@ -1443,8 +1464,11 @@ public class GameMaster {
 		D6 d = new D6();
 		roll.addDice(d);
 		d.roll();
+		state.setCurrentDiceRoll(roll);
 		
 		if (d.getResultAsInt() > 1){
+			
+			GameLog.push("Succeded going for it! Result: " + d.getResultAsInt() + " (" + 2 + " was needed).");
 			
 			if (isInTackleZone(player))
 				dodgeToMovePlayer(player, square);
@@ -1453,9 +1477,15 @@ public class GameMaster {
 			
 		} else {
 			
+			GameLog.push("Failed going for it! Result: " + d.getResultAsInt() + " (" + 2 + " was needed).");
+			
 			if (ableToReroll(playerOwner(player))){
 				state.setCurrentGoingForIt(new GoingForIt(player, square));
 				state.setAwaitReroll(true);
+			} else {
+				movePlayer(player, square);
+				knockDown(player, true);
+				endTurn();
 			}
 			
 		}
@@ -1763,7 +1793,7 @@ public class GameMaster {
 
 	private void resetStatii(Team team) {
 		
-		team.getTeamStatus().reset();
+		team.reset();
 		
 		for(Player p : team.getPlayers()){
 			
