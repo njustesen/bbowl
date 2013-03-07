@@ -22,12 +22,14 @@ import models.dice.D6;
 import models.dice.D8;
 import models.dice.DiceFace;
 import models.dice.DiceRoll;
+import models.dice.IDice;
 
 public class GameMaster {
 	
 	private static final boolean AUTO_SETUP = true;
 	private GameState state;
 	private Player selectedPlayer;
+	private Player blockTarget;
 	//private PlayerAgent homeAgent;
 	//private PlayerAgent awayAgent;
 	
@@ -122,12 +124,22 @@ public class GameMaster {
 				// Remove selection
 				selectedPlayer = null;
 				
-			} else {
+			} else if (selectedPlayer != null){
 				
-				// Select player
-				selectedPlayer = player;
+				if (allowedToBlock(selectedPlayer) && 
+						onDifferentTeams(selectedPlayer, player) &&
+						nextToEachOther(selectedPlayer, player) &&
+						state.getCurrentBlock() == null){
+					
+					performBlock(selectedPlayer, player);
+					return;
+					
+				}
 				
 			}
+			
+			// Select player
+			selectedPlayer = player;
 			
 		} else {
 			
@@ -611,72 +623,109 @@ public class GameMaster {
 	 */
 	public void performBlock(Player attacker, Player defender){
 		
-		// Legal action?
-		if (allowedToBlock(attacker) && 
-				nextToEachOther(attacker, defender) &&
-				state.getCurrentBlock() == null){
+		if (!allowedToBlock(attacker))
+			return;
 			
-			DiceRoll roll = new DiceRoll();
+		if (!onDifferentTeams(attacker, defender))
+			return;
+		
+		if (!nextToEachOther(attacker, defender))
+			return;
+		
+		if (state.getCurrentBlock() != null)
+			return;
 			
-			BlockSum sum = CalculateBlockSum(attacker, defender);
+		if (blockTarget == null){
+			blockTarget = defender;
+			return;
+		}
+		
+		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.BLOCK_ACTION){
+			attacker.getPlayerStatus().setTurn(PlayerTurn.USED);
+		} else if (attacker.getPlayerStatus().getTurn() == PlayerTurn.BLITZ_ACTION){
+			playerOwner(attacker).getTeamStatus().setHasBlitzed(true);
+		}
+		
+		DiceRoll roll = new DiceRoll();
+		
+		BlockSum sum = CalculateBlockSum(attacker, blockTarget);
+		
+		Team selectTeam = playerOwner(attacker);
+		
+		if (sum == BlockSum.EQUAL){
 			
-			if (sum == BlockSum.EQUAL){
-				
-				BB ba = new BB();
-				ba.roll();
-				roll.addDice(ba);
-				
-			} else if(sum == BlockSum.ATTACKER_STRONGER){
-				
-				BB ba = new BB();
-				BB bb = new BB();
-				ba.roll();
-				bb.roll();
-				roll.addDice(ba);
-				roll.addDice(bb);
-				
-			}  else if(sum == BlockSum.DEFENDER_STRONGER){
-				
-				BB ba = new BB();
-				BB bb = new BB();
-				ba.roll();
-				bb.roll();
-				roll.addDice(ba);
-				roll.addDice(bb);
-				
-			} else if(sum == BlockSum.ATTACKER_DOUBLE_STRONG){
-				
-				BB ba = new BB();
-				BB bb = new BB();
-				BB bc = new BB();
-				ba.roll();
-				bb.roll();
-				bc.roll();
-				roll.addDice(ba);
-				roll.addDice(bb);
-				roll.addDice(bc);
-				
-			} else if(sum == BlockSum.DEFENDER_DOUBLE_STRONG){
-				
-				BB ba = new BB();
-				BB bb = new BB();
-				BB bc = new BB();
-				ba.roll();
-				bb.roll();
-				bc.roll();
-				roll.addDice(ba);
-				roll.addDice(bb);
-				roll.addDice(bc);
-				
-			}
+			BB ba = new BB();
+			ba.roll();
+			roll.addDice(ba);
 			
-			state.setCurrentBlock(new Block(attacker, defender));
-			state.setAwaitReroll(true);
+		} else if(sum == BlockSum.ATTACKER_STRONGER){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			ba.roll();
+			bb.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			
+		}  else if(sum == BlockSum.DEFENDER_STRONGER){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			ba.roll();
+			bb.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			
+			selectTeam = playerOwner(blockTarget);
+			
+		} else if(sum == BlockSum.ATTACKER_DOUBLE_STRONG){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			BB bc = new BB();
+			ba.roll();
+			bb.roll();
+			bc.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			roll.addDice(bc);
+			
+		} else if(sum == BlockSum.DEFENDER_DOUBLE_STRONG){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			BB bc = new BB();
+			ba.roll();
+			bb.roll();
+			bc.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			roll.addDice(bc);
 			
 		}
 		
+		state.setCurrentDiceRoll(roll);
+		
+		// Select or continue
+		if (roll.getDices().size() == 1 && !ableToReroll(selectTeam)){
+			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
+			continueBlock(roll.getFaces().get(0));
+		} else {
+			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
+			state.setAwaitReroll(true);
+		}
+		
+		blockTarget = null;
+		
 	}
 	
+	private boolean onDifferentTeams(Player a, Player b) {
+		if (playerOwner(a) != playerOwner(b)){
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Selects a rolled die.
 	 * 
@@ -772,7 +821,16 @@ public class GameMaster {
 			
 		} else if (state.getCurrentBlock() != null){
 
-			// TODO
+			DiceRoll roll = new DiceRoll();
+			for(IDice d : state.getCurrentDiceRoll().getDices()){
+				d.roll();
+			}
+			
+			state.setAwaitReroll(false);
+			
+			if (state.getCurrentDiceRoll().getDices().size() == 1){
+				continueBlock(state.getCurrentDiceRoll().getFaces().get(0));
+			}
 			
 		} else if (state.getCurrentPickUp() != null){
 			
@@ -1645,24 +1703,31 @@ public class GameMaster {
 	}
 
 	private void defenderKnockedDown(Block block) {
-		// TODO Auto-generated method stub
+		
+		knockDown(block.getDefender(), true);
 		state.setCurrentBlock(null);
 	}
 
 	private void defenderStumples(Block block) {
-		// TODO Auto-generated method stub
+		if (!block.getDefender().getSkills().contains(Skill.DODGE)){
+			knockDown(block.getDefender(), true);
+		}
 		state.setCurrentBlock(null);
 	}
 
 	private void bothDown(Block block) {
 		
-		state.setCurrentBlock(null);
+		if (!block.getDefender().getSkills().contains(Skill.BLOCK)){
+			knockDown(block.getDefender(), true);
+		}
 		
-		knockDown(block.getDefender(), true);
-		
-		// ball?
-		
-		attackerDown(block);
+		if (!block.getAttacker().getSkills().contains(Skill.BLOCK)){
+			knockDown(block.getAttacker(), true);
+			state.setCurrentBlock(null);
+			endTurn();
+		} else {
+			state.setCurrentBlock(null);
+		}
 		
 	}
 
@@ -1677,8 +1742,6 @@ public class GameMaster {
 		state.setCurrentBlock(null);
 		
 		knockDown( block.getAttacker(), true );
-		
-		// ball?
 		
 		endTurn();
 		
@@ -2117,7 +2180,8 @@ public class GameMaster {
 			return false;
 			
 		} else if (player.getPlayerStatus().getTurn() == PlayerTurn.BLITZ_ACTION && 
-				player.getPlayerStatus().hasMovedToBlock()){
+				player.getPlayerStatus().hasMovedToBlock() && 
+				!playerOwner(player).getTeamStatus().hasBlitzed()){
 			
 			// Blitz
 			allowed = true;
@@ -2590,10 +2654,11 @@ public class GameMaster {
 	public Player getSelectedPlayer() {
 		return selectedPlayer;
 	}
-
-	public void setSelectedPlayer(Player selectedPlayer) {
-		this.selectedPlayer = selectedPlayer;
+	
+	public Player getBlockTarget() {
+		return blockTarget;
 	}
+
 
 	public GameState getState() {
 		return state;

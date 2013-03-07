@@ -7,6 +7,7 @@ public class TeamStatus {
 	int fans;
 	int FAME;
 	int babes;
+	private boolean hasBlitzed;
 	
 	public TeamStatus(int rerolls) {
 		super();
@@ -86,6 +87,14 @@ public class TeamStatus {
 
 	public boolean isRerolledThisTurn() {
 		return rerolledThisTurn;
+	}
+
+	public boolean hasBlitzed() {
+		return hasBlitzed;
+	}
+	
+	public void setHasBlitzed(boolean b){
+		hasBlitzed = b;
 	}
 	
 }

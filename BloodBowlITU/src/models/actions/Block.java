@@ -1,17 +1,20 @@
 package models.actions;
 
 import models.Player;
+import models.Team;
 
 
 public class Block {
 	
 	Player attacker;
 	Player defender;
+	Team selectTeam;
 	
-	public Block(Player attacker, Player defender) {
+	public Block(Player attacker, Player defender, Team selectTeam) {
 		super();
 		this.attacker = attacker;
 		this.defender = defender;
+		this.selectTeam = selectTeam;
 	}
 
 	public Player getAttacker() {
@@ -30,6 +33,8 @@ public class Block {
 		this.defender = defender;
 	}
 	
-	
+	public Team getSelectTeam(){
+		return selectTeam;
+	}
 	
 }
