@@ -1093,6 +1093,8 @@ public class GameMaster {
 		
 		int success = state.getCurrentCatch().getSuccess();
 		
+		Player player = state.getCurrentCatch().getPlayer();
+		
 		state.setCurrentCatch(null);
 		
 		if (result == 6 || 
@@ -1101,6 +1103,11 @@ public class GameMaster {
 			state.getPitch().getBall().setUnderControl(true);
 			
 			GameLog.push("Succeeded catch! Result: " + result + " (" + success + " was needed).");
+			
+			// Touchdown
+			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
+				touchdown(playerOwner(player));
+			}
 			
 		} else { 
 				
@@ -1118,6 +1125,8 @@ public class GameMaster {
 		
 		int success = state.getCurrentPickUp().getSuccess();
 		
+		Player player = state.getCurrentPickUp().getPlayer();
+		
 		state.setCurrentPickUp(null);
 		
 		if (result == 6 || 
@@ -1126,6 +1135,11 @@ public class GameMaster {
 			state.getPitch().getBall().setUnderControl(true);
 			
 			GameLog.push("Succeeded pick up! Result: " + result + " (" + success + " was needed).");
+			
+			// Touchdown
+			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
+				touchdown(playerOwner(player));
+			}
 			
 		} else { 
 				
@@ -1221,9 +1235,21 @@ public class GameMaster {
 
 		}
 		
-		// Move ball
-		if (isBallCarried(player))
+		// Move ball - TD?
+		if (isBallCarried(player)){
+			
+			// Move player and ball
+			removePlayerFromCurrentSquare(player);
+			movePlayerToSquare(player, square);
 			state.getPitch().getBall().setSquare(square);
+			
+			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
+				touchdown(playerOwner(player));
+			}
+			
+			return;
+		
+		}
 		
 		// Move player
 		removePlayerFromCurrentSquare(player);
@@ -1240,6 +1266,40 @@ public class GameMaster {
 			
 		}
 		
+	}
+
+	private void touchdown(Team team) {
+		
+		// Add score
+		team.getTeamStatus().incScore();
+		
+		GameLog.push("TOUCHDOWN! " + team.getTeamName() + " scored a touchdown.");
+		
+		if ((team == state.getHomeTeam() && 
+				state.getAwayTurn() == 8) || 
+				(team == state.getAwayTeam() && 
+				state.getHomeTurn() == 8)){
+			
+			endHalf();
+			return;
+			
+		}
+		
+		setupUpForKickOff();
+		
+		// Who kicks?
+		state.setKickingTeam(team);
+		state.setReceivingTeam(oppositeTeam(team));
+		
+	}
+
+	private Team oppositeTeam(Team team) {
+		
+		if (team == state.getHomeTeam()){
+			return state.getAwayTeam();
+		}
+		
+		return state.getHomeTeam();
 	}
 
 	private boolean isBallCarried(Player player) {
@@ -1290,6 +1350,11 @@ public class GameMaster {
 			
 			GameLog.push("Succeeded pick up! Result: " + result + ", (" + success + " was needed).");
 			
+			// Touchdown
+			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
+				touchdown(playerOwner(player));
+			}
+			
 		} else { 
 			
 			GameLog.push("Failed pick up! Result: " + result + ", (" + success + " was needed).");
@@ -1309,6 +1374,11 @@ public class GameMaster {
 					
 					state.getPitch().getBall().setUnderControl(true);
 					GameLog.push("Succeeded pick up - using Sure Hands! Result: " + result + ", (" + success + " was needed).");
+					
+					// Touchdown
+					if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
+						touchdown(playerOwner(player));
+					}
 					
 				} else {
 					
@@ -1475,6 +1545,11 @@ public class GameMaster {
 			
 			GameLog.push("Succeeded catch! Result: " + result + ", (" + success + " was needed).");
 			
+			// Touchdown
+			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
+				touchdown(playerOwner(player));
+			}
+			
 		} else { 
 			
 			GameLog.push("Failed catch! Result: " + result + ", (" + success + " was needed).");
@@ -1494,6 +1569,11 @@ public class GameMaster {
 					
 					state.getPitch().getBall().setUnderControl(true);
 					GameLog.push("Succeeded catch - using Catch! Result: " + result + ", (" + success + " was needed).");
+					
+					// Touchdown
+					if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
+						touchdown(playerOwner(player));
+					}
 					
 					return;
 					
@@ -1525,6 +1605,8 @@ public class GameMaster {
 			return state.getHomeTeam();
 		} else if (state.getGameStage() == GameStage.AWAY_TURN){
 			return state.getAwayTeam();
+		} else if (state.getGameStage() == GameStage.BLITZ){
+			return state.getKickingTeam();
 		}
 		return null;
 	}
@@ -1749,6 +1831,9 @@ public class GameMaster {
 
 	private void endTurn() {
 		
+		// Clear dice roll
+		state.setCurrentDiceRoll(null);
+		
 		// Any turns left?
 		if (state.getGameStage() == GameStage.HOME_TURN){
 			
@@ -1844,19 +1929,12 @@ public class GameMaster {
 
 	private void startNextHalf() {
 		
-		clearField();
-		fixStunnedPlayers(state.getHomeTeam());
-		resetStatii(state.getAwayTeam(), true);
-		resetStatii(state.getHomeTeam(), true);
-		standUpAllPlayers();
-		rollForKnockedOut();
-		
+		// set to next half
 		state.setHalf(state.getHalf() + 1);
-		
 		state.setHomeTurn(0);
 		state.setAwayTurn(0);
-		state.getPitch().getBall().setOnGround(false);
-		state.getPitch().getBall().setSquare(null);
+		
+		setupUpForKickOff();
 		
 		// Who kicks?
 		if ( state.getCoinToss().isHomeReceives() ){
@@ -1870,6 +1948,20 @@ public class GameMaster {
 			state.setReceivingTeam(state.getAwayTeam());
 			
 		}
+		
+	}
+
+	private void setupUpForKickOff() {
+		
+		clearField();
+		fixStunnedPlayers(state.getHomeTeam());
+		resetStatii(state.getAwayTeam(), true);
+		resetStatii(state.getHomeTeam(), true);
+		standUpAllPlayers();
+		rollForKnockedOut();
+		
+		state.getPitch().getBall().setOnGround(false);
+		state.getPitch().getBall().setSquare(null);
 		
 		state.setGameStage(GameStage.KICKING_SETUP);
 		
@@ -2312,7 +2404,7 @@ public class GameMaster {
 		int roll = da.getResultAsInt() + db.getResultAsInt();
 		
 		// DEBUGGING
-		//perfectDefense();
+		//blitz();
 		
 		
 		switch(roll){
@@ -2328,7 +2420,6 @@ public class GameMaster {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
-		
 		
 	}
 

@@ -96,5 +96,10 @@ public class TeamStatus {
 	public void setHasBlitzed(boolean b){
 		hasBlitzed = b;
 	}
+
+	public void incScore() {
+		score++;
+		
+	}
 	
 }

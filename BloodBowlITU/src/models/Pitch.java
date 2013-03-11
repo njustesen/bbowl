@@ -528,6 +528,23 @@ public class Pitch {
 		
 	}
 
+	public boolean isBallInEndzone(Team team) {
+		
+		if (isTeamHome(team) && 
+				ball.getSquare().getX() == 1){
+			
+			return true;
+			
+		} else if (!isTeamHome(team) && 
+				ball.getSquare().getX() == 26){
+			
+			return true;
+			
+		}
+		
+		return false;
+	}
+
 	
 	
 	
