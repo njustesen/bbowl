@@ -605,6 +605,23 @@ public class Renderer extends JPanel{
 		g.drawString("log:", 20, 622);
 		g.setColor(Color.WHITE);
 		System.out.println(fullMessage);
+		g.setFont(standard);
+	}
+	
+	private void drawGameEnded(Graphics g){
+//		if(gameMaster.getState().getGameStage() == GameStage.GAME_ENDED){
+			f = new Font("Arial", Font.PLAIN, 90);
+			g.setFont(f);
+			g.drawString("Game Ended", 200, 140);
+			g.setFont(standard);
+			if(gameMaster.getState().getHomeTeam().getTeamStatus().getScore() > gameMaster.getState().getAwayTeam().getTeamStatus().getScore()){
+				g.drawString(gameMaster.getState().getHomeTeam().getTeamName()+" WON!", 260, 160);
+			}else if(gameMaster.getState().getHomeTeam().getTeamStatus().getScore() < gameMaster.getState().getAwayTeam().getTeamStatus().getScore()){
+				g.drawString(gameMaster.getState().getAwayTeam().getTeamName()+" WON!", 260, 160);
+			}else if(gameMaster.getState().getHomeTeam().getTeamStatus().getScore() == gameMaster.getState().getAwayTeam().getTeamStatus().getScore()){
+				g.drawString("Draw", 220, 175);
+			}
+//		}
 	}
 	
 	public void paintComponent(Graphics g) {  
@@ -626,7 +643,7 @@ public class Renderer extends JPanel{
 		drawCoinToss(g);
 		drawGameLog(g);
 		drawWeather(g);
-		
+		drawGameEnded(g);
 		
 		System.out.println("stage = "+gameMaster.getState().getGameStage());
 		
