@@ -31,6 +31,8 @@ public class GameState {
 	private PickUp currentPickUp;
 	private Catch currentCatch;
 	private boolean playerPlaced;
+	private boolean awaitPush;
+	private boolean awaitFollowUp;
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
 		super();
@@ -48,6 +50,8 @@ public class GameState {
 		this.coinToss = new CoinToss();
 		this.currentDodge = null;
 		this.awaitReroll = false;
+		this.awaitPush = false;
+		this.awaitFollowUp = false;
 		this.currentGoingForIt = null;
 		this.currentPickUp = null;
 		this.currentCatch = null;
@@ -258,6 +262,25 @@ public class GameState {
 
 	public void setPlayerPlaced(boolean playerPlaced) {
 		this.playerPlaced = playerPlaced;
+	}
+
+	public void setAwaitPush(boolean b) {
+		awaitPush = b;
+		
+	}
+	
+	public boolean isAwaitingPush(){
+		
+		return awaitPush;
+	}
+
+	public void setAwaitFollowUp(boolean b) {
+		this.awaitFollowUp = b;
+		
+	}
+
+	public boolean isAwaitingFollowUp() {
+		return awaitFollowUp;
 	}
 	
 }
