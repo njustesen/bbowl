@@ -148,6 +148,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			}
 			
 			clickReserves(e.getX(), e.getY(), true);
+			selectDie(e.getX(), e.getY());
 	}
 	
 	public void clickReserves(int x, int y, boolean home){
@@ -255,6 +256,22 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 		int squareX = ((pitchX/30)*30)+pitchOrigin.getX()+fatLineX;
 		int squareY = ((pitchY/30)*30)+pitchOrigin.getY()+fatLineY; 
 		return new Point2D(squareX, squareY);	 
+	}
+	
+	public void selectDie(int x, int y){
+		
+		if(gameMaster.getState().getCurrentDiceRoll() != null){
+			int diceStart = rerollButtonOrigin.getX()-5;
+			int numberOfDice = gameMaster.getState().getCurrentDiceRoll().getFaces().size();
+			if(y > rerollButtonOrigin.getY()+10 && y < rerollButtonOrigin.getY()+60)
+				if( x < diceStart && x > diceStart-50){
+					gameMaster.selectDie(0);
+				}else if( x < diceStart-55 && x > diceStart-105 && numberOfDice > 1){
+						gameMaster.selectDie(1);
+				}else if( x < diceStart-110 && x > diceStart-160 && numberOfDice > 2){
+						gameMaster.selectDie(2);
+				}
+		}
 	}
 	
 	public static int getScreenWidth() {
