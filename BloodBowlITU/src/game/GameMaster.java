@@ -72,12 +72,10 @@ public class GameMaster {
 	public void endPhase(){
 		
 		// Check if reroll?
-		/*
 		if (state.isAwaitingReroll()){
 			GameLog.push("You cannot end your turn during a dice roll.");
 			return;
 		}
-		*/
 		
 		switch(state.getGameStage()){
 			case KICKING_SETUP : endSetup(); break;
@@ -108,10 +106,15 @@ public class GameMaster {
 				state.getCurrentBlock() != null){
 			
 			Square legalSquare = state.getCurrentBlock().getFollowUpSquare();
+			Square attackerSquare = state.getPitch().getPlayerPosition( state.getCurrentBlock().getAttacker() );
 			
-			if (square.getX() == legalSquare.getX() && square.getY() == legalSquare.getY()){
+			if ((square.getX() == legalSquare.getX() && square.getY() == legalSquare.getY())){
 				
-				followUp();
+				followUp(true);
+				
+			} else if (square.getX() == attackerSquare.getX() && square.getY() == attackerSquare.getY()){
+			
+				followUp(false);
 				
 			}
 			
@@ -162,22 +165,25 @@ public class GameMaster {
 				// Remove selection
 				selectedPlayer = null;
 				
-			} else if (selectedPlayer != null){
+			} else {
 				
-				if (allowedToBlock(selectedPlayer) && 
-						onDifferentTeams(selectedPlayer, player) &&
-						nextToEachOther(selectedPlayer, player) &&
-						state.getCurrentBlock() == null){
-					
-					performBlock(selectedPlayer, player);
-					return;
-					
+				if (selectedPlayer != null){
+				
+					if (allowedToBlock(selectedPlayer) && 
+							onDifferentTeams(selectedPlayer, player) &&
+							nextToEachOther(selectedPlayer, player) &&
+							state.getCurrentBlock() == null){
+						
+						performBlock(selectedPlayer, player);
+						return;
+						
+					}
 				}
 				
-			}
-			
-			// Select player
-			selectedPlayer = player;
+				// Select player
+				selectedPlayer = player;
+				
+			} 
 			
 		} else {
 			
@@ -188,23 +194,27 @@ public class GameMaster {
 		
 	}
 	
-	private void followUp() {
+	private void followUp(boolean follow) {
 		
-		// Move ball - TD?
-		if (isBallCarried(state.getCurrentBlock().getAttacker())){
+		if (follow){
+		
+			// Move ball - TD?
+			if (isBallCarried(state.getCurrentBlock().getAttacker())){
+				
+				// Move ball
+				state.getPitch().getBall().setSquare(state.getCurrentBlock().getFollowUpSquare());
+				
+				if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(state.getCurrentBlock().getAttacker())))){
+					touchdown(playerOwner(state.getCurrentBlock().getAttacker()));
+					return;
+				}
 			
-			// Move ball
-			state.getPitch().getBall().setSquare(state.getCurrentBlock().getFollowUpSquare());
-			
-			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(state.getCurrentBlock().getAttacker())))){
-				touchdown(playerOwner(state.getCurrentBlock().getAttacker()));
-				return;
 			}
-		
+			
+			removePlayerFromCurrentSquare(state.getCurrentBlock().getAttacker());
+			placePlayerAt(state.getCurrentBlock().getAttacker(), state.getCurrentBlock().getFollowUpSquare());
+			
 		}
-		
-		removePlayerFromCurrentSquare(state.getCurrentBlock().getAttacker());
-		placePlayerAt(state.getCurrentBlock().getAttacker(), state.getCurrentBlock().getFollowUpSquare());
 		
 		state.setAwaitFollowUp(false);
 		
@@ -242,6 +252,9 @@ public class GameMaster {
 		} else {
 			
 			state.getCurrentBlock().getAttacker().getPlayerStatus().setTurn(PlayerTurn.USED);
+			
+			// Remove selection
+			selectedPlayer = null;
 			
 		}
 		
@@ -955,65 +968,43 @@ public class GameMaster {
 				!ableToReroll(getMovingTeam()))
 			return;
 		
+		getMovingTeam().useReroll();
+		
+		for(IDice d : state.getCurrentDiceRoll().getDices()){
+			d.roll();
+		}
+		
 		// Dodge/going/block
 	 	if (state.getCurrentDodge() != null){
 			
 			state.setAwaitReroll(false);
-			getMovingTeam().useReroll();
-			
-			DiceRoll roll = new DiceRoll();
-			D6 d = new D6();
-			d.roll();
-			roll.addDice(d);
-			state.setCurrentDiceRoll(roll);
-			
-			continueDodge(d.getResultAsInt());
+			continueDodge(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
 			
 		} else if (state.getCurrentGoingForIt() != null){
 			
 			state.setAwaitReroll(false);
-			getMovingTeam().useReroll();
-			
-			DiceRoll roll = new DiceRoll();
-			D6 d = new D6();
-			d.roll();
-			roll.addDice(d);
-			state.setCurrentDiceRoll(roll);
-			
-			continueGoingForIt(d.getResultAsInt());
+			continueGoingForIt(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
 			
 		} else if (state.getCurrentBlock() != null){
 
-			DiceRoll roll = new DiceRoll();
 			for(IDice d : state.getCurrentDiceRoll().getDices()){
 				d.roll();
 			}
 			
-			state.setAwaitReroll(false);
-			
 			if (state.getCurrentDiceRoll().getDices().size() == 1){
+				state.setAwaitReroll(false);
 				continueBlock(state.getCurrentDiceRoll().getFaces().get(0));
 			}
 			
 		} else if (state.getCurrentPickUp() != null){
 			
-			DiceRoll roll = new DiceRoll();
-			D6 d = new D6();
-			d.roll();
-			roll.addDice(d);
-			state.setCurrentDiceRoll(roll);
-
-			continuePickUp(d.getResultAsInt());
+			state.setAwaitReroll(false);
+			continuePickUp(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
 			
 		} else if (state.getCurrentCatch() != null){
 
-			DiceRoll roll = new DiceRoll();
-			D6 d = new D6();
-			d.roll();
-			roll.addDice(d);
-			state.setCurrentDiceRoll(roll);
-
-			continueCatch(d.getResultAsInt());
+			state.setAwaitReroll(false);
+			continueCatch(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
 			
 		}
 		
@@ -1130,7 +1121,6 @@ public class GameMaster {
 	
 	private void continueGoingForIt(int result) {
 		
-		state.setAwaitReroll(false);
 		Player player = state.getCurrentGoingForIt().getPlayer();
 		Square square = state.getCurrentGoingForIt().getSquare();
 		state.setCurrentGoingForIt(null);
@@ -1164,8 +1154,6 @@ public class GameMaster {
 	}
 
 	private void continueDodge(int result) {
-		
-		state.setAwaitReroll(false);
 		
 		performDodge(state.getCurrentDodge().getPlayer(), 
 				state.getCurrentDodge().getSquare(), 
@@ -1252,8 +1240,6 @@ public class GameMaster {
 
 	private void continueCatch(int result) {
 		
-		state.setAwaitReroll(false);
-		
 		int success = state.getCurrentCatch().getSuccess();
 		
 		Player player = state.getCurrentCatch().getPlayer();
@@ -1283,8 +1269,6 @@ public class GameMaster {
 	}
 
 	private void continuePickUp(int result) {
-		
-		state.setAwaitReroll(false);
 		
 		int success = state.getCurrentPickUp().getSuccess();
 		
@@ -2378,8 +2362,85 @@ public class GameMaster {
 	}
 
 	private BlockSum CalculateBlockSum(Player attacker, Player defender) {
-		// TODO Auto-generated method stub
+		
+		int attStr = attacker.getST();
+		int defStr = defender.getST();
+		
+		attStr += assists(attacker, defender);
+		defStr += assists(defender, attacker);
+		
+		if (attStr > defStr * 2){
+			return BlockSum.ATTACKER_DOUBLE_STRONG;
+		} else if (defStr > attStr * 2){
+			return BlockSum.DEFENDER_DOUBLE_STRONG;
+		} else if (attStr > defStr){
+			return BlockSum.ATTACKER_STRONGER;
+		} else if (attStr < defStr){
+			return BlockSum.DEFENDER_STRONGER;
+		}
+		
 		return BlockSum.EQUAL;
+	}
+
+	private int assists(Player attacker, Player defender) {
+		
+		int assists = 0;
+		
+		Square defPos = state.getPitch().getPlayerPosition(defender);
+		
+		for(int y = -1; y <= 1; y++){
+			
+			for(int x = -1; x <= 1; x++){
+				
+				Square sq = new Square(x + defPos.getX(), y + defPos.getY());
+				
+				Player player = state.getPitch().getPlayerAt(sq);
+				
+				if (player == null ||
+						player == attacker || 
+						player == defender || 
+						playerOwner(player) == playerOwner(defender)){
+				
+					continue;
+				}
+					
+				if (!inTacklesZoneExcept(player, defender)){
+					
+					assists++;
+					
+				}
+			}
+			
+		}
+		
+		return assists;
+	}
+
+	private boolean inTacklesZoneExcept(Player player, Player exception) {
+		
+		Square square = state.getPitch().getPlayerPosition(player);
+		
+		for(int y = -1; y <= 1; y++){
+			for(int x = -1; x <= 1; x++){
+				
+				Square test = new Square(square.getX() + x, square.getY() + y);
+				
+				Player p = state.getPitch().getPlayerArr()[test.getY()][test.getX()]; 
+				
+				// Opposite team or exception?
+				if (p == null ||
+						getPlayerOwner(p) == getPlayerOwner(player) ||
+						p == exception){
+					continue;
+				}
+					
+				if (p.getPlayerStatus().getStanding() == Standing.UP){
+					return true;
+				}
+			}
+		}
+		
+		return false;
 	}
 
 	private boolean nextToEachOther(Player a, Player b) {
