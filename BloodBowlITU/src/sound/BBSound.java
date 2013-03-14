@@ -11,6 +11,10 @@ public class BBSound {
 
 	private AudioClip ac;
 	
+	public BBSound (String filename){
+		setSound(filename);
+	}
+	
 	public void setSound (String fileName){
 		
 		if(fileName.endsWith(".wav") || fileName.endsWith(".au") || fileName.endsWith(".mid") ||

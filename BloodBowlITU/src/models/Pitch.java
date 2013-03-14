@@ -336,7 +336,7 @@ public class Pitch {
 	public boolean isBallOnTeamSide(Team team) {
 		
 		// Ball on left side
-		if (ball.getSquare().getX() < 13){
+		if (ball.getSquare().getX() <= 13){
 			
 			if (isTeamHome(team)){
 				return true;
@@ -548,7 +548,6 @@ public class Pitch {
 	public Player getPlayerAt(Square sq) {
 		return playerArr[sq.getY()][sq.getX()];
 	}
-	
 	
 }
 

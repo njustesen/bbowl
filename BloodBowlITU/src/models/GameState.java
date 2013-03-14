@@ -57,19 +57,6 @@ public class GameState {
 		this.currentCatch = null;
 		this.playerPlaced = false;
 		this.currentDiceRoll = null;
-		// Only for testing purposes - should be null
-		/*
-		this.currentDiceRoll = new DiceRoll();
-		BB a = new BB();
-		a.roll();
-		BB b = new BB();
-		b.roll();
-		BB c = new BB();
-		c.roll();
-		this.currentDiceRoll.addDice(a);
-		this.currentDiceRoll.addDice(b);
-		this.currentDiceRoll.addDice(c);
-		*/
 	}
 	
 	public Pitch getPitch() {

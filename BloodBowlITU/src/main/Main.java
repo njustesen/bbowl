@@ -11,6 +11,7 @@ import models.TeamFactory;
 import game.GameMaster;
 import game.HumanPlayerAgent;
 import game.PlayerAgent;
+import sound.SoundManager;
 import test.DiceTester;
 import view.InputManager;
 import view.Renderer;
@@ -46,6 +47,7 @@ public class Main {
 		PlayerAgent AI = new HumanPlayerAgent(new Coach("AI", away));
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), humanPlayer, AI);
+		gameMaster.setSoundManager(new SoundManager());
 		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(60, gameMaster, inputManager);
 	}

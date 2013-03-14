@@ -10,23 +10,28 @@ public class SoundManager {
 	BBSound whistle;
 	
 	public SoundManager(){
-		buttonClick.setSound("buttonClick.wav");
-		beginTurn.setSound("beginTurn.wav");
-		knockedDown.setSound("knockedDown.wav");
-		cheer.setSound("cheer.wav"); //from http://www.mediacollege.com/downloads/sound-effects/audience/
-		diceRoll.setSound("diceRoll.wav");//from http://soundbible.com/181-Roll-Dice-2.html
-		whistle.setSound("whistle.wav");
+		buttonClick = new BBSound("buttonClick.wav");
+		beginTurn = new BBSound("beginTurn.wav");
+		knockedDown = new BBSound("knockedDown.wav");
+		cheer = new BBSound("cheer.wav"); //from http://www.mediacollege.com/downloads/sound-effects/audience/
+		diceRoll = new BBSound("diceRoll.wav");//from http://soundbible.com/181-Roll-Dice-2.html
+		whistle = new BBSound("whistle.wav");
 	}
 	
 	public void playSound(Sound sound){
 		
+		// Ignore loud sounds when developing
+		if (sound == Sound.CHEER){
+			return;
+		}
+		
 		switch(sound){
-			case BUTTONCLICK: buttonClick.start();
-			case BEGINTURN: beginTurn.start();
-			case KNOCKEDDOWN: knockedDown.start();
-			case CHEER: cheer.start();
-			case DICEROLL: diceRoll.start();
-			case WHISTLE: whistle.start();
+			case BUTTONCLICK: buttonClick.start(); break;
+			case BEGINTURN: beginTurn.start(); break;
+			case KNOCKEDDOWN: knockedDown.start(); break;
+			case CHEER: cheer.start(); break;
+			case DICEROLL: diceRoll.start(); break;
+			case WHISTLE: whistle.start(); break;
 		}
 	}
 }
