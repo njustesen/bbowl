@@ -235,8 +235,14 @@ public class Renderer extends JPanel{
 				default: System.out.println("dont have that image");
 				}
 			}
-			if(i == 2){ //(i == gamestate.getSelectedAction())
-				g.drawImage(greenGlow.getBufferedImage(), i*actionButtonWidth-12, 501, null);
+			switch(gameMaster.getSelectedPlayer().getPlayerStatus().getTurn()){
+				case MOVE_ACTION: g.drawImage(greenGlow.getBufferedImage(), 0*actionButtonWidth-12, 501, null);
+				case BLOCK_ACTION: g.drawImage(greenGlow.getBufferedImage(), 1*actionButtonWidth-12, 501, null);
+				case BLITZ_ACTION: g.drawImage(greenGlow.getBufferedImage(), 2*actionButtonWidth-12, 501, null);
+				case FOUL_ACTION: g.drawImage(greenGlow.getBufferedImage(), 3*actionButtonWidth-12, 501, null);
+				case PASS_ACTION: g.drawImage(greenGlow.getBufferedImage(), 4*actionButtonWidth-12, 501, null);
+				case HAND_OFF_ACTION: g.drawImage(greenGlow.getBufferedImage(), 5*actionButtonWidth-12, 501, null);
+				default: break;
 			}
 		}			
 	}
