@@ -235,14 +235,18 @@ public class Renderer extends JPanel{
 				default: System.out.println("dont have that image");
 				}
 			}
-			switch(gameMaster.getSelectedPlayer().getPlayerStatus().getTurn()){
-				case MOVE_ACTION: g.drawImage(greenGlow.getBufferedImage(), 0*actionButtonWidth-12, 501, null);
-				case BLOCK_ACTION: g.drawImage(greenGlow.getBufferedImage(), 1*actionButtonWidth-12, 501, null);
-				case BLITZ_ACTION: g.drawImage(greenGlow.getBufferedImage(), 2*actionButtonWidth-12, 501, null);
-				case FOUL_ACTION: g.drawImage(greenGlow.getBufferedImage(), 3*actionButtonWidth-12, 501, null);
-				case PASS_ACTION: g.drawImage(greenGlow.getBufferedImage(), 4*actionButtonWidth-12, 501, null);
-				case HAND_OFF_ACTION: g.drawImage(greenGlow.getBufferedImage(), 5*actionButtonWidth-12, 501, null);
-				default: break;
+			if(gameMaster.getSelectedPlayer() != null){
+				if(gameMaster.getSelectedPlayer().getPlayerStatus().getTurn() != null){
+					switch(gameMaster.getSelectedPlayer().getPlayerStatus().getTurn()){
+						case MOVE_ACTION: g.drawImage(greenGlow.getBufferedImage(), 0*actionButtonWidth-12, 501, null); break;
+						case BLOCK_ACTION: g.drawImage(greenGlow.getBufferedImage(), 1*actionButtonWidth-12, 501, null); break;
+						case BLITZ_ACTION: g.drawImage(greenGlow.getBufferedImage(), 2*actionButtonWidth-12, 501, null); break;
+						case FOUL_ACTION: g.drawImage(greenGlow.getBufferedImage(), 3*actionButtonWidth-12, 501, null); break;
+						case PASS_ACTION: g.drawImage(greenGlow.getBufferedImage(), 4*actionButtonWidth-12, 501, null); break;
+						case HAND_OFF_ACTION: g.drawImage(greenGlow.getBufferedImage(), 5*actionButtonWidth-12, 501, null); break;
+						default: break;
+					}
+				}
 			}
 		}			
 	}
@@ -432,8 +436,7 @@ public class Renderer extends JPanel{
 
 	private void drawDiceRoll(Graphics g, DiceRoll currentDiceRoll) {
 
-		if (gameMaster.getState().getCurrentDiceRoll() != null){
-			
+		if(gameMaster.getState().getCurrentDiceRoll() != null){	
 			int i = 0;
 			for(DiceFace face : gameMaster.getState().getCurrentDiceRoll().getFaces()){
 				BufferedImage img = getDiceImage(face);
@@ -441,8 +444,6 @@ public class Renderer extends JPanel{
 				i++;
 			}
 			g.drawRect(inputManager.getDiceButtonOrigin().getX()-(i*56)-3, inputManager.getDiceButtonOrigin().getY()+2, i*56, 68);
-			
-			
 		}	
 	}
 
