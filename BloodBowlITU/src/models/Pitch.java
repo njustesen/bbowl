@@ -545,6 +545,10 @@ public class Pitch {
 		return false;
 	}
 
+	public Player getPlayerAt(Square sq) {
+		return playerArr[sq.getY()][sq.getX()];
+	}
+
 	
 	
 	
