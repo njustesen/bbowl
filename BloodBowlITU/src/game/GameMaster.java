@@ -270,7 +270,11 @@ public class GameMaster {
 			
 			if (player != null && !state.getCurrentBlock().isAmongPlayers(player)){
 				
-				state.getCurrentBlock().getCurrentPush().setFollowingPush(new Push(player, from, to));
+				Push push = new Push(player, from, to);
+				
+				push.setPushSquares(eliminatedPushSquares(push));
+				
+				state.getCurrentBlock().getCurrentPush().setFollowingPush(push);
 				
 			} else {
 				
@@ -987,10 +991,6 @@ public class GameMaster {
 			
 		} else if (state.getCurrentBlock() != null){
 
-			for(IDice d : state.getCurrentDiceRoll().getDices()){
-				d.roll();
-			}
-			
 			if (state.getCurrentDiceRoll().getDices().size() == 1){
 				state.setAwaitReroll(false);
 				continueBlock(state.getCurrentDiceRoll().getFaces().get(0));
@@ -1299,11 +1299,35 @@ public class GameMaster {
 	}
 
 	private boolean ableToReroll(Team team) {
+		
+		if (state.getGameStage() == GameStage.HOME_TURN){
+			
+			if (team != state.getHomeTeam()){
+				return false;
+			}
+			
+		} else if (state.getGameStage() == GameStage.AWAY_TURN){
+			
+			if (team != state.getAwayTeam()){
+				return false;
+			}
+			
+		} else {
+			
+			return false;
+			
+		}
+		
 		if (team.getTeamStatus().getRerolls() > 0 &&
 				!team.getTeamStatus().rerolledThisTurn()){
+			
 			return true;
+			
 		}
+		
 		return false;
+		
+		
 	}
 
 	private int getDodgeSuccesRoll(Player player, int zones) {
@@ -1977,10 +2001,35 @@ public class GameMaster {
 		
 		Push push = new Push(block.getDefender(), from, to);
 		
+		push.setPushSquares( eliminatedPushSquares(push) );
+		
 		state.getCurrentBlock().setPush(push);
 		
 		state.setAwaitPush(true);
 		
+	}
+
+	private ArrayList<Square> eliminatedPushSquares(Push push) {
+		// Eliminate squares
+		boolean playersOnAll = true;
+		ArrayList<Square> squaresWithoutPlayers = new ArrayList<Square>();
+		
+		for (Square sq : push.getPushSquares()){
+			
+			Player player = state.getPitch().getPlayerAt(sq);
+			
+			if (player == null){
+				playersOnAll = false;
+				squaresWithoutPlayers.add(sq);
+			}
+			
+		}
+		
+		if (!playersOnAll){
+			return squaresWithoutPlayers;
+		}
+		
+		return push.getPushSquares();
 	}
 
 	private void attackerDown(Block block) {
