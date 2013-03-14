@@ -506,6 +506,24 @@ public class Renderer extends JPanel{
 			
 		}
 		
+		// Draw home knockedout
+		for(Player p : gameMaster.getState().getPitch().getHomeDogout().getKnockedOut()){
+					
+				int index = gameMaster.getState().getPitch().getHomeDogout().getKnockedOut().indexOf(p);
+					
+				drawPlayer(g, p, index%2 - 1, index/2 + 9);
+					
+		}
+		
+		// Draw home dead and injured
+		for(Player p : gameMaster.getState().getPitch().getHomeDogout().getDeadAndInjured()){
+			
+			int index = gameMaster.getState().getPitch().getHomeDogout().getDeadAndInjured().indexOf(p);
+			
+			drawPlayer(g, p, index%2 + 1 + -1, index/2 + 12);
+			
+		}
+		
 		// Draw away dugout
 		for(Player p : gameMaster.getState().getPitch().getAwayDogout().getReserves()){
 			
@@ -514,7 +532,23 @@ public class Renderer extends JPanel{
 			drawPlayer(g, p, index%2 + 1 + 26, index/2 + 1);
 			
 		}
+		// Draw away knockedout
+		for(Player p : gameMaster.getState().getPitch().getAwayDogout().getKnockedOut()){
+			
+			int index = gameMaster.getState().getPitch().getAwayDogout().getKnockedOut().indexOf(p);
+			
+			drawPlayer(g, p, index%2 + 1 + 26, index/2 + 9);
+			
+		}
 		
+		// Draw away dead and injured
+				for(Player p : gameMaster.getState().getPitch().getAwayDogout().getDeadAndInjured()){
+					
+					int index = gameMaster.getState().getPitch().getAwayDogout().getDeadAndInjured().indexOf(p);
+					
+					drawPlayer(g, p, index%2 + 1 + 26, index/2 + 12);
+					
+				}
 	}
 	
 	public void drawCoinToss(Graphics g){
@@ -605,6 +639,23 @@ public class Renderer extends JPanel{
 		g.drawString("log:", 20, 622);
 		g.setColor(Color.WHITE);
 		System.out.println(fullMessage);
+		g.setFont(standard);
+	}
+	
+	private void drawGameEnded(Graphics g){
+		if(gameMaster.getState().getGameStage() == GameStage.GAME_ENDED){
+			f = new Font("Arial", Font.PLAIN, 90);
+			g.setFont(f);
+			g.drawString("Game Ended", 200, 140);
+			g.setFont(standard);
+			if(gameMaster.getState().getHomeTeam().getTeamStatus().getScore() > gameMaster.getState().getAwayTeam().getTeamStatus().getScore()){
+				g.drawString(gameMaster.getState().getHomeTeam().getTeamName()+" WON!", 260, 160);
+			}else if(gameMaster.getState().getHomeTeam().getTeamStatus().getScore() < gameMaster.getState().getAwayTeam().getTeamStatus().getScore()){
+				g.drawString(gameMaster.getState().getAwayTeam().getTeamName()+" WON!", 260, 160);
+			}else if(gameMaster.getState().getHomeTeam().getTeamStatus().getScore() == gameMaster.getState().getAwayTeam().getTeamStatus().getScore()){
+				g.drawString("Draw", 220, 175);
+			}
+		}
 	}
 	
 	public void paintComponent(Graphics g) {  
@@ -626,7 +677,7 @@ public class Renderer extends JPanel{
 		drawCoinToss(g);
 		drawGameLog(g);
 		drawWeather(g);
-		
+		drawGameEnded(g);
 		
 		System.out.println("stage = "+gameMaster.getState().getGameStage());
 		
