@@ -71,7 +71,7 @@ public class GameState {
 		this.currentDiceRoll.addDice(c);
 		*/
 	}
-
+	
 	public Pitch getPitch() {
 		return pitch;
 	}
