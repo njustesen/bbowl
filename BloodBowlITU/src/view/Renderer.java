@@ -235,13 +235,16 @@ public class Renderer extends JPanel{
 				default: System.out.println("dont have that image");
 				}
 			}
+			if (gameMaster.getSelectedPlayer() == null){
+				continue;
+			}
 			switch(gameMaster.getSelectedPlayer().getPlayerStatus().getTurn()){
-				case MOVE_ACTION: g.drawImage(greenGlow.getBufferedImage(), 0*actionButtonWidth-12, 501, null);
-				case BLOCK_ACTION: g.drawImage(greenGlow.getBufferedImage(), 1*actionButtonWidth-12, 501, null);
-				case BLITZ_ACTION: g.drawImage(greenGlow.getBufferedImage(), 2*actionButtonWidth-12, 501, null);
-				case FOUL_ACTION: g.drawImage(greenGlow.getBufferedImage(), 3*actionButtonWidth-12, 501, null);
-				case PASS_ACTION: g.drawImage(greenGlow.getBufferedImage(), 4*actionButtonWidth-12, 501, null);
-				case HAND_OFF_ACTION: g.drawImage(greenGlow.getBufferedImage(), 5*actionButtonWidth-12, 501, null);
+				case MOVE_ACTION: g.drawImage(greenGlow.getBufferedImage(), 0*actionButtonWidth-12, 501, null); break;
+				case BLOCK_ACTION: g.drawImage(greenGlow.getBufferedImage(), 1*actionButtonWidth-12, 501, null); break;
+				case BLITZ_ACTION: g.drawImage(greenGlow.getBufferedImage(), 2*actionButtonWidth-12, 501, null); break;
+				case FOUL_ACTION: g.drawImage(greenGlow.getBufferedImage(), 3*actionButtonWidth-12, 501, null); break;
+				case PASS_ACTION: g.drawImage(greenGlow.getBufferedImage(), 4*actionButtonWidth-12, 501, null); break;
+				case HAND_OFF_ACTION: g.drawImage(greenGlow.getBufferedImage(), 5*actionButtonWidth-12, 501, null); break;
 				default: break;
 			}
 		}			
