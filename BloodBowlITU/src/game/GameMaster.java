@@ -1,6 +1,8 @@
 package game;
 
 import java.util.ArrayList;
+
+import sound.SoundManager;
 import models.BlockSum;
 import models.GameStage;
 import models.GameState;
@@ -33,6 +35,7 @@ public class GameMaster {
 	private Player blockTarget;
 	//private PlayerAgent homeAgent;
 	//private PlayerAgent awayAgent;
+	private SoundManager soundManager;
 	
 	public GameMaster(GameState gameState, PlayerAgent homeAgent, PlayerAgent awayAgent) {
 		super();
@@ -41,6 +44,12 @@ public class GameMaster {
 		// For debugging
 		//this.state.setGameStage(GameStage.KICKING_SETUP);
 		//this.state.setKickingTeam(this.state.getHomeTeam());
+	}
+	
+	public void setSoundManager(SoundManager soundManager){
+		
+		this.soundManager = soundManager;
+		
 	}
 	
 	public void update(){
