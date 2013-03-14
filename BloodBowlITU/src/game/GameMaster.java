@@ -2,6 +2,7 @@ package game;
 
 import java.util.ArrayList;
 
+import sound.Sound;
 import sound.SoundManager;
 import models.BlockSum;
 import models.GameStage;
@@ -102,7 +103,6 @@ public class GameMaster {
 		}
 		
 	}
-		
 	
 	/**
 	 * A square was clicked.
@@ -201,6 +201,708 @@ public class GameMaster {
 			
 		}
 		
+	}
+	
+	/**
+	 * An empty square on the pitch was clicked.
+	 * @param x
+	 * @param y
+	 */
+	public void emptySquareClicked(int x, int y) {
+		
+		Square square = new Square(x, y);
+		//Player clickedPlayer = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
+		
+		if (state.getGameStage() == GameStage.KICKING_SETUP){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Places player if allowed to
+				placePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
+		
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
+				
+				// Places player if allowed to
+				placePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.HOME_TURN || 
+				state.getGameStage() == GameStage.AWAY_TURN){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == getMovingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.BLITZ){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
+				
+				// Moves player if allowed to
+				movePlayerIfAllowed(selectedPlayer, square);
+			}
+			
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
+			
+			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
+				
+				// Moves player if allowed to
+				placePlayerIfAllowed(selectedPlayer, square);
+				
+			}
+			
+		}
+		
+	}
+	
+	public void selectAwayReserve(int reserve) {
+		
+		if (reserve >= state.getPitch().getAwayDogout().getReserves().size()){
+
+			if (selectedPlayer != null){
+				
+				if (state.getGameStage() == GameStage.KICKING_SETUP && 
+						state.getKickingTeam() == state.getAwayTeam()){
+					
+					movePlayerToReserves(selectedPlayer, false);
+					
+				} else if (state.getGameStage() == GameStage.RECEIVING_SETUP && 
+						state.getReceivingTeam() == state.getAwayTeam()){
+					
+					movePlayerToReserves(selectedPlayer, false);
+					
+				}
+				
+			}
+			
+		} else if (selectedPlayer != state.getPitch().getAwayDogout().getReserves().get(reserve)){
+			
+			selectedPlayer = state.getPitch().getAwayDogout().getReserves().get(reserve);
+		
+		} else {
+			
+			selectedPlayer = null;
+			
+		}
+		
+	}
+
+	public void selectHomeReserve(int reserve) {
+		
+		if (reserve >= state.getPitch().getHomeDogout().getReserves().size()){
+			
+			if (selectedPlayer != null){
+				
+				if (state.getGameStage() == GameStage.KICKING_SETUP && 
+						state.getKickingTeam() == state.getHomeTeam()){
+					
+					movePlayerToReserves(selectedPlayer, true);
+					
+				} else if (state.getGameStage() == GameStage.RECEIVING_SETUP && 
+						state.getReceivingTeam() == state.getHomeTeam()){
+					
+					movePlayerToReserves(selectedPlayer, true);
+					
+				}
+				
+			}
+			
+		} else if (selectedPlayer != state.getPitch().getHomeDogout().getReserves().get(reserve)){
+			
+			selectedPlayer = state.getPitch().getHomeDogout().getReserves().get(reserve);
+		
+		}  else {
+			
+			selectedPlayer = null;
+			
+		}
+		
+	}
+
+	/**
+	 * Start the game!
+	 * This will initiate the coin toss game stage.
+	 */
+	public void startGame(){
+		
+		// Legal action?
+		if (state.getGameStage() == GameStage.START_UP){
+			
+			// Roll for fans and FAME
+			rollForFans();
+			
+			// Roll for weather
+			rollForWeather();
+			
+			// Go to coin toss
+			state.setGameStage(GameStage.COIN_TOSS);
+			
+			// Move all players to reserve
+			state.getPitch().getHomeDogout().putPlayersInReserves();
+			state.getPitch().getAwayDogout().putPlayersInReserves();
+			
+			GameLog.push("The game has started!");
+			
+		}
+		
+	}
+
+	/**
+	 * Home team picks a coin side.
+	 * @param heads
+	 * 		True if heads, false if tails.
+	 */
+	public void pickCoinSide(boolean heads){
+		
+		// Legal action?
+		if (state.getGameStage() == GameStage.COIN_TOSS){
+			
+			// Set coin side pick
+			state.getCoinToss().setHomePicked(heads);
+			
+			if (heads){
+				GameLog.push(state.getHomeTeam().getTeamName() + " picked heads.");
+			} else {
+				GameLog.push(state.getHomeTeam().getTeamName() + " picked tails.");
+			}
+			
+			// Toss the coin
+			state.getCoinToss().Toss();
+			
+			if (state.getCoinToss().isResult() == state.getCoinToss().isHomePicked()){
+				GameLog.push(state.getHomeTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
+			} else {
+				GameLog.push(state.getAwayTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
+			}
+			
+			// Go to pick coin toss effect
+			state.setGameStage(GameStage.PICK_COIN_TOSS_EFFECT);
+			
+		}
+		
+	}
+	
+	/**
+	 * Coin toss winner picks coin toss effect.
+	 * @param receive
+	 * 		True if winner receives, false if winner kicks.
+	 */
+	public void pickCoinTossEffect(boolean receive){
+		
+		// Legal action?
+		if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+			
+			// If home picked correct
+			if (state.getCoinToss().isHomePicked() == state.getCoinToss().isResult()){
+				
+				// Home chooses to receive or kick
+				state.getCoinToss().setHomeReceives(receive);
+				if (receive){
+					state.setReceivingTeam(state.getHomeTeam());
+					state.setKickingTeam(state.getAwayTeam());
+					GameLog.push(state.getHomeTeam().getTeamName() + " selected to recieve the ball.");
+					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
+				} else {
+					state.setKickingTeam(state.getHomeTeam());
+					state.setReceivingTeam(state.getAwayTeam());
+					GameLog.push(state.getHomeTeam().getTeamName() + " selected to kick the ball.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
+				}
+				
+			} else {
+				
+				// Away chooses to receive or kick
+				state.getCoinToss().setHomeReceives(!receive);
+				if (!receive){
+					state.setReceivingTeam(state.getHomeTeam());
+					state.setKickingTeam(state.getAwayTeam());
+					GameLog.push(state.getAwayTeam().getTeamName() + " selected to kick the ball.");
+					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
+				} else {
+					state.setKickingTeam(state.getHomeTeam());
+					state.setReceivingTeam(state.getAwayTeam());
+					GameLog.push(state.getAwayTeam().getTeamName() + " selected to receive the ball.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
+				}
+				
+			}
+			
+			state.setGameStage(GameStage.KICKING_SETUP);
+			
+		}
+		
+	}
+	
+	/**
+	 * A team is done setting up.
+	 * If the team is the kicking team, the next game stage will be receiving setup.
+	 * If the team is the receiving team, the next game stage will be kick placement.
+	 */
+	public void endSetup(){
+		
+		if (state.getGameStage() == GameStage.KICKING_SETUP){
+			
+			// Auto setup
+			if (state.getPitch().teamPlayersOnPitch(state.getKickingTeam()) == 0 &&
+					AUTO_SETUP){
+				
+				setupTeam(state.getKickingTeam());
+				
+				return;
+			}
+			
+			// Kicking team	
+			if (state.getPitch().isSetupLegal(state.getKickingTeam(), state.getHalf())){
+				
+				state.setGameStage(GameStage.RECEIVING_SETUP);
+				selectedPlayer = null;
+				
+				GameLog.push(state.getKickingTeam().getTeamName() + " is done setting up.");
+				GameLog.push(state.getReceivingTeam().getTeamName() + " now has to setup.");
+				
+			}
+			
+		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
+			
+			// Auto setup
+			if (state.getPitch().teamPlayersOnPitch(state.getReceivingTeam()) == 0 && 
+					 AUTO_SETUP){
+				
+				setupTeam(state.getReceivingTeam());
+				return;
+			}
+			
+			// Receiving team	
+			if (state.getPitch().isSetupLegal(state.getReceivingTeam(), state.getHalf())){
+					
+				state.setGameStage(GameStage.KICK_PLACEMENT);
+				selectedPlayer = null;
+				
+				GameLog.push(state.getReceivingTeam().getTeamName() + " is done setting up.");
+				GameLog.push(state.getKickingTeam().getTeamName() + " now has to place the ball.");
+				
+			}
+			
+		}
+		
+	}
+
+	/**
+	 * Place a player on a square.
+	 * 
+	 * @param player
+	 * @param square
+	 */
+	public void placePlayerIfAllowed(Player player, Square square){
+		
+		Team team = getPlayerOwner(player);
+		boolean moveAllowed = false;
+		
+		// Setting up?
+		if (state.getGameStage() == GameStage.KICKING_SETUP &&
+				state.getKickingTeam() == team){
+			
+			moveAllowed = true;
+			
+		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP &&
+				state.getReceivingTeam() == team){
+			
+			moveAllowed = true;
+			
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE &&
+				state.getKickingTeam() == team){
+			
+			moveAllowed = true;
+			
+		} else if (state.getGameStage() == GameStage.HIGH_KICK &&
+				!state.isPlayerPlaced() && 
+				state.getReceivingTeam() == team){
+			
+			moveAllowed = true;
+			
+		}
+		
+		// Square occupied?
+		if (state.getPitch().getPlayerArr()[square.getY()][square.getX()] != null){
+			
+			moveAllowed = false;
+			
+		}
+		
+		if (moveAllowed){
+			removePlayerFromReserves(player);
+			removePlayerFromCurrentSquare(player);
+			placePlayerAt(player, square);
+			
+			if (state.getGameStage() == GameStage.HIGH_KICK){
+				state.setPlayerPlaced(true);
+			}
+		}
+		
+	}
+	
+	/**
+	 * Performs a block roll.
+	 * 
+	 * @param attacker
+	 * @param defender
+	 */
+	public void performBlock(Player attacker, Player defender){
+		
+		if (!allowedToBlock(attacker))
+			return;
+			
+		if (!onDifferentTeams(attacker, defender))
+			return;
+		
+		if (!nextToEachOther(attacker, defender))
+			return;
+		
+		if (state.getCurrentBlock() != null)
+			return;
+			
+		if (blockTarget == null){
+			blockTarget = defender;
+			return;
+		}
+		
+		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			attacker.getPlayerStatus().setTurn(PlayerTurn.BLOCK_ACTION);
+		}
+		
+		DiceRoll roll = new DiceRoll();
+		
+		BlockSum sum = CalculateBlockSum(attacker, blockTarget);
+		
+		Team selectTeam = playerOwner(attacker);
+		
+		soundManager.playSound(Sound.DICEROLL);
+		
+		if (sum == BlockSum.EQUAL){
+			
+			BB ba = new BB();
+			ba.roll();
+			roll.addDice(ba);
+			
+		} else if(sum == BlockSum.ATTACKER_STRONGER){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			ba.roll();
+			bb.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			
+		}  else if(sum == BlockSum.DEFENDER_STRONGER){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			ba.roll();
+			bb.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			
+			selectTeam = playerOwner(blockTarget);
+			
+		} else if(sum == BlockSum.ATTACKER_DOUBLE_STRONG){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			BB bc = new BB();
+			ba.roll();
+			bb.roll();
+			bc.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			roll.addDice(bc);
+			
+		} else if(sum == BlockSum.DEFENDER_DOUBLE_STRONG){
+			
+			BB ba = new BB();
+			BB bb = new BB();
+			BB bc = new BB();
+			ba.roll();
+			bb.roll();
+			bc.roll();
+			roll.addDice(ba);
+			roll.addDice(bb);
+			roll.addDice(bc);
+			
+		}
+		
+		state.setCurrentDiceRoll(roll);
+		
+		// Select or continue
+		if (roll.getDices().size() == 1 && !ableToReroll(selectTeam)){
+			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
+			continueBlock(roll.getFaces().get(0));
+		} else {
+			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
+			state.setAwaitReroll(true);
+		}
+		
+		blockTarget = null;
+		
+	}
+	
+	/**
+	 * Selects a rolled die.
+	 * 
+	 * @param i
+	 * 		The index of the die in the dice roll.
+	 */
+	public void selectDie(int i){
+		
+		if (state.getCurrentDiceRoll() != null){
+			
+			// Select face
+			DiceFace face = state.getCurrentDiceRoll().getFaces().get(i);
+			int result = state.getCurrentDiceRoll().getDices().get(i).getResultAsInt();
+			
+			// Continue block/dodge/going
+			if (state.getCurrentBlock() != null){
+				
+				state.setAwaitReroll(false);
+				continueBlock(face);
+				return;
+				
+			}
+			if (state.getCurrentPickUp() != null){
+					
+				state.setAwaitReroll(false);
+				continuePickUp(result);
+				return;
+				
+			}
+			if (state.getCurrentCatch() != null){
+				
+				state.setAwaitReroll(false);
+				continueCatch(result);
+				return;
+				
+			}
+			if (state.getCurrentDodge() != null){
+				
+				state.setAwaitReroll(false);
+				continueDodge(result);
+				return;
+				
+			}	
+			if (state.getCurrentGoingForIt() != null){
+				
+				state.setAwaitReroll(false);
+				continueGoingForIt(result);
+				return;
+				
+			}	
+			
+		}
+		
+	}
+
+	/**
+	 * Rerolls the current dice roll.
+	 */
+	public void reroll(){
+		
+		// Anything to reroll?
+		if (!state.isAwaitingReroll() || 
+				state.getCurrentDiceRoll() == null || 
+				!ableToReroll(getMovingTeam()))
+			return;
+		
+		getMovingTeam().useReroll();
+		
+		for(IDice d : state.getCurrentDiceRoll().getDices()){
+			d.roll();
+		}
+		
+		soundManager.playSound(Sound.DICEROLL);
+		
+		// Dodge/going/block
+	 	if (state.getCurrentDodge() != null){
+			
+			state.setAwaitReroll(false);
+			continueDodge(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
+			
+		} else if (state.getCurrentGoingForIt() != null){
+			
+			state.setAwaitReroll(false);
+			continueGoingForIt(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
+			
+		} else if (state.getCurrentBlock() != null){
+
+			if (state.getCurrentDiceRoll().getDices().size() == 1){
+				state.setAwaitReroll(false);
+				continueBlock(state.getCurrentDiceRoll().getFaces().get(0));
+			}
+			
+		} else if (state.getCurrentPickUp() != null){
+			
+			state.setAwaitReroll(false);
+			continuePickUp(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
+			
+		} else if (state.getCurrentCatch() != null){
+
+			state.setAwaitReroll(false);
+			continueCatch(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
+			
+		}
+		
+	}
+	
+	/**
+	 * Moves a player to a square. 
+	 * 
+	 * @param player
+	 * @param square
+	 */
+	public void movePlayerIfAllowed(Player player, Square square){
+		
+		if (state.isAwaitingReroll())
+			return;
+		
+		boolean moveAllowed = moveAllowed(player, square);
+		
+		if (!moveAllowed){
+			return;
+		}
+		
+		// Player turn
+		if (player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			endTurnForOtherPlayers(playerOwner(player), player);
+		}
+		
+		// Dodge
+		if (isInTackleZone(player) && state.getGameStage() != GameStage.QUICK_SNAP){
+			
+			dodgeToMovePlayer(player, square);
+			
+		} else {
+			
+			// Move
+			movePlayer(player, square);
+			
+		}
+		
+	}
+
+	/**
+	 * Selects an action to the selected player.
+	 * @param action
+	 */
+	public void selectAction(PlayerTurn action){
+		
+		// Only if allowed
+		if (selectedPlayer != null && 
+				playerOwner(selectedPlayer) == getMovingTeam() &&
+				selectedPlayer.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			
+			selectedPlayer.getPlayerStatus().setTurn(action);
+			
+		}
+		
+	}
+	
+	private void setupTeam(Team team) {
+			
+		ArrayList<Player> placablePlayers = new ArrayList<Player>();
+		
+		for (Player p : state.getPitch().getDogout(team).getReserves()){
+			placablePlayers.add(p);
+		}
+		
+		for (Player p : placablePlayers){
+			
+			// No more players in reserves
+			if (state.getPitch().getDogout(team).getReserves().isEmpty()){
+				break;
+			}
+			
+			// Three on scrimmage?
+			if (state.getPitch().playersOnScrimmage(team) < 3){
+				
+				state.getPitch().placePlayerOnScrimmage(p, team);
+				
+				continue;
+				
+			}
+			
+			// Two on top wide zones
+			if (state.getPitch().playersOnTopWideZones(team) < 2){
+				
+				state.getPitch().placePlayerInTopWideZone(p, team);
+				
+				continue;
+				
+			}
+			
+			// Two on bottom wide zones
+			if (state.getPitch().playersOnBottomWideZones(team) < 2){
+				
+				state.getPitch().placePlayerInBottomWideZone(p, team);
+				
+				continue;
+				
+			}
+			
+			// Place on rest of pitch
+			if (state.getPitch().playersOnPitch(team) < 11){
+				
+				state.getPitch().placePlayerInMidfield(p, team);
+				
+				continue;
+				
+			}
+			
+		}
+		
+	}
+	
+	private void movePlayerToReserves(Player player, boolean home) {
+		
+		if (playerOwner(player) == state.getHomeTeam() && home){
+			
+			removePlayerFromCurrentSquare(player);
+			
+			removePlayerFromReserves(player);
+			
+			state.getPitch().getHomeDogout().getReserves().add(selectedPlayer);
+			
+			
+		} else if (playerOwner(player) == state.getAwayTeam() && !home){
+			
+			removePlayerFromCurrentSquare(player);
+			
+			removePlayerFromReserves(player);
+			
+			state.getPitch().getAwayDogout().getReserves().add(selectedPlayer);
+			
+		}
+		
+	}
+	
+	private boolean onDifferentTeams(Player a, Player b) {
+		if (playerOwner(a) != playerOwner(b)){
+			return true;
+		}
+		return false;
 	}
 	
 	private void followUp(boolean follow) {
@@ -372,706 +1074,6 @@ public class GameMaster {
 		
 	}
 
-	/**
-	 * An empty square on the pitch was clicked.
-	 * @param x
-	 * @param y
-	 */
-	public void emptySquareClicked(int x, int y) {
-		
-		Square square = new Square(x, y);
-		//Player clickedPlayer = state.getPitch().getPlayerArr()[square.getY()][square.getX()];
-		
-		if (state.getGameStage() == GameStage.KICKING_SETUP){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
-				
-				// Places player if allowed to
-				placePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
-		
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
-				
-				// Places player if allowed to
-				placePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.HOME_TURN || 
-				state.getGameStage() == GameStage.AWAY_TURN){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == getMovingTeam()){
-				
-				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.BLITZ){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
-				
-				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getReceivingTeam()){
-				
-				// Moves player if allowed to
-				movePlayerIfAllowed(selectedPlayer, square);
-			}
-			
-		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
-			
-			if (selectedPlayer != null && getPlayerOwner(selectedPlayer) == state.getKickingTeam()){
-				
-				// Moves player if allowed to
-				placePlayerIfAllowed(selectedPlayer, square);
-				
-			}
-			
-		}
-		
-	}
-	
-	public void selectAwayReserve(int reserve) {
-		
-		if (reserve >= state.getPitch().getAwayDogout().getReserves().size()){
-
-			if (selectedPlayer != null){
-				
-				if (state.getGameStage() == GameStage.KICKING_SETUP && 
-						state.getKickingTeam() == state.getAwayTeam()){
-					
-					movePlayerToReserves(selectedPlayer, false);
-					
-				} else if (state.getGameStage() == GameStage.RECEIVING_SETUP && 
-						state.getReceivingTeam() == state.getAwayTeam()){
-					
-					movePlayerToReserves(selectedPlayer, false);
-					
-				}
-				
-			}
-			
-		} else if (selectedPlayer != state.getPitch().getAwayDogout().getReserves().get(reserve)){
-			
-			selectedPlayer = state.getPitch().getAwayDogout().getReserves().get(reserve);
-		
-		} else {
-			
-			selectedPlayer = null;
-			
-		}
-		
-	}
-
-	public void selectHomeReserve(int reserve) {
-		
-		if (reserve >= state.getPitch().getHomeDogout().getReserves().size()){
-			
-			if (selectedPlayer != null){
-				
-				if (state.getGameStage() == GameStage.KICKING_SETUP && 
-						state.getKickingTeam() == state.getHomeTeam()){
-					
-					movePlayerToReserves(selectedPlayer, true);
-					
-				} else if (state.getGameStage() == GameStage.RECEIVING_SETUP && 
-						state.getReceivingTeam() == state.getHomeTeam()){
-					
-					movePlayerToReserves(selectedPlayer, true);
-					
-				}
-				
-			}
-			
-		} else if (selectedPlayer != state.getPitch().getHomeDogout().getReserves().get(reserve)){
-			
-			selectedPlayer = state.getPitch().getHomeDogout().getReserves().get(reserve);
-		
-		}  else {
-			
-			selectedPlayer = null;
-			
-		}
-		
-	}
-
-	private void movePlayerToReserves(Player player, boolean home) {
-		
-		if (playerOwner(player) == state.getHomeTeam() && home){
-			
-			removePlayerFromCurrentSquare(player);
-			
-			removePlayerFromReserves(player);
-			
-			state.getPitch().getHomeDogout().getReserves().add(selectedPlayer);
-			
-			
-		} else if (playerOwner(player) == state.getAwayTeam() && !home){
-			
-			removePlayerFromCurrentSquare(player);
-			
-			removePlayerFromReserves(player);
-			
-			state.getPitch().getAwayDogout().getReserves().add(selectedPlayer);
-			
-		}
-		
-	}
-	
-	/**
-	 * Start the game!
-	 * This will initiate the coin toss game stage.
-	 */
-	public void startGame(){
-		
-		// Legal action?
-		if (state.getGameStage() == GameStage.START_UP){
-			
-			// Roll for fans and FAME
-			rollForFans();
-			
-			// Roll for weather
-			rollForWeather();
-			
-			// Go to coin toss
-			state.setGameStage(GameStage.COIN_TOSS);
-			
-			// Move all players to reserve
-			state.getPitch().getHomeDogout().putPlayersInReserves();
-			state.getPitch().getAwayDogout().putPlayersInReserves();
-			
-			GameLog.push("The game has started!");
-			
-		}
-		
-	}
-	
-	
-
-	/**
-	 * Home team picks a coin side.
-	 * @param heads
-	 * 		True if heads, false if tails.
-	 */
-	public void pickCoinSide(boolean heads){
-		
-		// Legal action?
-		if (state.getGameStage() == GameStage.COIN_TOSS){
-			
-			// Set coin side pick
-			state.getCoinToss().setHomePicked(heads);
-			
-			if (heads){
-				GameLog.push(state.getHomeTeam().getTeamName() + " picked heads.");
-			} else {
-				GameLog.push(state.getHomeTeam().getTeamName() + " picked tails.");
-			}
-			
-			// Toss the coin
-			state.getCoinToss().Toss();
-			
-			if (state.getCoinToss().isResult() == state.getCoinToss().isHomePicked()){
-				GameLog.push(state.getHomeTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
-			} else {
-				GameLog.push(state.getAwayTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
-			}
-			
-			// Go to pick coin toss effect
-			state.setGameStage(GameStage.PICK_COIN_TOSS_EFFECT);
-			
-		}
-		
-	}
-	
-	/**
-	 * Coin toss winner picks coin toss effect.
-	 * @param receive
-	 * 		True if winner receives, false if winner kicks.
-	 */
-	public void pickCoinTossEffect(boolean receive){
-		
-		// Legal action?
-		if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
-			
-			// If home picked correct
-			if (state.getCoinToss().isHomePicked() == state.getCoinToss().isResult()){
-				
-				// Home chooses to receive or kick
-				state.getCoinToss().setHomeReceives(receive);
-				if (receive){
-					state.setReceivingTeam(state.getHomeTeam());
-					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push(state.getHomeTeam().getTeamName() + " selected to recieve the ball.");
-					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
-				} else {
-					state.setKickingTeam(state.getHomeTeam());
-					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push(state.getHomeTeam().getTeamName() + " selected to kick the ball.");
-					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
-				}
-				
-			} else {
-				
-				// Away chooses to receive or kick
-				state.getCoinToss().setHomeReceives(!receive);
-				if (!receive){
-					state.setReceivingTeam(state.getHomeTeam());
-					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push(state.getAwayTeam().getTeamName() + " selected to kick the ball.");
-					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
-				} else {
-					state.setKickingTeam(state.getHomeTeam());
-					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push(state.getAwayTeam().getTeamName() + " selected to receive the ball.");
-					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
-				}
-				
-			}
-			
-			state.setGameStage(GameStage.KICKING_SETUP);
-			
-		}
-		
-	}
-	
-	/**
-	 * A team is done setting up.
-	 * If the team is the kicking team, the next game stage will be receiving setup.
-	 * If the team is the receiving team, the next game stage will be kick placement.
-	 */
-	public void endSetup(){
-		
-		if (state.getGameStage() == GameStage.KICKING_SETUP){
-			
-			// Auto setup
-			if (state.getPitch().teamPlayersOnPitch(state.getKickingTeam()) == 0 &&
-					AUTO_SETUP){
-				
-				setupTeam(state.getKickingTeam());
-				
-				return;
-			}
-			
-			// Kicking team	
-			if (state.getPitch().isSetupLegal(state.getKickingTeam(), state.getHalf())){
-				
-				state.setGameStage(GameStage.RECEIVING_SETUP);
-				selectedPlayer = null;
-				
-				GameLog.push(state.getKickingTeam().getTeamName() + " is done setting up.");
-				GameLog.push(state.getReceivingTeam().getTeamName() + " now has to setup.");
-				
-			}
-			
-		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
-			
-			// Auto setup
-			if (state.getPitch().teamPlayersOnPitch(state.getReceivingTeam()) == 0 && 
-					 AUTO_SETUP){
-				
-				setupTeam(state.getReceivingTeam());
-				return;
-			}
-			
-			// Receiving team	
-			if (state.getPitch().isSetupLegal(state.getReceivingTeam(), state.getHalf())){
-					
-				state.setGameStage(GameStage.KICK_PLACEMENT);
-				selectedPlayer = null;
-				
-				GameLog.push(state.getReceivingTeam().getTeamName() + " is done setting up.");
-				GameLog.push(state.getKickingTeam().getTeamName() + " now has to place the ball.");
-				
-			}
-			
-		}
-		
-	}
-	
-	private void setupTeam(Team team) {
-			
-		ArrayList<Player> placablePlayers = new ArrayList<Player>();
-		
-		for (Player p : state.getPitch().getDogout(team).getReserves()){
-			placablePlayers.add(p);
-		}
-		
-		for (Player p : placablePlayers){
-			
-			// No more players in reserves
-			if (state.getPitch().getDogout(team).getReserves().isEmpty()){
-				break;
-			}
-			
-			// Three on scrimmage?
-			if (state.getPitch().playersOnScrimmage(team) < 3){
-				
-				state.getPitch().placePlayerOnScrimmage(p, team);
-				
-				continue;
-				
-			}
-			
-			// Two on top wide zones
-			if (state.getPitch().playersOnTopWideZones(team) < 2){
-				
-				state.getPitch().placePlayerInTopWideZone(p, team);
-				
-				continue;
-				
-			}
-			
-			// Two on bottom wide zones
-			if (state.getPitch().playersOnBottomWideZones(team) < 2){
-				
-				state.getPitch().placePlayerInBottomWideZone(p, team);
-				
-				continue;
-				
-			}
-			
-			// Place on rest of pitch
-			if (state.getPitch().playersOnPitch(team) < 11){
-				
-				state.getPitch().placePlayerInMidfield(p, team);
-				
-				continue;
-				
-			}
-			
-		}
-		
-	}
-
-	/**
-	 * Place a player on a square.
-	 * 
-	 * @param player
-	 * @param square
-	 */
-	public void placePlayerIfAllowed(Player player, Square square){
-		
-		Team team = getPlayerOwner(player);
-		boolean moveAllowed = false;
-		
-		// Setting up?
-		if (state.getGameStage() == GameStage.KICKING_SETUP &&
-				state.getKickingTeam() == team){
-			
-			moveAllowed = true;
-			
-		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP &&
-				state.getReceivingTeam() == team){
-			
-			moveAllowed = true;
-			
-		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE &&
-				state.getKickingTeam() == team){
-			
-			moveAllowed = true;
-			
-		} else if (state.getGameStage() == GameStage.HIGH_KICK &&
-				!state.isPlayerPlaced() && 
-				state.getReceivingTeam() == team){
-			
-			moveAllowed = true;
-			
-		}
-		
-		// Square occupied?
-		if (state.getPitch().getPlayerArr()[square.getY()][square.getX()] != null){
-			
-			moveAllowed = false;
-			
-		}
-		
-		if (moveAllowed){
-			removePlayerFromReserves(player);
-			removePlayerFromCurrentSquare(player);
-			placePlayerAt(player, square);
-			
-			if (state.getGameStage() == GameStage.HIGH_KICK){
-				state.setPlayerPlaced(true);
-			}
-		}
-		
-	}
-	
-	/**
-	 * Performs a block roll.
-	 * 
-	 * @param attacker
-	 * @param defender
-	 */
-	public void performBlock(Player attacker, Player defender){
-		
-		if (!allowedToBlock(attacker))
-			return;
-			
-		if (!onDifferentTeams(attacker, defender))
-			return;
-		
-		if (!nextToEachOther(attacker, defender))
-			return;
-		
-		if (state.getCurrentBlock() != null)
-			return;
-			
-		if (blockTarget == null){
-			blockTarget = defender;
-			return;
-		}
-		
-		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
-			attacker.getPlayerStatus().setTurn(PlayerTurn.BLOCK_ACTION);
-		}
-		
-		DiceRoll roll = new DiceRoll();
-		
-		BlockSum sum = CalculateBlockSum(attacker, blockTarget);
-		
-		Team selectTeam = playerOwner(attacker);
-		
-		if (sum == BlockSum.EQUAL){
-			
-			BB ba = new BB();
-			ba.roll();
-			roll.addDice(ba);
-			
-		} else if(sum == BlockSum.ATTACKER_STRONGER){
-			
-			BB ba = new BB();
-			BB bb = new BB();
-			ba.roll();
-			bb.roll();
-			roll.addDice(ba);
-			roll.addDice(bb);
-			
-		}  else if(sum == BlockSum.DEFENDER_STRONGER){
-			
-			BB ba = new BB();
-			BB bb = new BB();
-			ba.roll();
-			bb.roll();
-			roll.addDice(ba);
-			roll.addDice(bb);
-			
-			selectTeam = playerOwner(blockTarget);
-			
-		} else if(sum == BlockSum.ATTACKER_DOUBLE_STRONG){
-			
-			BB ba = new BB();
-			BB bb = new BB();
-			BB bc = new BB();
-			ba.roll();
-			bb.roll();
-			bc.roll();
-			roll.addDice(ba);
-			roll.addDice(bb);
-			roll.addDice(bc);
-			
-		} else if(sum == BlockSum.DEFENDER_DOUBLE_STRONG){
-			
-			BB ba = new BB();
-			BB bb = new BB();
-			BB bc = new BB();
-			ba.roll();
-			bb.roll();
-			bc.roll();
-			roll.addDice(ba);
-			roll.addDice(bb);
-			roll.addDice(bc);
-			
-		}
-		
-		state.setCurrentDiceRoll(roll);
-		
-		// Select or continue
-		if (roll.getDices().size() == 1 && !ableToReroll(selectTeam)){
-			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
-			continueBlock(roll.getFaces().get(0));
-		} else {
-			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
-			state.setAwaitReroll(true);
-		}
-		
-		blockTarget = null;
-		
-	}
-	
-	private boolean onDifferentTeams(Player a, Player b) {
-		if (playerOwner(a) != playerOwner(b)){
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Selects a rolled die.
-	 * 
-	 * @param i
-	 * 		The index of the die in the dice roll.
-	 */
-	public void selectDie(int i){
-		
-		if (state.getCurrentDiceRoll() != null){
-			
-			// Select face
-			DiceFace face = state.getCurrentDiceRoll().getFaces().get(i);
-			int result = state.getCurrentDiceRoll().getDices().get(i).getResultAsInt();
-			
-			// Continue block/dodge/going
-			if (state.getCurrentBlock() != null){
-				
-				state.setAwaitReroll(false);
-				continueBlock(face);
-				return;
-				
-			}
-			if (state.getCurrentPickUp() != null){
-					
-				state.setAwaitReroll(false);
-				continuePickUp(result);
-				return;
-				
-			}
-			if (state.getCurrentCatch() != null){
-				
-				state.setAwaitReroll(false);
-				continueCatch(result);
-				return;
-				
-			}
-			if (state.getCurrentDodge() != null){
-				
-				state.setAwaitReroll(false);
-				continueDodge(result);
-				return;
-				
-			}	
-			if (state.getCurrentGoingForIt() != null){
-				
-				state.setAwaitReroll(false);
-				continueGoingForIt(result);
-				return;
-				
-			}	
-			
-		}
-		
-	}
-
-	/**
-	 * Rerolls the current dice roll.
-	 */
-	public void reroll(){
-		
-		// Anything to reroll?
-		if (!state.isAwaitingReroll() || 
-				state.getCurrentDiceRoll() == null || 
-				!ableToReroll(getMovingTeam()))
-			return;
-		
-		getMovingTeam().useReroll();
-		
-		for(IDice d : state.getCurrentDiceRoll().getDices()){
-			d.roll();
-		}
-		
-		// Dodge/going/block
-	 	if (state.getCurrentDodge() != null){
-			
-			state.setAwaitReroll(false);
-			continueDodge(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
-			
-		} else if (state.getCurrentGoingForIt() != null){
-			
-			state.setAwaitReroll(false);
-			continueGoingForIt(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
-			
-		} else if (state.getCurrentBlock() != null){
-
-			if (state.getCurrentDiceRoll().getDices().size() == 1){
-				state.setAwaitReroll(false);
-				continueBlock(state.getCurrentDiceRoll().getFaces().get(0));
-			}
-			
-		} else if (state.getCurrentPickUp() != null){
-			
-			state.setAwaitReroll(false);
-			continuePickUp(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
-			
-		} else if (state.getCurrentCatch() != null){
-
-			state.setAwaitReroll(false);
-			continueCatch(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
-			
-		}
-		
-	}
-	
-	/**
-	 * Moves a player to a square. 
-	 * 
-	 * @param player
-	 * @param square
-	 */
-	public void movePlayerIfAllowed(Player player, Square square){
-		
-		if (state.isAwaitingReroll())
-			return;
-		
-		boolean moveAllowed = moveAllowed(player, square);
-		
-		if (!moveAllowed){
-			return;
-		}
-		
-		// Player turn
-		if (player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
-			endTurnForOtherPlayers(playerOwner(player), player);
-		}
-		
-		// Dodge
-		if (isInTackleZone(player) && state.getGameStage() != GameStage.QUICK_SNAP){
-			
-			dodgeToMovePlayer(player, square);
-			
-		} else {
-			
-			// Move
-			movePlayer(player, square);
-			
-		}
-		
-	}
-
-	/**
-	 * Selects an action to the selected player.
-	 * @param action
-	 */
-	public void selectAction(PlayerTurn action){
-		
-		// Only if allowed
-		if (selectedPlayer != null && 
-				playerOwner(selectedPlayer) == getMovingTeam() &&
-				selectedPlayer.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
-			
-			selectedPlayer.getPlayerStatus().setTurn(action);
-			
-		}
-		
-	}
-	
 	private void endTurnForOtherPlayers(Team team, Player player) {
 		
 		for(Player p : team.getPlayers()){
@@ -1083,6 +1085,8 @@ public class GameMaster {
 	}
 	
 	private void rollForFans() {
+		
+		soundManager.playSound(Sound.CHEER);
 		
 		// Fans
 		D6 a = new D6();
@@ -1182,6 +1186,7 @@ public class GameMaster {
 		roll.addDice(d);
 		d.roll();
 		int result = d.getResultAsInt();
+		soundManager.playSound(Sound.DICEROLL);
 		
 		state.setCurrentDiceRoll(roll);
 		
@@ -1213,6 +1218,7 @@ public class GameMaster {
 				d.roll();
 				result = d.getResultAsInt();
 				state.setCurrentDiceRoll(dr);
+				soundManager.playSound(Sound.DICEROLL);
 				
 				if (result == 6 || (result != 1 && result >= success)){
 					
@@ -1522,6 +1528,7 @@ public class GameMaster {
 		d.roll();
 		state.setCurrentDiceRoll(roll);
 		int result = d.getResultAsInt();
+		soundManager.playSound(Sound.DICEROLL);
 		
 		if (result == 6 || 
 				(result != 1 && result >= success)){
@@ -1548,6 +1555,7 @@ public class GameMaster {
 				sd.roll();
 				state.setCurrentDiceRoll(sroll);
 				result = d.getResultAsInt();
+				soundManager.playSound(Sound.DICEROLL);
 				
 				if (result == 6 || 
 						(result != 1 && result >= success)){
@@ -1628,7 +1636,69 @@ public class GameMaster {
 	}
 	
 	private void throwInBall() {
+		
+		Square ballOn = state.getPitch().getBall().getSquare();
+		
+		int x = 0;
+		int y = 0;
+		
+		D3 d = new D3();
+		d.roll();
+		int roll = d.getResultAsInt();
+		
+		if (ballOn.getY() < 1){
+			y = 1;
+		} else if (ballOn.getY() > 16){
+			y = -1;
+		}
+		
+		if (ballOn.getX() < 1){
+			x = 1;
+		} else if (ballOn.getX() > 26){
+			x = -1;
+		}
+		
+		if (x != 0 && y == 0){
+			
+			// Left or right
+			switch(roll){
+			case 1: throwInDirection(x, -1); break;
+			case 2: throwInDirection(x, 0); break;
+			case 3: throwInDirection(x, 1); break;
+			}
+			
+			
+		} else if (x == 0 && y != 0){
+			
+			// Up or Down
+			switch(roll){
+			case 1: throwInDirection(-1, y); break;
+			case 2: throwInDirection(0, y); break;
+			case 3: throwInDirection(1, y); break;
+			}
+			
+		} else if (x != 0 && y != 0){
+			
+			// Diagonal
+			switch(roll){
+			case 1: throwInDirection(x, 0); break;
+			case 2: throwInDirection(x, y); break;
+			case 3: throwInDirection(0, y); break;
+			}
+			
+		}
+		
+		Square sq = state.getPitch().getBall().getSquare();
+		
+		Player player = state.getPitch().getPlayerAt(sq);
+		
+		
+		
+	}
+
+	private void throwInDirection(int x, int y) {
 		// TODO Auto-generated method stub
+		
 	}
 
 	private void scatterKickedBall() {
@@ -1717,6 +1787,7 @@ public class GameMaster {
 		d.roll();
 		state.setCurrentDiceRoll(roll);
 		int result = d.getResultAsInt();
+		soundManager.playSound(Sound.DICEROLL);
 		
 		if (result == 6 || 
 				(result != 1 && result >= success)){
@@ -1743,6 +1814,7 @@ public class GameMaster {
 				sd.roll();
 				state.setCurrentDiceRoll(sroll);
 				result = d.getResultAsInt();
+				soundManager.playSound(Sound.DICEROLL);
 				
 				if (result == 6 || 
 						(result != 1 && d.getResultAsInt() >= success)){
@@ -1922,6 +1994,7 @@ public class GameMaster {
 		roll.addDice(d);
 		d.roll();
 		state.setCurrentDiceRoll(roll);
+		soundManager.playSound(Sound.DICEROLL);
 		
 		if (d.getResultAsInt() > 1){
 			
@@ -2054,7 +2127,7 @@ public class GameMaster {
 	private void endTurn() {
 		
 		// Clear dice roll
-		state.setCurrentDiceRoll(null);
+		//state.setCurrentDiceRoll(null);
 		
 		// Any turns left?
 		if (state.getGameStage() == GameStage.HOME_TURN){
@@ -2127,9 +2200,9 @@ public class GameMaster {
 		
 	}
 
-	
-
 	private void endHalf() {
+		
+		soundManager.playSound(Sound.WHISTLE);
 		
 		if (state.getHalf() == 1){
 			
@@ -2335,6 +2408,8 @@ public class GameMaster {
 	}
 
 	private void knockDown(Player player, boolean armourRoll) {
+		
+		soundManager.playSound(Sound.KNOCKEDDOWN);
 		
 		// Armour roll
 		D6 da = new D6();
@@ -2700,6 +2775,9 @@ public class GameMaster {
 
 	private void rollForKickOff(){
 		
+		soundManager.playSound(Sound.WHISTLE);
+		soundManager.playSound(Sound.CHEER);
+		
 		D6 da = new D6();
 		D6 db = new D6();
 		da.roll(); 
@@ -3052,7 +3130,6 @@ public class GameMaster {
 	public Player getBlockTarget() {
 		return blockTarget;
 	}
-
 
 	public GameState getState() {
 		return state;

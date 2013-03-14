@@ -2,7 +2,6 @@ package models.actions;
 
 import models.Player;
 import models.Square;
-import models.dice.DiceRoll;
 
 public class GoingForIt {
 
