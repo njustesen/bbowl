@@ -1614,7 +1614,7 @@ public class GameMaster {
 		if (player != null){
 			
 			catchBall(false);
-			
+			return;
 		}
 			
 		if (state.getGameStage() == GameStage.KICK_OFF){
@@ -1624,11 +1624,12 @@ public class GameMaster {
 					!state.getPitch().isBallOnTeamSide(state.getReceivingTeam())){
 				
 				state.setGameStage(GameStage.PLACE_BALL_ON_PLAYER);
+				GameLog.push("Ball landed out of bounds. Place ball on a player.");
 				
 			}
 			
-		} else {
-			
+		} else if (!state.getPitch().isBallInsidePitch()){
+
 			throwInBall();
 			
 		}
@@ -1648,7 +1649,7 @@ public class GameMaster {
 		
 		if (ballOn.getY() < 1){
 			y = 1;
-		} else if (ballOn.getY() > 16){
+		} else if (ballOn.getY() > 15){
 			y = -1;
 		}
 		
@@ -1659,6 +1660,9 @@ public class GameMaster {
 		}
 		
 		if (x != 0 && y == 0){
+		
+			// Move ball on square in
+			state.getPitch().getBall().getSquare().setX(ballOn.getX() + x);
 			
 			// Left or right
 			switch(roll){
@@ -1666,9 +1670,11 @@ public class GameMaster {
 			case 2: throwInDirection(x, 0); break;
 			case 3: throwInDirection(x, 1); break;
 			}
-			
-			
+		
 		} else if (x == 0 && y != 0){
+			
+			// Move ball on square in
+			state.getPitch().getBall().getSquare().setY(ballOn.getY() + y);
 			
 			// Up or Down
 			switch(roll){
@@ -1688,16 +1694,59 @@ public class GameMaster {
 			
 		}
 		
+		// Landed on player?
 		Square sq = state.getPitch().getBall().getSquare();
 		
 		Player player = state.getPitch().getPlayerAt(sq);
 		
-		
+		if (player != null){
+			catchBall(false);
+		} else if (!state.getPitch().isBallInsidePitch()){
+			throwInBall();
+		} else {
+			scatterBall();
+		}
 		
 	}
 
 	private void throwInDirection(int x, int y) {
-		// TODO Auto-generated method stub
+		
+		D6 da = new D6();
+		da.roll();
+		D6 db = new D6();
+		db.roll();
+		int distance = da.getResultAsInt() + db.getResultAsInt();
+		
+		while(distance > 0){
+			
+			Square ballOn = state.getPitch().getBall().getSquare();
+			
+			Square newBallOn = new Square(ballOn.getX() + x, ballOn.getY() + y);
+			
+			state.getPitch().getBall().setSquare(newBallOn);
+			
+			if (!state.getPitch().isBallInsidePitch()){
+				correctOOBBallPosition(x, y);
+				break;
+			}
+			
+			distance--;
+			
+		}
+		
+	}
+
+	private void correctOOBBallPosition(int moveX, int moveY) {
+		
+		Square ballOn = state.getPitch().getBall().getSquare();
+		
+		if (ballOn.getX() == 0 || ballOn.getX() == 27){
+			if (ballOn.getY() != 0 && ballOn.getY() != 16){
+				ballOn.setY(ballOn.getY() - moveY);
+			}
+		} else if (ballOn.getY() == 0 || ballOn.getY() == 16){
+			ballOn.setX(ballOn.getX() - moveX);
+		}
 		
 	}
 
