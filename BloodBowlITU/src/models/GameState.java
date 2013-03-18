@@ -3,6 +3,7 @@ import game.GameLog;
 import models.actions.Block;
 import models.actions.Catch;
 import models.actions.Dodge;
+import models.actions.Foul;
 import models.actions.GoingForIt;
 import models.actions.HandOff;
 import models.actions.Pass;
@@ -32,11 +33,12 @@ public class GameState {
 	private PickUp currentPickUp;
 	private Catch currentCatch;
 	private Pass currentPass;
+	private HandOff currentHandOff;
+	private Foul currentFoul;
 	private boolean awaitReroll;
 	private boolean playerPlaced;
 	private boolean awaitPush;
 	private boolean awaitFollowUp;
-	private HandOff currentHandOff;
 	
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
@@ -61,8 +63,9 @@ public class GameState {
 		this.currentPickUp = null;
 		this.currentCatch = null;
 		this.currentPass = null;
-		this.playerPlaced = false;
 		this.currentDiceRoll = null;
+		this.currentFoul = null;
+		this.playerPlaced = false;
 	}
 	
 	public Pitch getPitch() {
@@ -290,6 +293,14 @@ public class GameState {
 
 	public void setCurrentHandOff(HandOff handOff) {
 		this.currentHandOff = handOff;
+	}
+
+	public Foul getCurrentFoul() {
+		return currentFoul;
+	}
+
+	public void setCurrentFoul(Foul currentFoul) {
+		this.currentFoul = currentFoul;
 	}
 	
 }

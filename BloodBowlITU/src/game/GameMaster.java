@@ -43,6 +43,7 @@ public class GameMaster {
 	private Player handOffTarget;
 	//private PlayerAgent homeAgent;
 	//private PlayerAgent awayAgent;
+	private Player foulTarget;
 	
 	
 	public GameMaster(GameState gameState, PlayerAgent homeAgent, PlayerAgent awayAgent) {
@@ -193,6 +194,17 @@ public class GameMaster {
 							state.getCurrentBlock() == null){
 						
 						performBlock(selectedPlayer, player);
+						return;
+						
+					}
+					
+					// Foul?
+					if (onDifferentTeams(selectedPlayer, player) &&
+							player.getPlayerStatus().getStanding() != Standing.UP && 
+							nextToEachOther(selectedPlayer, player) &&
+							state.getCurrentFoul() == null){
+						
+						performFoul(selectedPlayer, player);
 						return;
 						
 					}
@@ -609,10 +621,13 @@ public class GameMaster {
 			handOffTarget = catcher;
 			return;
 		}
+		handOffTarget = null;
 		
 		playerOwner(passer).getTeamStatus().setHasHandedOf(true);
 		
 		state.setCurrentHandOff(new HandOff(passer, catcher));
+		
+		GameLog.push("Ball handed off.");
 		
 		Square newSquare = state.getPitch().getPlayerPosition(catcher);
 		state.getPitch().getBall().setSquare(newSquare);
@@ -642,6 +657,7 @@ public class GameMaster {
 			passTarget = catcher;
 			return;
 		}
+		passTarget = null;
 		
 		playerOwner(passer).getTeamStatus().setHasPassed(true);
 		
@@ -799,6 +815,122 @@ public class GameMaster {
 		return RangeRuler.getPassRange(distance);
 		
 	}
+	
+	private void performFoul(Player fouler, Player target) {
+			
+		if (!onDifferentTeams(fouler, target))
+			return;
+		
+		if (!nextToEachOther(fouler, target))
+			return;
+		
+		if (target.getPlayerStatus().getStanding() == Standing.UP)
+			return;
+		
+		if (state.getCurrentFoul() != null)
+			return;
+			
+		if (foulTarget == null){
+			foulTarget = target;
+			return;
+		}
+		foulTarget = null;
+		
+		if (fouler.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			fouler.getPlayerStatus().setTurn(PlayerTurn.FOUL_ACTION);
+		}
+		
+		DiceRoll roll = new DiceRoll();
+		
+		int foulSum = calculateFoulSum(fouler, target);
+		
+		soundManager.playSound(Sound.KNOCKEDDOWN);
+		
+		// Armour roll
+		D6 da = new D6();
+		D6 db = new D6();
+		da.roll();
+		db.roll();
+		
+		int result = da.getResultAsInt() + db.getResultAsInt() + foulSum;
+		boolean knockedOut = false;
+		boolean deadAndInjured = false;
+		boolean sendOffField = false;
+		
+		if (da.getResultAsInt() == db.getResultAsInt()){
+			sendOffField = true;
+		}
+		
+		if (result > target.getAV()){
+			
+			// Injury roll
+			da.roll();
+			db.roll();
+			
+			if (da.getResultAsInt() == db.getResultAsInt()){
+				sendOffField = true;
+			}
+			
+			result = da.getResultAsInt() + db.getResultAsInt();
+			
+			if (result < 8){
+				
+				// Stunned
+				target.getPlayerStatus().setStanding(Standing.STUNNED);
+				
+				GameLog.push("Foul! Player stunned!");
+				
+			} else if (result < 10){
+				
+				// Knocked out
+				knockedOut = true;
+				GameLog.push("Foul! Player knocked out!");
+				
+			} else {
+				
+				// Dead and injured
+				deadAndInjured = true;
+				GameLog.push("Foul! Player dead or injured!");
+				
+			}
+			
+		}
+		
+		if (knockedOut){
+			
+			target.getPlayerStatus().setStanding(Standing.UP);
+			state.getPitch().removePlayer(target);
+			state.getPitch().getDogout(getPlayerOwner(target)).getKnockedOut().add(target);
+			
+		} else if (deadAndInjured){
+			
+			target.getPlayerStatus().setStanding(Standing.UP);
+			state.getPitch().removePlayer(target);
+			state.getPitch().getDogout(getPlayerOwner(target)).getDeadAndInjured().add(target);
+			
+		}
+		
+		if (sendOffField){
+			
+			GameLog.push("Foul! Player was sent off the field!");
+			
+			// Fumble
+			boolean fumble = false;
+			if (isBallCarried(fouler)){
+				fumble = true;
+			}
+			
+			state.getPitch().removePlayer(target);
+			state.getPitch().getDungeoun().add(fouler);
+			
+			if (fumble){
+				state.getPitch().getBall().setUnderControl(false);
+				scatterBall();
+			}
+			
+		}
+		
+	}
 
 	/**
 	 * Performs a block roll.
@@ -824,14 +956,15 @@ public class GameMaster {
 			blockTarget = defender;
 			return;
 		}
-		
+		blockTarget = null;
+				
 		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			attacker.getPlayerStatus().setTurn(PlayerTurn.BLOCK_ACTION);
 		}
 		
 		DiceRoll roll = new DiceRoll();
 		
-		BlockSum sum = CalculateBlockSum(attacker, blockTarget);
+		BlockSum sum = calculateBlockSum(attacker, defender);
 		
 		Team selectTeam = playerOwner(attacker);
 		
@@ -852,6 +985,8 @@ public class GameMaster {
 			roll.addDice(ba);
 			roll.addDice(bb);
 			
+			GameLog.push("Attacker selects block die.");
+			
 		}  else if(sum == BlockSum.DEFENDER_STRONGER){
 			
 			BB ba = new BB();
@@ -861,7 +996,9 @@ public class GameMaster {
 			roll.addDice(ba);
 			roll.addDice(bb);
 			
-			selectTeam = playerOwner(blockTarget);
+			selectTeam = playerOwner(defender);
+			
+			GameLog.push("Defender selects block die.");
 			
 		} else if(sum == BlockSum.ATTACKER_DOUBLE_STRONG){
 			
@@ -875,6 +1012,8 @@ public class GameMaster {
 			roll.addDice(bb);
 			roll.addDice(bc);
 			
+			GameLog.push("Attacker selects block die.");
+			
 		} else if(sum == BlockSum.DEFENDER_DOUBLE_STRONG){
 			
 			BB ba = new BB();
@@ -887,20 +1026,20 @@ public class GameMaster {
 			roll.addDice(bb);
 			roll.addDice(bc);
 			
+			GameLog.push("Defender selects block die.");
+			
 		}
 		
 		state.setCurrentDiceRoll(roll);
 		
 		// Select or continue
 		if (roll.getDices().size() == 1 && !ableToReroll(selectTeam)){
-			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
+			state.setCurrentBlock(new Block(attacker, defender, selectTeam));
 			continueBlock(roll.getFaces().get(0));
 		} else {
-			state.setCurrentBlock(new Block(attacker, blockTarget, selectTeam));
+			state.setCurrentBlock(new Block(attacker, defender, selectTeam));
 			state.setAwaitReroll(true);
 		}
-		
-		blockTarget = null;
 		
 	}
 	
@@ -2405,17 +2544,23 @@ public class GameMaster {
 
 	private void defenderKnockedDown(Block block) {
 		
+		GameLog.push("Defender knocked down.");
+		
 		defenderPushed(block);
 		
 	}
 
 	private void defenderStumples(Block block) {
 		
+		GameLog.push("Defender stumples.");
+		
 		defenderPushed(block);
 		
 	}
 
 	private void bothDown(Block block) {
+		
+		GameLog.push("Both down.");
 		
 		if (!block.getDefender().getSkills().contains(Skill.BLOCK)){
 			knockDown(block.getDefender(), true);
@@ -2438,6 +2583,8 @@ public class GameMaster {
 	}
 
 	private void defenderPushed(Block block) {
+		
+		GameLog.push("Defender pushed.");
 		
 		Square from = state.getPitch().getPlayerPosition(block.getAttacker());
 		Square to = state.getPitch().getPlayerPosition(block.getDefender());
@@ -2476,6 +2623,8 @@ public class GameMaster {
 	}
 
 	private void attackerDown(Block block) {
+		
+		GameLog.push("Attacker down.");
 		
 		state.setCurrentBlock(null);
 		
@@ -2788,6 +2937,8 @@ public class GameMaster {
 		int result = da.getResultAsInt() + db.getResultAsInt();
 		boolean knockedOut = false;
 		boolean deadAndInjured = false;
+		if (armourRoll)
+			GameLog.push("Armour: " + result + " (AV: " + player.getAV() + ")");
 		
 		if (result > player.getAV() || !armourRoll){
 			
@@ -2797,10 +2948,13 @@ public class GameMaster {
 			
 			result = da.getResultAsInt() + db.getResultAsInt();
 			
+			GameLog.push("Injury roll: " + result);
+			
 			if (result < 8){
 				
 				// Stunned
 				player.getPlayerStatus().setStanding(Standing.STUNNED);
+				GameLog.push("Player stunned.");
 				
 				// Fumble
 				if (isBallCarried(player)){
@@ -2811,12 +2965,14 @@ public class GameMaster {
 			} else if (result < 10){
 				
 				// Knocked out
+				GameLog.push("Player knocked out.");
 				knockedOut = true;
 				
 				
 			} else {
 				
 				// Dead and injured
+				GameLog.push("Player dead or injured.");
 				deadAndInjured = true;
 				
 			}
@@ -2861,10 +3017,17 @@ public class GameMaster {
 			
 		}
 		
+	}
+	
+	private int calculateFoulSum(Player fouler, Player target) {
 		
+		int attAss = assists(fouler, target);
+		int defAss = assists(target, fouler);
+		
+		return attAss - defAss;
 	}
 
-	private BlockSum CalculateBlockSum(Player attacker, Player defender) {
+	private BlockSum calculateBlockSum(Player attacker, Player defender) {
 		
 		int attStr = attacker.getST();
 		int defStr = defender.getST();

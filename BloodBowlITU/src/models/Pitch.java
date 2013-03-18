@@ -1,5 +1,7 @@
 package models;
 
+import java.util.ArrayList;
+
 import game.GameLog;
 import view.InputManager;
 
@@ -11,6 +13,7 @@ public class Pitch {
 	private Team homeTeam;
 	private Team awayTeam;
 	private InputManager inputManager;
+	private ArrayList<Player> dungeon;
 	
 	public Pitch(Team home, Team away){
 		homeDogout = new Dugout(home);
@@ -18,6 +21,7 @@ public class Pitch {
 		this.homeTeam = home;
 		this.awayTeam = away;
 		ball = new Ball();
+		this.dungeon = new ArrayList<Player>();
 	}
 
 	public boolean isSetupLegal(Team team, int half) {
@@ -547,6 +551,10 @@ public class Pitch {
 
 	public Player getPlayerAt(Square sq) {
 		return playerArr[sq.getY()][sq.getX()];
+	}
+
+	public ArrayList<Player> getDungeoun() {
+		return dungeon;
 	}
 	
 }
