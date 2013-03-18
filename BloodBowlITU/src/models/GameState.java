@@ -4,6 +4,7 @@ import models.actions.Block;
 import models.actions.Catch;
 import models.actions.Dodge;
 import models.actions.GoingForIt;
+import models.actions.Pass;
 import models.actions.PickUp;
 import models.dice.DiceRoll;
 
@@ -27,12 +28,14 @@ public class GameState {
 	private Block currentBlock;
 	private Dodge currentDodge;
 	private GoingForIt currentGoingForIt;
-	private boolean awaitReroll;
 	private PickUp currentPickUp;
 	private Catch currentCatch;
+	private Pass currentPass;
+	private boolean awaitReroll;
 	private boolean playerPlaced;
 	private boolean awaitPush;
 	private boolean awaitFollowUp;
+	
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
 		super();
@@ -55,6 +58,7 @@ public class GameState {
 		this.currentGoingForIt = null;
 		this.currentPickUp = null;
 		this.currentCatch = null;
+		this.currentPass = null;
 		this.playerPlaced = false;
 		this.currentDiceRoll = null;
 	}
@@ -268,6 +272,14 @@ public class GameState {
 
 	public boolean isAwaitingFollowUp() {
 		return awaitFollowUp;
+	}
+
+	public Pass getCurrentPass() {
+		return currentPass;
+	}
+
+	public void setCurrentPass(Pass currentPass) {
+		this.currentPass = currentPass;
 	}
 	
 }
