@@ -1,13 +1,15 @@
 package models;
 
 public class TeamStatus {
-	int score;
-	int rerolls;
-	boolean rerolledThisTurn;
-	int fans;
-	int FAME;
-	int babes;
+	private int score;
+	private int rerolls;
+	private boolean rerolledThisTurn;
+	private int fans;
+	private int FAME;
+	private int babes;
 	private boolean hasBlitzed;
+	private boolean hasFouled;
+	private boolean hasPassed;
 	
 	public TeamStatus(int rerolls) {
 		super();
@@ -17,6 +19,9 @@ public class TeamStatus {
 		this.babes = 0;
 		this.fans = 0;
 		this.FAME = 0;
+		this.hasBlitzed = false;
+		this.hasFouled = false;
+		this.hasPassed = false;
 	}
 	
 	public TeamStatus(int score, int rerolls, int babes) {
@@ -27,10 +32,16 @@ public class TeamStatus {
 		this.rerolledThisTurn = false;
 		this.fans = 0;
 		this.FAME = 0;
+		this.hasBlitzed = false;
+		this.hasFouled = false;
+		this.hasPassed = false;
 	}
 	
 	public void reset() {
 		this.rerolledThisTurn = false;
+		this.hasBlitzed = false;
+		this.hasFouled = false;
+		this.hasPassed = false;
 	}
 
 	public int getScore() {
@@ -101,5 +112,23 @@ public class TeamStatus {
 		score++;
 		
 	}
+
+	public boolean hasFouled() {
+		return hasFouled;
+	}
+	
+	public void setHasFouled(boolean b){
+		hasFouled = b;
+	}
+
+	public boolean hasPassed() {
+		return hasPassed;
+	}
+
+	public void setHasPassed(boolean hasPassed) {
+		this.hasPassed = hasPassed;
+	}
+	
+	
 	
 }

@@ -814,6 +814,32 @@ public class GameMaster {
 				playerOwner(selectedPlayer) == getMovingTeam() &&
 				selectedPlayer.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			
+			if (action == PlayerTurn.USED || 
+					action == PlayerTurn.UNUSED || 
+					selectedPlayer.getPlayerStatus().getStanding() == Standing.STUNNED){
+				return;
+			}
+			
+			if (action == PlayerTurn.BLITZ_ACTION && 
+					playerOwner(selectedPlayer).getTeamStatus().hasBlitzed()){
+				return;
+			}
+			
+			if (action == PlayerTurn.FOUL_ACTION && 
+					playerOwner(selectedPlayer).getTeamStatus().hasFouled()){
+				return;
+			}
+			
+			if (action == PlayerTurn.PASS_ACTION && 
+					playerOwner(selectedPlayer).getTeamStatus().hasPassed()){
+				return;
+			}
+			
+			if (action == PlayerTurn.HAND_OFF_ACTION && 
+					playerOwner(selectedPlayer).getTeamStatus().hasPassed()){
+				return;
+			}
+			
 			selectedPlayer.getPlayerStatus().setTurn(action);
 			
 		}
@@ -1613,7 +1639,11 @@ public class GameMaster {
 		// Land on player
 		if (player != null){
 			
-			catchBall(false);
+			if (player.getPlayerStatus().getStanding() == Standing.UP)
+				catchBall(false);
+			else
+				scatterBall();
+			
 			return;
 		}
 			
@@ -1805,7 +1835,10 @@ public class GameMaster {
 		
 		if (player != null){
 			
-			catchBall(false);
+			if (player.getPlayerStatus().getStanding() == Standing.UP)
+				catchBall(false);
+			else
+				scatterBall();
 			
 		} else {
 			
@@ -2278,8 +2311,6 @@ public class GameMaster {
 		state.setHomeTurn(0);
 		state.setAwayTurn(0);
 		
-		setupUpForKickOff();
-		
 		// Who kicks?
 		if ( state.getCoinToss().isHomeReceives() ){
 			
@@ -2292,6 +2323,8 @@ public class GameMaster {
 			state.setReceivingTeam(state.getAwayTeam());
 			
 		}
+		
+		setupUpForKickOff();
 		
 	}
 
