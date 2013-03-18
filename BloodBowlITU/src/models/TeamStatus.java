@@ -10,6 +10,7 @@ public class TeamStatus {
 	private boolean hasBlitzed;
 	private boolean hasFouled;
 	private boolean hasPassed;
+	private boolean hasHandedOf;
 	
 	public TeamStatus(int rerolls) {
 		super();
@@ -22,6 +23,7 @@ public class TeamStatus {
 		this.hasBlitzed = false;
 		this.hasFouled = false;
 		this.hasPassed = false;
+		this.hasHandedOf = false;
 	}
 	
 	public TeamStatus(int score, int rerolls, int babes) {
@@ -35,6 +37,7 @@ public class TeamStatus {
 		this.hasBlitzed = false;
 		this.hasFouled = false;
 		this.hasPassed = false;
+		this.hasHandedOf = false;
 	}
 	
 	public void reset() {
@@ -42,6 +45,7 @@ public class TeamStatus {
 		this.hasBlitzed = false;
 		this.hasFouled = false;
 		this.hasPassed = false;
+		this.hasHandedOf = false;
 	}
 
 	public int getScore() {
@@ -128,7 +132,13 @@ public class TeamStatus {
 	public void setHasPassed(boolean hasPassed) {
 		this.hasPassed = hasPassed;
 	}
-	
-	
+
+	public boolean hasHandedOf() {
+		return hasHandedOf;
+	}
+
+	public void setHasHandedOf(boolean hasHandedOf) {
+		this.hasHandedOf = hasHandedOf;
+	}
 	
 }

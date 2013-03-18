@@ -20,6 +20,7 @@ import models.actions.Block;
 import models.actions.Catch;
 import models.actions.Dodge;
 import models.actions.GoingForIt;
+import models.actions.HandOff;
 import models.actions.Pass;
 import models.actions.PickUp;
 import models.actions.Push;
@@ -39,6 +40,7 @@ public class GameMaster {
 	private Player blockTarget;
 	private SoundManager soundManager;
 	private Player passTarget;
+	private Player handOffTarget;
 	//private PlayerAgent homeAgent;
 	//private PlayerAgent awayAgent;
 	
@@ -198,9 +200,21 @@ public class GameMaster {
 					// Pass?
 					if (player.getPlayerStatus().getTurn() == PlayerTurn.PASS_ACTION && 
 							!onDifferentTeams(selectedPlayer, player) &&
+							isBallCarried(selectedPlayer) && 
 							player.getPlayerStatus().getStanding() == Standing.UP){
 						
 						performPass(selectedPlayer, player);
+						return;
+					}
+					
+					// HandOff?
+					if (player.getPlayerStatus().getTurn() == PlayerTurn.HAND_OFF_ACTION && 
+							!onDifferentTeams(selectedPlayer, player) && 
+							isBallCarried(selectedPlayer) && 
+							nextToEachOther(selectedPlayer, player) && 
+							player.getPlayerStatus().getStanding() == Standing.UP){
+						
+						performHandOff(selectedPlayer, player);
 						return;
 					}
 					
@@ -220,8 +234,6 @@ public class GameMaster {
 		
 	}
 	
-	
-
 	/**
 	 * An empty square on the pitch was clicked.
 	 * @param x
@@ -576,6 +588,39 @@ public class GameMaster {
 		
 	}
 	
+	public void performHandOff(Player passer, Player catcher) {
+		
+		if (passer.getPlayerStatus().getTurn() != PlayerTurn.HAND_OFF_ACTION)
+			return;
+			
+		if (onDifferentTeams(passer, catcher))
+			return;
+		
+		if (state.getCurrentHandOff() != null)
+			return;
+		
+		if (!isBallCarried(passer))
+			return;
+		
+		if (!nextToEachOther(passer, catcher))
+			return;
+			
+		if (handOffTarget == null){
+			handOffTarget = catcher;
+			return;
+		}
+		
+		playerOwner(passer).getTeamStatus().setHasHandedOf(true);
+		
+		state.setCurrentHandOff(new HandOff(passer, catcher));
+		
+		Square newSquare = state.getPitch().getPlayerPosition(catcher);
+		state.getPitch().getBall().setSquare(newSquare);
+		passer.getPlayerStatus().setTurn(PlayerTurn.USED);
+		catchBall();
+		state.setCurrentHandOff(null);
+	}
+	
 	public void performPass(Player passer, Player catcher) {
 
 		if (passer.getPlayerStatus().getTurn() != PlayerTurn.PASS_ACTION)
@@ -585,6 +630,9 @@ public class GameMaster {
 			return;
 		
 		if (state.getCurrentPass() != null)
+			return;
+		
+		if (!isBallCarried(passer))
 			return;
 		
 		if (passingRange(passer, catcher) == PassRange.OUT_OF_RANGE)
@@ -1046,7 +1094,7 @@ public class GameMaster {
 			}
 			
 			if (action == PlayerTurn.HAND_OFF_ACTION && 
-					playerOwner(selectedPlayer).getTeamStatus().hasPassed()){
+					playerOwner(selectedPlayer).getTeamStatus().hasHandedOf()){
 				return;
 			}
 			
@@ -2080,6 +2128,8 @@ public class GameMaster {
 		int success = 6 - player.getAG() + zones + 1;
 		if (state.getCurrentPass() != null && state.getCurrentPass().isAccurate()){
 			success -= 1;
+		} else if (state.getCurrentHandOff() != null){
+			success -= 1;
 		}
 		success = Math.max( 1, Math.min(6, success) );
 		
@@ -2148,9 +2198,10 @@ public class GameMaster {
 			
 			// FAIL
 			boolean endTurn = false;
-			if (state.getCurrentPass() != null){
+			if (state.getCurrentPass() != null || state.getCurrentHandOff() != null){
 				endTurn = true;
 				state.setCurrentPass(null);
+				state.setCurrentHandOff(null);
 			}
 			
 			scatterBall();
@@ -2437,7 +2488,13 @@ public class GameMaster {
 	private void endTurn() {
 		
 		// Clear dice roll
-		//state.setCurrentDiceRoll(null);
+		state.setCurrentBlock(null);
+		state.setCurrentDodge(null);
+		state.setCurrentPickUp(null);
+		state.setCurrentPass(null);
+		state.setCurrentCatch(null);
+		state.setCurrentHandOff(null);
+		state.setCurrentGoingForIt(null);
 		
 		// Any turns left?
 		if (state.getGameStage() == GameStage.HOME_TURN){

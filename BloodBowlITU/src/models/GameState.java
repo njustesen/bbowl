@@ -4,6 +4,7 @@ import models.actions.Block;
 import models.actions.Catch;
 import models.actions.Dodge;
 import models.actions.GoingForIt;
+import models.actions.HandOff;
 import models.actions.Pass;
 import models.actions.PickUp;
 import models.dice.DiceRoll;
@@ -35,6 +36,7 @@ public class GameState {
 	private boolean playerPlaced;
 	private boolean awaitPush;
 	private boolean awaitFollowUp;
+	private HandOff currentHandOff;
 	
 	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
@@ -280,6 +282,14 @@ public class GameState {
 
 	public void setCurrentPass(Pass currentPass) {
 		this.currentPass = currentPass;
+	}
+
+	public HandOff getCurrentHandOff() {
+		return currentHandOff;
+	}
+
+	public void setCurrentHandOff(HandOff handOff) {
+		this.currentHandOff = handOff;
 	}
 	
 }
