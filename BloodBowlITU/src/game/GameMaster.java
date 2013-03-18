@@ -336,7 +336,11 @@ public class GameMaster {
 			
 		} else if (selectedPlayer != state.getPitch().getAwayDogout().getReserves().get(reserve)){
 			
-			selectedPlayer = state.getPitch().getAwayDogout().getReserves().get(reserve);
+			Player clicked = state.getPitch().getAwayDogout().getReserves().get(reserve);
+			
+			if (clicked.getPlayerStatus().getStanding() == Standing.UP){
+				selectedPlayer = clicked;
+			}
 		
 		} else {
 			
@@ -368,8 +372,12 @@ public class GameMaster {
 			
 		} else if (selectedPlayer != state.getPitch().getHomeDogout().getReserves().get(reserve)){
 			
-			selectedPlayer = state.getPitch().getHomeDogout().getReserves().get(reserve);
-		
+			Player clicked = state.getPitch().getHomeDogout().getReserves().get(reserve);
+			
+			if (clicked.getPlayerStatus().getStanding() == Standing.UP){
+				selectedPlayer = clicked;
+			}
+			
 		}  else {
 			
 			selectedPlayer = null;
@@ -800,6 +808,9 @@ public class GameMaster {
 		int zones = numberOfTackleZones(passer, state.getPitch().getPlayerPosition(passer));
 		int success = 6 - passer.getAG() + zones;
 		success += passingRange.getModifier();
+		if (state.getWeather() == Weather.VERY_SUNNY){
+			success++;
+		}
 		return Math.max( 1, Math.min(6, success) );
 		
 	}
@@ -811,8 +822,14 @@ public class GameMaster {
 		int x = (a.getX() - b.getX()) * (a.getX() - b.getX());
 		int y = (a.getY() - b.getY()) * (a.getY() - b.getY());
 		int distance = (int) Math.sqrt(x + y);
+		PassRange range = RangeRuler.getPassRange(distance);
+		if (state.getWeather() == Weather.BLIZZARD){
+			if (range == PassRange.LONG_BOMB || range == PassRange.LONG_PASS){
+				return PassRange.OUT_OF_RANGE;
+			}
+		}
 		
-		return RangeRuler.getPassRange(distance);
+		return range;
 		
 	}
 	
@@ -1141,7 +1158,7 @@ public class GameMaster {
 		} else if (state.getCurrentGoingForIt() != null){
 			
 			state.setAwaitReroll(false);
-			continueGoingForIt(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
+			continueGoingForIt(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt(), state.getCurrentGoingForIt().getSuccess());
 			
 		} else if (state.getCurrentBlock() != null){
 
@@ -1555,15 +1572,15 @@ public class GameMaster {
 		
 	}
 	
-	private void continueGoingForIt(int result) {
+	private void continueGoingForIt(int result, int success) {
 		
 		Player player = state.getCurrentGoingForIt().getPlayer();
 		Square square = state.getCurrentGoingForIt().getSquare();
 		state.setCurrentGoingForIt(null);
 		
-		if (result > 1){
+		if (result > success){
 			
-			GameLog.push("Succeeded going for it! Result: " + result + " (" + 2 + " was needed).");
+			GameLog.push("Succeeded going for it! Result: " + result + " (" + success + " was needed).");
 			
 			// Dodge or move
 			if (isInTackleZone(player) && 
@@ -1580,7 +1597,7 @@ public class GameMaster {
 			
 		} else {
 			
-			GameLog.push("Failed going for it! Result: " + result + " (" + 2 + " was needed).");
+			GameLog.push("Failed going for it! Result: " + result + " (" + success + " was needed).");
 			movePlayer(player, square);
 			knockDown(player, true);
 			endTurn();
@@ -1951,6 +1968,9 @@ public class GameMaster {
 		int zones = numberOfTackleZones(player, square);
 		int success = 6 - player.getAG() + zones;
 		success = Math.max( 1, Math.min(6, success) );
+		if (state.getWeather() == Weather.POURING_RAIN){
+			success++;
+		}
 		
 		// Roll
 		DiceRoll roll = new DiceRoll();
@@ -2270,6 +2290,9 @@ public class GameMaster {
 		} else if (state.getCurrentHandOff() != null){
 			success -= 1;
 		}
+		if (state.getWeather() == Weather.POURING_RAIN){
+			success++;
+		}
 		success = Math.max( 1, Math.min(6, success) );
 		
 		// Roll
@@ -2495,10 +2518,14 @@ public class GameMaster {
 		d.roll();
 		state.setCurrentDiceRoll(roll);
 		soundManager.playSound(Sound.DICEROLL);
+		int success = 1;
+		if (state.getWeather() == Weather.BLIZZARD){
+			success++;
+		}
 		
-		if (d.getResultAsInt() > 1){
+		if (d.getResultAsInt() > success){
 			
-			GameLog.push("Succeded going for it! Result: " + d.getResultAsInt() + " (" + 2 + " was needed).");
+			GameLog.push("Succeded going for it! Result: " + d.getResultAsInt() + " (" + success + " was needed).");
 			
 			if (isInTackleZone(player))
 				dodgeToMovePlayer(player, square);
@@ -2507,10 +2534,10 @@ public class GameMaster {
 			
 		} else {
 			
-			GameLog.push("Failed going for it! Result: " + d.getResultAsInt() + " (" + 2 + " was needed).");
+			GameLog.push("Failed going for it! Result: " + d.getResultAsInt() + " (" + success + " was needed).");
 			
 			if (ableToReroll(playerOwner(player))){
-				state.setCurrentGoingForIt(new GoingForIt(player, square));
+				state.setCurrentGoingForIt(new GoingForIt(player, square, success));
 				state.setAwaitReroll(true);
 			} else {
 				movePlayer(player, square);
@@ -2764,6 +2791,32 @@ public class GameMaster {
 
 	private void setupUpForKickOff() {
 		
+		ArrayList<Player> collapsedPlayers = new ArrayList<Player>();
+		
+		if (state.getWeather() == Weather.SWELTERING_HEAT){
+			
+			for (Player p : state.getAwayTeam().getPlayers()){
+				if (state.getPitch().isOnPitch(p)){
+					D6 d = new D6();
+					d.roll();
+					if (d.getResultAsInt() == 1){
+						collapsedPlayers.add(p);
+					}
+				}
+			}
+			
+			for (Player p : state.getHomeTeam().getPlayers()){
+				if (state.getPitch().isOnPitch(p)){
+					D6 d = new D6();
+					d.roll();
+					if (d.getResultAsInt() == 1){
+						collapsedPlayers.add(p);
+					}
+				}
+			}
+			
+		}
+		
 		clearField();
 		fixStunnedPlayers(state.getHomeTeam());
 		resetStatii(state.getAwayTeam(), true);
@@ -2773,6 +2826,10 @@ public class GameMaster {
 		
 		state.getPitch().getBall().setOnGround(false);
 		state.getPitch().getBall().setSquare(null);
+		
+		for (Player p : collapsedPlayers){
+			p.getPlayerStatus().setStanding(Standing.DOWN);
+		}
 		
 		state.setGameStage(GameStage.KICKING_SETUP);
 		
@@ -2938,7 +2995,7 @@ public class GameMaster {
 		boolean knockedOut = false;
 		boolean deadAndInjured = false;
 		if (armourRoll)
-			GameLog.push("Armour: " + result + " (AV: " + player.getAV() + ")");
+			GameLog.push("Armour roll: " + result + " (AV: " + player.getAV() + ")");
 		
 		if (result > player.getAV() || !armourRoll){
 			
@@ -3654,6 +3711,9 @@ public class GameMaster {
 			case 11: state.setWeather(Weather.POURING_RAIN); break;
 			case 12: state.setWeather(Weather.BLIZZARD); break;
 		}
+		// DEBUG:
+		//state.setWeather(Weather.BLIZZARD);
+		
 	}
 
 	public Player getSelectedPlayer() {

@@ -7,11 +7,13 @@ public class GoingForIt {
 
 	private Player player;
 	private Square square;
+	private int success;
 
-	public GoingForIt(Player player, Square square) {
+	public GoingForIt(Player player, Square square, int success) {
 		
 		this.player = player;
 		this.square = square;
+		this.success = success;
 		
 	}
 
@@ -30,4 +32,13 @@ public class GoingForIt {
 	public void setSquare(Square square) {
 		this.square = square;
 	}
+
+	public int getSuccess() {
+		return success;
+	}
+
+	public void setSuccess(int success) {
+		this.success = success;
+	}
+	
 }
