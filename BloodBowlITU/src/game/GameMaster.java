@@ -220,7 +220,7 @@ public class GameMaster {
 					}
 					
 					// Pass?
-					if (player.getPlayerStatus().getTurn() == PlayerTurn.PASS_ACTION && 
+					if (selectedPlayer.getPlayerStatus().getTurn() == PlayerTurn.PASS_ACTION && 
 							!onDifferentTeams(selectedPlayer, player) &&
 							isBallCarried(selectedPlayer) && 
 							player.getPlayerStatus().getStanding() == Standing.UP){
@@ -230,7 +230,7 @@ public class GameMaster {
 					}
 					
 					// HandOff?
-					if (player.getPlayerStatus().getTurn() == PlayerTurn.HAND_OFF_ACTION && 
+					if (selectedPlayer.getPlayerStatus().getTurn() == PlayerTurn.HAND_OFF_ACTION && 
 							!onDifferentTeams(selectedPlayer, player) && 
 							isBallCarried(selectedPlayer) && 
 							nextToEachOther(selectedPlayer, player) && 
@@ -1270,6 +1270,7 @@ public class GameMaster {
 		// Player turn
 		if (player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			endTurnForOtherPlayers(playerOwner(player), player);
+			player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
 		}
 		
 		// Dodge
@@ -2482,8 +2483,6 @@ public class GameMaster {
 
 		// Move player
 		placePlayerAt(player, square);
-
-		player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
 
 	}
 
