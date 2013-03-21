@@ -3468,9 +3468,8 @@ public class GameMaster {
 		
 		// DEBUGGING
 		//blitz();
-		throwARock();
+		//throwARock();
 		
-		/*
 		switch(roll){
 			case 2: getTheRef(); break;
 			case 3: riot(); break;
@@ -3484,7 +3483,7 @@ public class GameMaster {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
-		*/
+		
 	}
 
 	/**
