@@ -1510,6 +1510,7 @@ public class GameMaster {
 	private void performPush(Square to) {
 		
 		boolean scatterBall = false;
+		boolean throwIn = false;
 		
 		while(state.getCurrentBlock().getCurrentPush() != null){
 			
@@ -1531,6 +1532,7 @@ public class GameMaster {
 			removePlayerFromCurrentSquare(player);
 			placePlayerAt(player, to);
 			
+			// Scatter ball?
 			if (state.getPitch().getBall().getSquare().getX() == to.getX() && 
 					state.getPitch().getBall().getSquare().getY() == to.getY() && 
 					!state.getPitch().getBall().isUnderControl() && 
@@ -1540,10 +1542,30 @@ public class GameMaster {
 				
 			}
 			
-			to = state.getCurrentBlock().getCurrentPush().getTo();
+			// Out of bounds?
+			if (!state.getPitch().isOnPitch(to)){
+				
+				if (isBallCarried(player)){
+					state.getPitch().getBall().setUnderControl(false);
+					throwIn = true;
+				}
+				
+				knockDown(player, false);
+				
+				if (player.getPlayerStatus().getStanding() == Standing.STUNNED){
+					removePlayerFromCurrentSquare(player);
+					movePlayerToReserves(player, (playerOwner(player) == state.getHomeTeam()));
+				}
+				
+			}
 			
 			state.getCurrentBlock().removeCurrentPush();
 			
+		}
+		
+		if (throwIn){
+			throwInBall();
+			return;
 		}
 		
 		if (scatterBall){
