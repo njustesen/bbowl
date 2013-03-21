@@ -1473,6 +1473,7 @@ public class GameMaster {
 			
 			state.getCurrentBlock().getAttacker().getPlayerStatus().setTurn(PlayerTurn.USED);
 			
+			
 			// Remove selection
 			selectedPlayer = null;
 			

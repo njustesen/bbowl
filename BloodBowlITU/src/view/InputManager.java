@@ -10,6 +10,7 @@ import java.awt.event.MouseMotionListener;
 
 import models.GameStage;
 import models.Player;
+import models.PlayerTurn;
 import models.Square;
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
@@ -94,6 +95,25 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 		
 	}
 
+	public void actionButtonClicked(int x, int y){
+		for(int i = 0; i < 6; i++){
+			if(x > i*actionButtonWidth && x < (actionButtonWidth * i)+actionButtonWidth &&
+					y > 517 && y < 517+actionButtonHeight){	
+					int n = i+1;
+					System.out.println("ActionButton "+n+" pressed");
+					switch(n){
+						case 1: gameMaster.selectAction(PlayerTurn.MOVE_ACTION); break;
+						case 2: gameMaster.selectAction(PlayerTurn.BLOCK_ACTION); break;
+						case 3: gameMaster.selectAction(PlayerTurn.BLITZ_ACTION); break;
+						case 4: gameMaster.selectAction(PlayerTurn.FOUL_ACTION); break;
+						case 5: gameMaster.selectAction(PlayerTurn.PASS_ACTION); break;
+						case 6: gameMaster.selectAction(PlayerTurn.HAND_OFF_ACTION); break;
+					}
+					
+			}
+		}
+	}
+	
 	@Override
 	public void mousePressed(MouseEvent e) {
 		int button = e.getButton();
