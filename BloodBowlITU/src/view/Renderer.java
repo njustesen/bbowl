@@ -33,6 +33,8 @@ import models.Square;
 import models.Standing;
 import models.Team;
 import models.Weather;
+import models.actions.Block;
+import models.actions.Push;
 import models.dice.DiceFace;
 import models.dice.DiceRoll;
 import models.humans.HumanBlitzer;
@@ -110,6 +112,7 @@ public class Renderer extends JPanel{
 	private BBImage background = new BBImage("interface.jpg");	
 	//animations
 	private BBAnimation greenTile = new BBAnimation("greenTile", true, 10);
+	private BBAnimation whiteTile = new BBAnimation("whiteTile", true, 10);
 	private BBAnimation selectedPlayer = new BBAnimation("selectedTile", true, 20);
 	private BBAnimation roll = new BBAnimation("roll", true, 30);	
 	//orcs
@@ -166,6 +169,7 @@ public class Renderer extends JPanel{
 		pitchOrigin = InputManager.getPitchOrigin();
 		pitchSquareSize = InputManager.getPitchSquareSize();
 		greenTile.loopAnimation();
+		whiteTile.loopAnimation();
 		roll.loopAnimation();
 		selectedPlayer.loopAnimation();
 	}
@@ -197,7 +201,7 @@ public class Renderer extends JPanel{
 				inputManager.getMouseY() > pitchOrigin.getY() && inputManager.getMouseY() < 15*pitchSquareSize + pitchOrigin.getY()){
 			 
 		//	 System.out.println("playerArray ["+inputManager.mouseOverPlayerArrIndex().getX()+"]["+inputManager.mouseOverPlayerArrIndex().getY()+"]");
-			
+			System.out.println("hover  x = "+x+" y = "+y);
 			if(!inactivePitch.contains(gameMaster.getState().getGameStage())){
 				g.drawImage(greenTile.getBufferedImage(),inputManager.mouseOverArray().getX(),inputManager.mouseOverArray().getY(), null);
 			}
@@ -390,7 +394,29 @@ public class Renderer extends JPanel{
 		g.setColor(Color.WHITE);
 	}
 	
+	public void drawPushSquares(Graphics g){
+		Block b = gameMaster.getState().getCurrentBlock();
+		if(gameMaster.getState().getCurrentBlock() != null){
+			Push p = b.getPush();
+			if(b.getPush() != null){
+				while(p.getFollowingPush() != null){
+					p = p.getFollowingPush();
+				}
+				for(Square s: p.getPushSquares()){
+					g.drawImage(whiteTile.getBufferedImage(),inputManager.arrayToScreen(s.getX(), s.getY()).getX(),inputManager.arrayToScreen(s.getX(), s.getY()).getY(), null);
+				}
+			}
+		}
+	}
 	
+	public void drawFollowUpSquares(Graphics g){
+		if (gameMaster.getState().isAwaitingFollowUp() && gameMaster.getState().getCurrentBlock() != null){
+				Square notFollow = gameMaster.getState().getPitch().getPlayerPosition(gameMaster.getState().getCurrentBlock().getAttacker());
+				Square followUp = gameMaster.getState().getCurrentBlock().getFollowUpSquare();
+				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getX(),inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getY(),null);
+				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getX(),inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getY(),null);
+			}
+	}
 
 	public void drawDice(Graphics g, int diceOne, int diceTwo, String type){
 		if(type == "D6"){
@@ -527,7 +553,7 @@ public class Renderer extends JPanel{
 			
 			int index = gameMaster.getState().getPitch().getHomeDogout().getDeadAndInjured().indexOf(p);
 			
-			drawPlayer(g, p, index%2 + 1 + -1, index/2 + 12);
+			drawPlayer(g, p, index%2 + 1 + -1, index/2 + 13);
 			
 		}
 		
@@ -553,7 +579,7 @@ public class Renderer extends JPanel{
 					
 					int index = gameMaster.getState().getPitch().getAwayDogout().getDeadAndInjured().indexOf(p);
 					
-					drawPlayer(g, p, index%2 + 1 + 26, index/2 + 12);
+					drawPlayer(g, p, index%2 + 1 + 26, index/2 + 13);
 					
 				}
 	}
@@ -673,6 +699,8 @@ public class Renderer extends JPanel{
 		g.drawImage(background.getImage(), 0, 0, null);
 		
 		hoverSquare(g, inputManager.getMouseX(), inputManager.getMouseY());
+		drawPushSquares(g);
+		drawFollowUpSquares(g);
 		
 		drawPlayers(g);
 		drawBall(g);
