@@ -209,6 +209,16 @@ public class GameMaster {
 						
 					}
 					
+					// Interception?
+					if (state.getCurrentPass() != null &&
+							state.getCurrentPass().isAwaitingInterception() &&
+							state.getCurrentPass().getInterceptionPlayers().contains(player)){
+						
+						continueInterception(player);
+						
+						return;
+					}
+					
 					// Pass?
 					if (player.getPlayerStatus().getTurn() == PlayerTurn.PASS_ACTION && 
 							!onDifferentTeams(selectedPlayer, player) &&
@@ -245,7 +255,7 @@ public class GameMaster {
 		}
 		
 	}
-	
+
 	/**
 	 * An empty square on the pitch was clicked.
 	 * @param x
@@ -665,18 +675,72 @@ public class GameMaster {
 			passTarget = catcher;
 			return;
 		}
+		
 		passTarget = null;
 		
 		playerOwner(passer).getTeamStatus().setHasPassed(true);
+		int success = getPassSuccessRoll(passer, passingRange(passer, catcher));
+		state.setCurrentPass(new Pass(passer, catcher, success));
+		
+		ArrayList<Player> interceptionPlayers = state.getPitch().interceptionPlayers(state.getCurrentPass());
+		
+		if (interceptionPlayers.size() != 0){
+			state.getCurrentPass().setAwaitingInterception(true);
+			state.getCurrentPass().setInterceptionPlayers(interceptionPlayers);
+			return;
+		}
 		
 		DiceRoll roll = new DiceRoll();
 		D6 d = new D6();
 		d.roll();
 		roll.addDice(d);
 		state.setCurrentDiceRoll(roll);
-		int success = getPassSuccessRoll(passer, passingRange(passer, catcher));
 		int result = d.getResultAsInt();
-		state.setCurrentPass(new Pass(passer, catcher, success));
+		continuePass(result);
+		
+	}
+	
+	private void continueInterception(Player player) {
+		
+		DiceRoll roll = new DiceRoll();
+		D6 d = new D6();
+		d.roll();
+		roll.addDice(d);
+		state.setCurrentDiceRoll(roll);
+		int result = d.getResultAsInt();
+		
+		int zones = numberOfTackleZones(player, state.getPitch().getPlayerPosition(player));
+		int success = 7 - player.getAG() + zones + 2;
+		success = Math.max( 2, Math.min(6, success) );
+		
+		if (result >= success){
+			
+			Square pl = state.getPitch().getPlayerPosition(player);
+			state.getPitch().getBall().setSquare(pl);
+			state.getPitch().getBall().setUnderControl(true);
+			state.setCurrentPass(null);
+			GameLog.push("Successfull interception. Result: " + result + " (" + success + " was needed");
+			endTurn();
+			
+		} else {
+			
+			GameLog.push("Failed interception. Result: " + result + " (" + success + " was needed");
+			state.getCurrentPass().setAwaitingInterception(false);
+			state.getCurrentPass().setInterceptionPlayers(null);
+			
+			d.roll();
+			result = d.getResultAsInt();
+			continuePass(result);
+			
+		}
+		
+	}
+
+	private void continuePass(int result) {
+		
+		Player passer = state.getCurrentPass().getPasser();
+		Player catcher = state.getCurrentPass().getCatcher();
+		int success = state.getCurrentPass().getSuccess();
 		
 		PassRange range = passingRange(passer, catcher);
 		String rangeStr = range.getName();
@@ -702,7 +766,7 @@ public class GameMaster {
 			if (passer.getSkills().contains(Skill.PASS)){
 				 
 				state.getCurrentDiceRoll().getDices().get(0).roll();
-				result = d.getResultAsInt();
+				result = state.getCurrentDiceRoll().getDices().get(0).getResultAsInt();
 				state.setCurrentPass(new Pass(passer, catcher, success));
 				
 				if (result >= success){
@@ -811,7 +875,7 @@ public class GameMaster {
 		if (state.getWeather() == Weather.VERY_SUNNY){
 			success++;
 		}
-		return Math.max( 1, Math.min(6, success) );
+		return Math.max( 2, Math.min(6, success) );
 		
 	}
 
@@ -856,8 +920,6 @@ public class GameMaster {
 		if (fouler.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			fouler.getPlayerStatus().setTurn(PlayerTurn.FOUL_ACTION);
 		}
-		
-		DiceRoll roll = new DiceRoll();
 		
 		int foulSum = calculateFoulSum(fouler, target);
 		
@@ -1149,7 +1211,7 @@ public class GameMaster {
 		
 		soundManager.playSound(Sound.DICEROLL);
 		
-		// Dodge/going/block
+		// Dodge/going/block/pass
 	 	if (state.getCurrentDodge() != null){
 			
 			state.setAwaitReroll(false);
@@ -1177,10 +1239,17 @@ public class GameMaster {
 			state.setAwaitReroll(false);
 			continueCatch(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
 			
+		} else if (state.getCurrentPass() != null){
+
+			state.setAwaitReroll(false);
+			continuePass(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
+			
 		}
 		
 	}
 	
+	
+
 	/**
 	 * Moves a player to a square. 
 	 * 
@@ -1797,7 +1866,7 @@ public class GameMaster {
 		
 		int roll = 6 - player.getAG() + zones;
 		
-		return Math.max( 1, Math.min(6, roll) );
+		return Math.max( 2, Math.min(6, roll) );
 	}
 
 	private int numberOfTackleZones(Player player, Square square) {
@@ -1967,7 +2036,7 @@ public class GameMaster {
 		
 		int zones = numberOfTackleZones(player, square);
 		int success = 6 - player.getAG() + zones;
-		success = Math.max( 1, Math.min(6, success) );
+		success = Math.max( 2, Math.min(6, success) );
 		if (state.getWeather() == Weather.POURING_RAIN){
 			success++;
 		}
@@ -2293,7 +2362,7 @@ public class GameMaster {
 		if (state.getWeather() == Weather.POURING_RAIN){
 			success++;
 		}
-		success = Math.max( 1, Math.min(6, success) );
+		success = Math.max( 2, Math.min(6, success) );
 		
 		// Roll
 		DiceRoll roll = new DiceRoll();

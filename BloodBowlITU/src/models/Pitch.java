@@ -2,6 +2,8 @@ package models;
 
 import java.util.ArrayList;
 
+import models.actions.Pass;
+
 import game.GameLog;
 import view.InputManager;
 
@@ -231,7 +233,7 @@ public class Pitch {
 	}
 
 	public boolean isOnPitch(Player player) {
-		
+		/*
 		for(int y = 0; y < playerArr.length; y++){
 			for(int x = 0; x < playerArr[0].length; x++){
 				
@@ -239,6 +241,19 @@ public class Pitch {
 					return true;
 				
 			}
+		}
+		
+		return false;
+		*/
+		
+		return isOnPitch(getPlayerPosition(player));
+		
+	}
+	
+	public boolean isOnPitch(Square square) {
+		
+		if (square.getX() > 0 && square.getX() < 27 && square.getY() > 0 && square.getY() < 16){
+			return true;
 		}
 		
 		return false;
@@ -556,7 +571,94 @@ public class Pitch {
 	public ArrayList<Player> getDungeoun() {
 		return dungeon;
 	}
+
+	public ArrayList<Player> interceptionPlayers(Pass pass) {
+		
+		Square from = getPlayerPosition(pass.getPasser());
+		Square to = getPlayerPosition(pass.getCatcher());
+		
+		Team catcherTeam = playerOwner(pass.getCatcher());;
+		
+		ArrayList<Square> line = line(from, to);
+		line = includeManhattanNeighbors(line);
+		
+		ArrayList<Player> players = new ArrayList<Player>();
+		for(Square s : line){
+			Player p = getPlayerAt(s);
+			if (p != null && catcherTeam == playerOwner(p)){
+				players.add(p);
+			}
+		}
+		
+		return players;
+		
+	}
 	
+	private Team playerOwner(Player player) {
+		if (homeTeam.players.contains(player)){
+			return homeTeam;
+		} else if (awayTeam.players.contains(player)){
+			return awayTeam;
+		}
+		return null;
+	}
+
+	private ArrayList<Square> includeManhattanNeighbors(ArrayList<Square> line) {
+		
+		ArrayList<Square> withNeighbors = new ArrayList<Square>();
+		
+		for (Square s : line){
+			withNeighbors.add(s);
+			Square right = new Square(s.getX() + 1, s.getY());
+			Square left = new Square(s.getX() - 1, s.getY());
+			Square up = new Square(s.getX() + 1, s.getY() - 1);
+			Square down = new Square(s.getX() + 1, s.getY() + 1);
+			if (isOnPitch(right) && !line.contains(right) && !withNeighbors.contains(right)){
+				withNeighbors.add(right);
+			}
+			if (isOnPitch(left) && !line.contains(left) && !withNeighbors.contains(left)){
+				withNeighbors.add(left);
+			}
+			if (isOnPitch(up) && !line.contains(up) && !withNeighbors.contains(up)){
+				withNeighbors.add(up);
+			}
+			if (isOnPitch(down) && !line.contains(down) && !withNeighbors.contains(down)){
+				withNeighbors.add(down);
+			}
+		}
+		
+		return withNeighbors;
+		
+	}
+
+	private ArrayList<Square> line(Square a, Square b){
+		
+		ArrayList<Square> line = new ArrayList<Square>();
+		
+		int x0 = a.getX();
+		int y0 = a.getY();
+		int x1 = b.getX();
+		int y1 = b.getY();
+		
+		int deltaX = x1 - x0;
+		int deltaY = y1 - y0;
+		double error = 0;
+		double deltaError = Math.abs(deltaY / deltaX);
+		
+		int y = y0;
+		for(int x = x0; x <= x1; x++){
+			line.add(new Square(x, y));
+			error = error + deltaError;
+			if (error >= 0.5){
+				y++;
+				error--;
+			}
+		}
+		
+		return line;
+		
+	}
+    
 }
 
 

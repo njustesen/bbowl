@@ -1,5 +1,7 @@
 package models.actions;
 
+import java.util.ArrayList;
+
 import models.Player;
 
 public class Pass {
@@ -8,6 +10,8 @@ public class Pass {
 	private Player catcher;
 	private int success;
 	private boolean accurate;
+	private boolean awaitingInterception;
+	private ArrayList<Player> interceptionPlayers;
 	
 	public Pass(Player passer, Player catcher, int success) {
 		super();
@@ -15,6 +19,8 @@ public class Pass {
 		this.catcher = catcher;
 		this.success = success;
 		this.accurate = false;
+		this.awaitingInterception = false;
+		this.interceptionPlayers = new ArrayList<Player>();
 	}
 
 	public Player getPasser() {
@@ -49,5 +55,24 @@ public class Pass {
 	public boolean isAccurate() {
 		return accurate;
 	}
+
+	public void setAwaitingInterception(boolean b) {
+		this.awaitingInterception = b;
+		
+	}
+
+	public boolean isAwaitingInterception() {
+		return awaitingInterception;
+	}
+
+	public ArrayList<Player> getInterceptionPlayers() {
+		return interceptionPlayers;
+	}
+
+	public void setInterceptionPlayers(ArrayList<Player> interceptionPlayers) {
+		this.interceptionPlayers = interceptionPlayers;
+	}
+	
+	
 	
 }
