@@ -1028,9 +1028,13 @@ public class GameMaster {
 		if (!nextToEachOther(attacker, defender))
 			return;
 		
-		if (state.getCurrentBlock() != null)
-			return;
-			
+		if (state.getCurrentBlock() != null){
+			if (!state.getCurrentBlock().getAttacker().getPlayerStatus().hasMovedToBlock()){
+				return;
+			}
+			blockTarget = state.getCurrentBlock().getDefender();
+		}
+		
 		if (blockTarget == null){
 			blockTarget = defender;
 			return;
@@ -1039,6 +1043,19 @@ public class GameMaster {
 				
 		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			attacker.getPlayerStatus().setTurn(PlayerTurn.BLOCK_ACTION);
+		}
+		
+		// Blitz?
+		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.BLITZ_ACTION){
+			if (attacker.getPlayerStatus().getMovementUsed() >= attacker.getMA()){
+				if (!attacker.getPlayerStatus().hasMovedToBlock()){
+					state.setCurrentBlock(new Block(attacker, defender, null));
+					goingForIt(attacker, state.getPitch().getPlayerPosition(attacker));
+					return;
+				}
+			} else {
+				attacker.getPlayerStatus().moveOneSquare();
+			}
 		}
 		
 		DiceRoll roll = new DiceRoll();
@@ -1674,6 +1691,15 @@ public class GameMaster {
 		if (result > success){
 			
 			GameLog.push("Succeeded going for it! Result: " + result + " (" + success + " was needed).");
+			
+			// Blitz?
+			if (state.getPitch().getPlayerPosition(player).equals(square) && 
+					state.getCurrentBlock() != null && 
+					state.getCurrentBlock().getAttacker() == player){
+				player.getPlayerStatus().setMovedToBlock(true);
+				performBlock(player, state.getCurrentBlock().getDefender());
+				return;
+			}
 			
 			// Dodge or move
 			if (isInTackleZone(player) && 
@@ -2609,14 +2635,23 @@ public class GameMaster {
 		d.roll();
 		state.setCurrentDiceRoll(roll);
 		soundManager.playSound(Sound.DICEROLL);
-		int success = 1;
+		int success = 2;
 		if (state.getWeather() == Weather.BLIZZARD){
 			success++;
 		}
 		
-		if (d.getResultAsInt() > success){
+		if (d.getResultAsInt() >= success){
 			
 			GameLog.push("Succeded going for it! Result: " + d.getResultAsInt() + " (" + success + " was needed).");
+			
+			// Blitz?
+			if (state.getPitch().getPlayerPosition(player).equals(square) && 
+					state.getCurrentBlock() != null && 
+					state.getCurrentBlock().getAttacker() == player){
+				player.getPlayerStatus().setMovedToBlock(true);
+				performBlock(player, state.getCurrentBlock().getDefender());
+				return;
+			}
 			
 			if (isInTackleZone(player))
 				dodgeToMovePlayer(player, square);
@@ -3327,11 +3362,12 @@ public class GameMaster {
 			return false;
 			
 		} else if (player.getPlayerStatus().getTurn() == PlayerTurn.BLITZ_ACTION && 
-				player.getPlayerStatus().hasMovedToBlock() && 
 				!playerOwner(player).getTeamStatus().hasBlitzed()){
 			
 			// Blitz
-			allowed = true;
+			if (player.getPlayerStatus().getMovementUsed() < player.getMA() + 2){
+				allowed = true;
+			}
 			
 		} else if (player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			
