@@ -233,9 +233,9 @@ public class Pitch {
 	}
 
 	public boolean isOnPitch(Player player) {
-		/*
-		for(int y = 0; y < playerArr.length; y++){
-			for(int x = 0; x < playerArr[0].length; x++){
+		
+		for(int y = 1; y < playerArr.length - 1; y++){
+			for(int x = 1; x < playerArr[0].length - 1; x++){
 				
 				if (playerArr[y][x] == player)
 					return true;
@@ -244,9 +244,6 @@ public class Pitch {
 		}
 		
 		return false;
-		*/
-		
-		return isOnPitch(getPlayerPosition(player));
 		
 	}
 	

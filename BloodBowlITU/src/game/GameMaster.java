@@ -3468,7 +3468,7 @@ public class GameMaster {
 		
 		// DEBUGGING
 		//blitz();
-		
+		//throwARock();
 		
 		switch(roll){
 			case 2: getTheRef(); break;
