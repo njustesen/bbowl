@@ -102,12 +102,12 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 					int n = i+1;
 					System.out.println("ActionButton "+n+" pressed");
 					switch(n){
-						case 1: gameMaster.selectAction(PlayerTurn.MOVE_ACTION); break;
-						case 2: gameMaster.selectAction(PlayerTurn.BLOCK_ACTION); break;
-						case 3: gameMaster.selectAction(PlayerTurn.BLITZ_ACTION); break;
-						case 4: gameMaster.selectAction(PlayerTurn.FOUL_ACTION); break;
-						case 5: gameMaster.selectAction(PlayerTurn.PASS_ACTION); break;
-						case 6: gameMaster.selectAction(PlayerTurn.HAND_OFF_ACTION); break;
+						case 1: gameMaster.selectAction(PlayerTurn.MOVE_ACTION); return;
+						case 2: gameMaster.selectAction(PlayerTurn.BLOCK_ACTION); return;
+						case 3: gameMaster.selectAction(PlayerTurn.BLITZ_ACTION); return;
+						case 4: gameMaster.selectAction(PlayerTurn.FOUL_ACTION); return;
+						case 5: gameMaster.selectAction(PlayerTurn.PASS_ACTION); return;
+						case 6: gameMaster.selectAction(PlayerTurn.HAND_OFF_ACTION); return;
 					}
 					
 			}
@@ -122,6 +122,8 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			mouse1Down = true;
 			squareClicked(e.getX(), e.getY());
 		}
+		
+		actionButtonClicked(e.getX(), e.getY());
 		
 		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
 			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&

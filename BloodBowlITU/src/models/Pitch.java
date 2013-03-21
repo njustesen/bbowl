@@ -234,16 +234,12 @@ public class Pitch {
 
 	public boolean isOnPitch(Player player) {
 		
-		for(int y = 1; y < playerArr.length - 1; y++){
-			for(int x = 1; x < playerArr[0].length - 1; x++){
-				
-				if (playerArr[y][x] == player)
-					return true;
-				
-			}
-		}
+		Square pos = getPlayerPosition(player);
 		
-		return false;
+		if (pos == null)
+			return false;
+		
+		return isOnPitch(pos);
 		
 	}
 	

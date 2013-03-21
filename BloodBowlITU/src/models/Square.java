@@ -25,4 +25,18 @@ public class Square {
 	public void setX(int x) {
 		this.x = x;
 	}
+	
+	@Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        Square square = (Square) obj;
+        return x == square.getX() && y == square.getY();
+    }
+
 }
