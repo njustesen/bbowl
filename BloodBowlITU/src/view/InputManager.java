@@ -12,6 +12,8 @@ import models.GameStage;
 import models.Player;
 import models.PlayerTurn;
 import models.Square;
+import models.actions.Block;
+import models.actions.Push;
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener{
 	
@@ -66,8 +68,8 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 	
 	public boolean isKeyToggled(String key){
 			char c = key.charAt(0);
-			if(keysDown[((int)c)])
-				System.out.println(key+" is down");
+			//if(keysDown[((int)c)])
+			//	System.out.println(key+" is down");
 			return keysToggled[((int)c)];	
 		}
 	
@@ -100,7 +102,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			if(x > i*actionButtonWidth && x < (actionButtonWidth * i)+actionButtonWidth &&
 					y > 517 && y < 517+actionButtonHeight){	
 					int n = i+1;
-					System.out.println("ActionButton "+n+" pressed");
+					//System.out.println("ActionButton "+n+" pressed");
 					switch(n){
 						case 1: gameMaster.selectAction(PlayerTurn.MOVE_ACTION); return;
 						case 2: gameMaster.selectAction(PlayerTurn.BLOCK_ACTION); return;
@@ -125,31 +127,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 		
 		actionButtonClicked(e.getX(), e.getY());
 		
-		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
-			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&
-					e.getY() < headsCenter.getY()+75 && e.getY() > headsCenter.getY()-75){
-
-				gameMaster.pickCoinSide(true);
-				
-			}else if(e.getX() < tailsCenter.getX()+75 && e.getX() > tailsCenter.getX()-75 &&
-					e.getY() < tailsCenter.getY()+75 && e.getY() > tailsCenter.getY()-75){
-				
-				gameMaster.pickCoinSide(false);
-				
-			}
-		}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
-			if(e.getX() < headsCenter.getX()+75 && e.getX() > headsCenter.getX()-75 &&
-					e.getY() < headsCenter.getY()+75 && e.getY() > headsCenter.getY()-75){
-				
-				gameMaster.pickCoinTossEffect(false);
-				
-			}else if(e.getX() < tailsCenter.getX()+75 && e.getX() > tailsCenter.getX()-75 &&
-					e.getY() < tailsCenter.getY()+75 && e.getY() > tailsCenter.getY()-75){
-				
-				gameMaster.pickCoinTossEffect(true);
-				
-			}
-		}
+		pickCoinToss(e.getX(), e.getY());
 			
 			if(e.getX() < rerollButtonOrigin.getX()+rerollButtonWidth && e.getX() > rerollButtonOrigin.getX() &&
 					e.getY() < rerollButtonOrigin.getY()+rerollButtonHeight && e.getY() > rerollButtonOrigin.getY()){
@@ -171,6 +149,35 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 			
 			clickReserves(e.getX(), e.getY(), true);
 			selectDie(e.getX(), e.getY());
+			pushedOutOfBounds(e.getX(), e.getY());
+	}
+	
+	public void pickCoinToss(int x, int y){
+		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
+			if(x < headsCenter.getX()+75 && x > headsCenter.getX()-75 &&
+					y < headsCenter.getY()+75 && y > headsCenter.getY()-75){
+
+				gameMaster.pickCoinSide(true);
+				
+			}else if(x < tailsCenter.getX()+75 && x > tailsCenter.getX()-75 &&
+					y < tailsCenter.getY()+75 && y > tailsCenter.getY()-75){
+				
+				gameMaster.pickCoinSide(false);
+				
+			}
+		}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+			if(x < headsCenter.getX()+75 && x > headsCenter.getX()-75 &&
+					y < headsCenter.getY()+75 && y > headsCenter.getY()-75){
+				
+				gameMaster.pickCoinTossEffect(false);
+				
+			}else if(x < tailsCenter.getX()+75 && x > tailsCenter.getX()-75 &&
+					y < tailsCenter.getY()+75 && y > tailsCenter.getY()-75){
+				
+				gameMaster.pickCoinTossEffect(true);
+				
+			}
+		}
 	}
 	
 	public void clickReserves(int x, int y, boolean home){
@@ -207,7 +214,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		System.out.println("keycode is "+e.getKeyCode());
+	//	System.out.println("keycode is "+e.getKeyCode());
 		keysDown[e.getKeyCode()]=true;		
 	}
 
@@ -270,6 +277,25 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 		}
 	}
 
+	public void pushedOutOfBounds(int x, int y){
+		Block b = gameMaster.getState().getCurrentBlock();
+		if(gameMaster.getState().getCurrentBlock() != null){
+			Push p = b.getPush();
+			if(b.getPush() != null){
+				while(p.getFollowingPush() != null){
+					p = p.getFollowingPush();
+				}
+				for(Square s: p.getPushSquares()){
+					if(x > arrayToScreen(s.getX(), s.getY()).getX() && x < arrayToScreen(s.getX(), s.getY()).getX()+pitchSquareSize &&
+							y > arrayToScreen(s.getX(), s.getY()).getY() && y < arrayToScreen(s.getX(), s.getY()).getY()+pitchSquareSize){
+						System.out.println("PLAYER OUT OF BOUNDS!!!");
+						//Write new methodcall
+					}
+				}
+			}
+		}
+	}
+	
 	public Point2D mouseOverArray(){
 		int pitchX = getMouseX()-pitchOrigin.getX();
 		int pitchY = getMouseY()-pitchOrigin.getY();
