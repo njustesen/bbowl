@@ -479,6 +479,13 @@ public class Renderer extends JPanel{
 				g.drawImage(img, rerollButtonOrigin.getX()-55-i*55, rerollButtonOrigin.getY()+10, null);
 				i++;
 			}
+			if(gameMaster.getState().getCurrentBlock() != null){
+				String pickingTeam = gameMaster.getState().getCurrentBlock().getSelectTeam().getTeamName();
+				Font choice = new Font("Arial", Font.PLAIN, 12);
+				g.setFont(choice);
+				g.drawString(pickingTeam, inputManager.getDiceButtonOrigin().getX()-(i*56)-3, inputManager.getDiceButtonOrigin().getY()+68);
+				g.setFont(standard);
+			}
 			g.drawRect(inputManager.getDiceButtonOrigin().getX()-(i*56)-3, inputManager.getDiceButtonOrigin().getY()+2, i*56, 68);
 		}	
 	}
