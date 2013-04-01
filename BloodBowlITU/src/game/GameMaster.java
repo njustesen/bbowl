@@ -870,7 +870,7 @@ public class GameMaster {
 	private int getPassSuccessRoll(Player passer, PassRange passingRange) {
 		
 		int zones = numberOfTackleZones(passer, state.getPitch().getPlayerPosition(passer));
-		int success = 6 - passer.getAG() + zones;
+		int success = 7 - passer.getAG() + zones;
 		success += passingRange.getModifier();
 		if (state.getWeather() == Weather.VERY_SUNNY){
 			success++;
@@ -3248,7 +3248,8 @@ public class GameMaster {
 				if (player == null ||
 						player == attacker || 
 						player == defender || 
-						playerOwner(player) == playerOwner(defender)){
+						playerOwner(player) == playerOwner(defender) ||
+						player.getPlayerStatus().getStanding() != Standing.UP){
 				
 					continue;
 				}
