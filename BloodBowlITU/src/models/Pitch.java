@@ -570,15 +570,14 @@ public class Pitch {
 		Square from = getPlayerPosition(pass.getPasser());
 		Square to = getPlayerPosition(pass.getCatcher());
 		
-		Team catcherTeam = playerOwner(pass.getCatcher());;
-		
 		ArrayList<Square> line = line(from, to);
 		line = includeManhattanNeighbors(line);
+		line = excludeByDistance(line, from, to);
 		
 		ArrayList<Player> players = new ArrayList<Player>();
 		for(Square s : line){
 			Player p = getPlayerAt(s);
-			if (p != null && catcherTeam == playerOwner(p)){
+			if (p != null && playerOwner(pass.getPasser()) != playerOwner(p)){
 				players.add(p);
 			}
 		}
@@ -587,6 +586,32 @@ public class Pitch {
 		
 	}
 	
+	private ArrayList<Square> excludeByDistance(ArrayList<Square> line, Square from, Square to) {
+		
+		ArrayList<Square> newList = new ArrayList<Square>();
+ 		
+		for(Square s : line){
+			
+			// Closer to catcher than thrower is
+			if (distance(s, to) < distance(from, to)){
+				
+				// Closer to thrower than catcher is
+				if (distance(s, from) < distance(to, from)){
+					newList.add(s);
+				}
+				
+			}
+			
+		}
+		
+		return newList;
+		
+	}
+
+	private int distance(Square a, Square b) {
+		return Math.max( Math.abs(a.getX() - b.getX()), Math.abs(a.getY() - b.getY()) );
+	}
+
 	private Team playerOwner(Player player) {
 		if (homeTeam.players.contains(player)){
 			return homeTeam;
@@ -633,19 +658,58 @@ public class Pitch {
 		int x1 = b.getX();
 		int y1 = b.getY();
 		
-		int deltaX = x1 - x0;
-		int deltaY = y1 - y0;
-		double error = 0;
-		double deltaError = Math.abs(deltaY / deltaX);
+		boolean steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
 		
+	    if (steep){
+	    	// swap(x0, y0);
+	    	int x0n = y0;
+	    	int y0n = x0;
+	    	x0 = x0n;
+	    	y0 = y0n;
+	        
+	        //swap(x1, y1);
+	    	int x1n = y1;
+	    	int y1n = x1;
+	    	x1 = x1n;
+	    	y1 = y1n;
+	    }
+	    if (x0 > x1){
+	        //swap(x0, x1);
+	    	int x0n = x1;
+	    	int x1n = x0;
+	    	x0 = x0n;
+	    	x1 = x1n;
+	    	
+	        //swap(y0, y1);
+	    	int y0n = y1;
+	    	int y1n = y0;
+	    	y0 = y0n;
+	    	y1 = y1n;
+	    }
+	    
+		int deltaX = x1 - x0;
+		int deltaY = Math.abs(y1 - y0);
+		double error = (double) deltaX / 2.0;
+		
+		int ystep;
+		if (y0 < y1){ 
+			ystep = 1;
+		} else {
+			ystep = -1;
+		}
+				
 		int y = y0;
 		for(int x = x0; x <= x1; x++){
-			line.add(new Square(x, y));
-			error = error + deltaError;
-			if (error >= 0.5){
-				y++;
-				error--;
+			if (steep){
+				line.add(new Square(y, x));
+			} else {
+				line.add(new Square(x, y));
 			}
+	        error = error - deltaY;
+	        if (error < 0){
+	             y = y + ystep;
+	             error = error + deltaX;
+	        }
 		}
 		
 		return line;
