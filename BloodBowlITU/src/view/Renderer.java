@@ -71,7 +71,7 @@ public class Renderer extends JPanel{
 	//action-buttons
 	private BBImage actionOn = new BBImage("actionButtonOn2.jpg");
 	private BBImage actionOff = new BBImage("actionButtonOff.jpg");
-	private BBImage run = new BBImage("footprints.png");
+	private BBImage run = new BBImage("footprints2.png");
 	private BBImage block = new BBImage("block.png");
 	private BBImage blitz = new BBImage("blitz.png");
 	private BBImage foul = new BBImage("foul.png");
@@ -409,6 +409,16 @@ public class Renderer extends JPanel{
 		}
 	}
 	
+	public void drawInterceptingPlayers(Graphics g){
+		if(gameMaster.getState().getCurrentPass() != null){
+			if(gameMaster.getState().getCurrentPass().getInterceptionPlayers() != null)
+				for(Player p: gameMaster.getState().getCurrentPass().getInterceptionPlayers()){
+					Square s = gameMaster.getState().getPitch().getPlayerPosition(p);
+					g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(s.getX(), s.getY()).getX(),inputManager.arrayToScreen(s.getX(), s.getY()).getY(), null);
+			}	
+		}
+	}
+	
 	public void drawFollowUpSquares(Graphics g){
 		if (gameMaster.getState().isAwaitingFollowUp() && gameMaster.getState().getCurrentBlock() != null){
 				Square notFollow = gameMaster.getState().getPitch().getPlayerPosition(gameMaster.getState().getCurrentBlock().getAttacker());
@@ -468,6 +478,13 @@ public class Renderer extends JPanel{
 				BufferedImage img = getDiceImage(face);
 				g.drawImage(img, rerollButtonOrigin.getX()-55-i*55, rerollButtonOrigin.getY()+10, null);
 				i++;
+			}
+			if(gameMaster.getState().getCurrentBlock() != null){
+				String pickingTeam = gameMaster.getState().getCurrentBlock().getSelectTeam().getTeamName();
+				Font choice = new Font("Arial", Font.PLAIN, 12);
+				g.setFont(choice);
+				g.drawString(pickingTeam, inputManager.getDiceButtonOrigin().getX()-(i*56)-3, inputManager.getDiceButtonOrigin().getY()+68);
+				g.setFont(standard);
 			}
 			g.drawRect(inputManager.getDiceButtonOrigin().getX()-(i*56)-3, inputManager.getDiceButtonOrigin().getY()+2, i*56, 68);
 		}	
@@ -701,6 +718,7 @@ public class Renderer extends JPanel{
 		hoverSquare(g, inputManager.getMouseX(), inputManager.getMouseY());
 		drawPushSquares(g);
 		drawFollowUpSquares(g);
+		drawInterceptingPlayers(g);
 		
 		drawPlayers(g);
 		drawBall(g);
@@ -714,7 +732,7 @@ public class Renderer extends JPanel{
 		drawWeather(g);
 		drawGameEnded(g);
 		
-		System.out.println("stage = "+gameMaster.getState().getGameStage());
+		//System.out.println("stage = "+gameMaster.getState().getGameStage());
 		
 	}
 }
