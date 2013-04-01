@@ -1584,6 +1584,7 @@ public class GameMaster {
 			
 			}
 			
+			Square before = state.getPitch().getPlayerPosition(player);
 			removePlayerFromCurrentSquare(player);
 			placePlayerAt(player, to);
 			
@@ -1614,6 +1615,7 @@ public class GameMaster {
 				
 			}
 			
+			to = before;
 			state.getCurrentBlock().removeCurrentPush();
 			
 		}
@@ -2722,11 +2724,11 @@ public class GameMaster {
 		state.getCurrentBlock().setResult(face);
 		
 		switch(face){
-		case SKULL : attackerDown(state.getCurrentBlock()); break;
-		case PUSH : defenderPushed(state.getCurrentBlock()); break;
-		case BOTH_DOWN : bothDown(state.getCurrentBlock()); break;
-		case DEFENDER_STUMBLES : defenderStumples(state.getCurrentBlock()); break;
-		case DEFENDER_KNOCKED_DOWN : defenderKnockedDown(state.getCurrentBlock()); break;
+		case SKULL : GameLog.push("Attacker down."); attackerDown(state.getCurrentBlock()); break;
+		case PUSH : GameLog.push("Defender pushed."); defenderPushed(state.getCurrentBlock()); break;
+		case BOTH_DOWN : GameLog.push("Both down."); bothDown(state.getCurrentBlock()); break;
+		case DEFENDER_STUMBLES : GameLog.push("Defender stumples."); defenderStumples(state.getCurrentBlock()); break;
+		case DEFENDER_KNOCKED_DOWN : GameLog.push("Defender down."); defenderKnockedDown(state.getCurrentBlock()); break;
 		default:
 			break;
 		}
@@ -2734,23 +2736,17 @@ public class GameMaster {
 
 	private void defenderKnockedDown(Block block) {
 		
-		GameLog.push("Defender knocked down.");
-		
 		defenderPushed(block);
 		
 	}
 
 	private void defenderStumples(Block block) {
 		
-		GameLog.push("Defender stumples.");
-		
 		defenderPushed(block);
 		
 	}
 
 	private void bothDown(Block block) {
-		
-		GameLog.push("Both down.");
 		
 		if (!block.getDefender().getSkills().contains(Skill.BLOCK)){
 			knockDown(block.getDefender(), true);
@@ -2773,8 +2769,6 @@ public class GameMaster {
 	}
 
 	private void defenderPushed(Block block) {
-		
-		GameLog.push("Defender pushed.");
 		
 		Square from = state.getPitch().getPlayerPosition(block.getAttacker());
 		Square to = state.getPitch().getPlayerPosition(block.getDefender());
@@ -2813,8 +2807,6 @@ public class GameMaster {
 	}
 
 	private void attackerDown(Block block) {
-		
-		GameLog.push("Attacker down.");
 		
 		state.setCurrentBlock(null);
 		
