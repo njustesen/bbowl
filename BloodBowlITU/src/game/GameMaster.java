@@ -179,8 +179,21 @@ public class GameMaster {
 			// Selected player?
 			if (player == selectedPlayer){
 				
-				// Remove selection
-				selectedPlayer = null;
+				// Stand player up
+				if (getMovingTeam() == playerOwner(player) && 
+						player.getPlayerStatus().getStanding() == Standing.DOWN && 
+						player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+					
+					player.getPlayerStatus().setStanding(Standing.UP);
+					player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
+					endTurnForOtherPlayers(playerOwner(player), player);
+					
+				} else {
+				
+					// Remove selection
+					selectedPlayer = null;
+				
+				}
 				
 			} else {
 				
@@ -189,6 +202,7 @@ public class GameMaster {
 					// Block?
 					if (allowedToBlock(selectedPlayer) && 
 							onDifferentTeams(selectedPlayer, player) &&
+							selectedPlayer.getPlayerStatus().getStanding() == Standing.UP && 
 							player.getPlayerStatus().getStanding() == Standing.UP && 
 							nextToEachOther(selectedPlayer, player) &&
 							state.getCurrentBlock() == null){
@@ -200,6 +214,7 @@ public class GameMaster {
 					
 					// Foul?
 					if (onDifferentTeams(selectedPlayer, player) &&
+							selectedPlayer.getPlayerStatus().getStanding() == Standing.UP && 
 							player.getPlayerStatus().getStanding() != Standing.UP && 
 							nextToEachOther(selectedPlayer, player) &&
 							state.getCurrentFoul() == null){
@@ -681,6 +696,7 @@ public class GameMaster {
 		playerOwner(passer).getTeamStatus().setHasPassed(true);
 		int success = getPassSuccessRoll(passer, passingRange(passer, catcher));
 		state.setCurrentPass(new Pass(passer, catcher, success));
+		state.getPitch().getBall().setUnderControl(false);
 		
 		ArrayList<Player> interceptionPlayers = state.getPitch().interceptionPlayers(state.getCurrentPass());
 		
@@ -696,7 +712,7 @@ public class GameMaster {
 		roll.addDice(d);
 		state.setCurrentDiceRoll(roll);
 		int result = d.getResultAsInt();
-		continuePass(result);
+		continuePass(result, false);
 		
 	}
 	
@@ -730,13 +746,13 @@ public class GameMaster {
 			
 			d.roll();
 			result = d.getResultAsInt();
-			continuePass(result);
+			continuePass(result, false);
 			
 		}
 		
 	}
 
-	private void continuePass(int result) {
+	private void continuePass(int result, boolean execute) {
 		
 		Player passer = state.getCurrentPass().getPasser();
 		Player catcher = state.getCurrentPass().getCatcher();
@@ -782,7 +798,7 @@ public class GameMaster {
 					
 				}
 				
-			} else if (ableToReroll(getPlayerOwner(passer))){
+			} else if (!execute && ableToReroll(getPlayerOwner(passer))){
 				
 				// Prepare for reroll usage
 				state.setCurrentPass(new Pass(passer, catcher, success));
@@ -911,6 +927,9 @@ public class GameMaster {
 		if (state.getCurrentFoul() != null)
 			return;
 			
+		if (playerOwner(fouler).getTeamStatus().hasFouled())
+			return;
+		
 		if (foulTarget == null){
 			foulTarget = target;
 			return;
@@ -920,6 +939,8 @@ public class GameMaster {
 		if (fouler.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			fouler.getPlayerStatus().setTurn(PlayerTurn.FOUL_ACTION);
 		}
+		
+		playerOwner(fouler).getTeamStatus().setHasFouled(true);
 		
 		int foulSum = calculateFoulSum(fouler, target);
 		
@@ -939,6 +960,8 @@ public class GameMaster {
 		if (da.getResultAsInt() == db.getResultAsInt()){
 			sendOffField = true;
 		}
+		
+		GameLog.push("Foul! Armour roll: " + da.getResultAsInt() + " + " + db.getResultAsInt() + " (" + (target.getAV() + 1 - foulSum) + " needed)");
 		
 		if (result > target.getAV()){
 			
@@ -991,6 +1014,13 @@ public class GameMaster {
 		
 		if (sendOffField){
 			
+			if (playerOwner(fouler) == state.getHomeTeam() && !state.isRefAgainstHomeTeam()){
+				return;
+			}
+			if (playerOwner(fouler) == state.getAwayTeam() && !state.isRefAgainstAwayTeam()){
+				return;
+			}
+			
 			GameLog.push("Foul! Player was sent off the field!");
 			
 			// Fumble
@@ -999,7 +1029,7 @@ public class GameMaster {
 				fumble = true;
 			}
 			
-			state.getPitch().removePlayer(target);
+			state.getPitch().removePlayer(fouler);
 			state.getPitch().getDungeoun().add(fouler);
 			
 			if (fumble){
@@ -1153,11 +1183,19 @@ public class GameMaster {
 			DiceFace face = state.getCurrentDiceRoll().getFaces().get(i);
 			int result = state.getCurrentDiceRoll().getDices().get(i).getResultAsInt();
 			
-			// Continue block/dodge/going
-			if (state.getCurrentBlock() != null){
+			// Continue block/dodge/going/pass
+			if (state.getCurrentBlock() != null && state.getCurrentBlock().getResult() == null){
 				
 				state.setAwaitReroll(false);
 				continueBlock(face);
+				state.setCurrentDiceRoll(null);
+				return;
+				
+			}
+			if (state.getCurrentPass() != null){
+				
+				state.setAwaitReroll(false);
+				continuePass(result, true);
 				state.setCurrentDiceRoll(null);
 				return;
 				
@@ -1259,13 +1297,11 @@ public class GameMaster {
 		} else if (state.getCurrentPass() != null){
 
 			state.setAwaitReroll(false);
-			continuePass(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt());
+			continuePass(state.getCurrentDiceRoll().getDices().get(0).getResultAsInt(), true);
 			
 		}
 		
 	}
-	
-	
 
 	/**
 	 * Moves a player to a square. 
@@ -2681,6 +2717,7 @@ public class GameMaster {
 		//face = DiceFace.PUSH;
 		
 		state.setAwaitReroll(false);
+		
 		
 		state.getCurrentBlock().setResult(face);
 		
