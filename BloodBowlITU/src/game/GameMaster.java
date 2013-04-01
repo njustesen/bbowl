@@ -45,7 +45,6 @@ public class GameMaster {
 	//private PlayerAgent awayAgent;
 	private Player foulTarget;
 	
-	
 	public GameMaster(GameState gameState, PlayerAgent homeAgent, PlayerAgent awayAgent) {
 		super();
 		this.state = gameState;
@@ -1657,8 +1656,8 @@ public class GameMaster {
 		removePlayerFromCurrentSquare(player);
 		movePlayerToSquare(player, ballOn);
 		
-		state.getPitch().getBall().setOnGround(true);
-		state.getPitch().getBall().setUnderControl(true);
+		state.getPitch().getBall().setOnGround(false);
+		state.getPitch().getBall().setUnderControl(false);
 		
 	}
 
@@ -2886,7 +2885,9 @@ public class GameMaster {
 				// Place player under ball
 				placePlayerUnderBall(selectedPlayer);
 				
-				state.setGameStage(GameStage.KICK_OFF);
+				state.getPitch().getBall().setOnGround(true);
+				catchBall();
+				
 				endKickOffPhase();
 				
 			}
@@ -2935,8 +2936,8 @@ public class GameMaster {
 			
 		} else {
 			
-			state.setKickingTeam(state.getHomeTeam());
-			state.setReceivingTeam(state.getAwayTeam());
+			state.setKickingTeam(state.getAwayTeam());
+			state.setReceivingTeam(state.getHomeTeam());
 			
 		}
 		
@@ -3510,13 +3511,12 @@ public class GameMaster {
 			return;
 		}
 		
-		state.setGameStage(GameStage.KICK_OFF);
-		
-		if (!state.getPitch().getBall().isUnderControl())
+		if (state.getGameStage() != GameStage.HIGH_KICK)
 			scatterKickedBall();
 		
-		if (state.getGameStage() == GameStage.KICK_OFF)
-			endTurn();
+		state.setGameStage(GameStage.KICK_OFF);
+		
+		endTurn();
 		
 	}
 
@@ -3534,7 +3534,8 @@ public class GameMaster {
 		// DEBUGGING
 		//blitz();
 		//throwARock();
-		
+		highKick();
+		/*
 		switch(roll){
 			case 2: getTheRef(); break;
 			case 3: riot(); break;
@@ -3548,7 +3549,7 @@ public class GameMaster {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
-		
+		*/
 	}
 
 	/**
