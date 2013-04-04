@@ -1,13 +1,19 @@
 package ai;
 
 import ai.actions.Action;
+import ai.actions.EndPhaseAction;
+import ai.actions.EndPlayerTurnAction;
 import ai.actions.EndSetupAction;
+import ai.actions.MovePlayerAction;
 import ai.actions.PlaceBallAction;
+import ai.actions.PlaceBallOnPlayerAction;
 import ai.actions.PlacePlayerAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
+import ai.actions.SelectPlayerAction;
 import models.GameState;
 import models.Player;
+import models.PlayerTurn;
 import models.Square;
 
 public class MontiCarlos extends AIAgent {
@@ -16,26 +22,74 @@ public class MontiCarlos extends AIAgent {
 		super(homeTeam);
 	}
 
+	@Override
 	protected Action placeBallOnPlayer(GameState state) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		int rand = (int) (Math.random() * state.getPitch().playersOnPitch(myTeam(state)));
+		Player player = state.getPitch().getPlayersOnPitch(myTeam(state)).get(rand);
+		
+		return new PlaceBallOnPlayerAction(player);
+		
 	}
 
+	@Override
 	protected Action blitz(GameState state) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
 	protected Action quickSnap(GameState state) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
+			
+			if (p.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+				
+				Square square = state.getPitch().getPlayerPosition(p);
+				int i = 1 + (int) (Math.random() * 9);
+				switch(i){
+				case 1 : square = new Square(square.getX()-1, square.getY()-1); break;
+				case 2 : square = new Square(square.getX(), square.getY()-1); break;
+				case 3 : square = new Square(square.getX()+1, square.getY()-1); break;
+				case 4 : square = new Square(square.getX()-1, square.getY()); break;
+				case 5 : return new EndPlayerTurnAction(p);
+				case 6 : square = new Square(square.getX()+1, square.getY()); break;
+				case 7 : square = new Square(square.getX()-1, square.getY()+1); break;
+				case 8 : square = new Square(square.getX(), square.getY()+1); break;
+				case 9 : square = new Square(square.getX()+1, square.getY()+1); break;
+				}
+				
+				if (state.getPitch().getPlayerAt(square) == null && state.getPitch().isOnPitch(square)){
+					return new MovePlayerAction(p, square);
+				} else {
+					return new EndPlayerTurnAction(p);
+				}
+				
+			}
+			
+		}
+		
+		return new EndPhaseAction();
 	}
 
+	@Override
 	protected Action highKick(GameState state) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		int rand = (int) (Math.random() * state.getPitch().playersOnPitch(myTeam(state)));
+		Player player = state.getPitch().getPlayersOnPitch(myTeam(state)).get(rand);
+		
+		return new SelectPlayerAction(player);
+		
+	}
+	
+	@Override
+	protected Action perfectDefense(GameState state) {
+		
+		return new EndPhaseAction();
+		
 	}
 
+	@Override
 	protected Action placeKick(GameState state) {
 		
 		Square square = state.getPitch().getRandomOpposingSquare(myTeam(state));
@@ -44,6 +98,7 @@ public class MontiCarlos extends AIAgent {
 		
 	}
 
+	@Override
 	protected Action setup(GameState state) {
 		
 		if (state.getPitch().getDogout(myTeam(state)).getReserves().size() == 0 ||  
@@ -58,14 +113,17 @@ public class MontiCarlos extends AIAgent {
 		
 	}
 
+	@Override
 	protected Action pickCoinSideEffect(GameState state) {
 		return new SelectCoinTossEffectAction(true);
 	}
 
+	@Override
 	protected Action pickCoinSide(GameState state) {
 		return new SelectCoinSideAction(true);
 	}
 
+	@Override
 	protected Action turn(GameState state) {
 		// TODO Auto-generated method stub
 		return null;

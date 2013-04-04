@@ -4,11 +4,15 @@ import java.util.ArrayList;
 
 import ai.AIAgent;
 import ai.actions.Action;
+import ai.actions.EndPhaseAction;
 import ai.actions.EndSetupAction;
+import ai.actions.MovePlayerAction;
 import ai.actions.PlaceBallAction;
+import ai.actions.PlaceBallOnPlayerAction;
 import ai.actions.PlacePlayerAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
+import ai.actions.SelectPlayerAction;
 
 import sound.Sound;
 import sound.SoundManager;
@@ -67,7 +71,14 @@ public class GameMaster {
 	}
 	
 	public void update(){
-		
+		/*
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
 		boolean home = false;
 		boolean away = false;
 		
@@ -125,6 +136,12 @@ public class GameMaster {
 			} else if (state.getReceivingTeam() == state.getAwayTeam()){
 				away = true;
 			}
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
+			if (state.getKickingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getKickingTeam() == state.getAwayTeam()){
+				away = true;
+			}
 		}
 		
 		if (home && homeAgent != null){
@@ -155,6 +172,27 @@ public class GameMaster {
 		} else if(action instanceof PlaceBallAction){
 			
 			placeBall(((PlaceBallAction)action).getSquare());
+			
+			endPhase();
+			
+		} else if(action instanceof SelectPlayerAction){
+			
+			selectedPlayer = ((SelectPlayerAction) action).getPlayer();
+			
+			if (state.getGameStage() == GameStage.HIGH_KICK){
+				endPhase();
+			}
+			
+		} else if(action instanceof PlaceBallOnPlayerAction){
+			
+			selectedPlayer = ((SelectPlayerAction) action).getPlayer();
+			endPhase();
+			
+		} else if(action instanceof MovePlayerAction){
+			
+			movePlayerIfAllowed(((MovePlayerAction) action).getPlayer(), ((MovePlayerAction) action).getSquare());
+			
+		} else if(action instanceof EndPhaseAction){
 			
 			endPhase();
 			
@@ -2638,7 +2676,7 @@ public class GameMaster {
 	private boolean moveAllowed(Player player, Square square) {
 		
 		// Legal square
-		if (!nextToEachOther(selectedPlayer, square)){
+		if (!nextToEachOther(player, square)){
 			return false;
 		}
 		
@@ -3600,9 +3638,15 @@ public class GameMaster {
 		if (state.getGameStage() != GameStage.HIGH_KICK)
 			scatterKickedBall();
 		
-		state.setGameStage(GameStage.KICK_OFF);
+		if (state.getGameStage() != GameStage.PLACE_BALL_ON_PLAYER){
+			state.setGameStage(GameStage.KICK_OFF);
+			endTurn();
+		}
+			
 		
-		endTurn();
+		
+		
+		
 		
 	}
 
@@ -3621,7 +3665,10 @@ public class GameMaster {
 		//blitz();
 		//throwARock();
 		//highKick();
+		//perfectDefense();
+		quickSnap();
 		
+		/*
 		switch(roll){
 			case 2: getTheRef(); break;
 			case 3: riot(); break;
@@ -3635,7 +3682,7 @@ public class GameMaster {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
-		
+		*/
 	}
 
 	/**

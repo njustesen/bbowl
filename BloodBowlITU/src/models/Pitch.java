@@ -723,7 +723,7 @@ public class Pitch {
 		int y = 1;
 		
 		while (!found){
-			y = 5 + (int) (Math.random() * 6);
+			y = 5 + (int) Math.floor((Math.random() * 6));
 			x = 13;
 			if (!isTeamHome(team)){
 				x = 14;
@@ -744,8 +744,8 @@ public class Pitch {
 		int y = 1;
 		
 		while (!found){
-			x = 1 + (int) (Math.random() * 13);
-			y = 1 + (int) (Math.random() * 4);
+			x = 1 + (int) Math.floor((Math.random() * 13));
+			y = 1 + (int) Math.floor((Math.random() * 4));
 			if (!isTeamHome(team)){
 				x+=13;
 			}
@@ -767,8 +767,8 @@ public class Pitch {
 		int y = 1;
 		
 		while (!found){
-			x = 1 + (int) (Math.random() * 13);
-			y = 5 + (int) (Math.random() * 7);
+			x = 1 + (int) Math.floor((Math.random() * 13));
+			y = 5 + (int) Math.floor((Math.random() * 7));
 			if (!isTeamHome(team)){
 				x+=13;
 			}
@@ -787,8 +787,8 @@ public class Pitch {
 		int y = 1;
 		
 		while (!found){
-			x = 1 + (int) (Math.random() * 13);
-			y = 1 + (int) (Math.random() * 15);
+			x = 1 + (int) Math.floor((Math.random() * 13));
+			y = 1 + (int) Math.floor((Math.random() * 15));
 			if (!isTeamHome(team)){
 				x+=13;
 			}
@@ -805,13 +805,34 @@ public class Pitch {
 		int x = 1;
 		int y = 1;
 
-		x = 1 + (int) (Math.random() * 13);
-		y = 1 + (int) (Math.random() * 15);
+		x = (int) (1 + Math.floor( (Math.random() * 13) ));
+		y = (int) (1 + Math.floor( (Math.random() * 15) ));
 		if (isTeamHome(team)){
 			x+=13;
 		}
 		
 		return new Square(x,y);
+	}
+
+	public ArrayList<Player> getPlayersOnPitch(Team team) {
+		
+		ArrayList<Player> playersOnPitch = new ArrayList<Player>();
+
+		// Count players
+		for(int y = 0; y < playerArr.length; y++){
+			for(int x = 0; x < playerArr[0].length; x++){
+				
+				// If the found player is on the team
+				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){
+					
+					playersOnPitch.add(playerArr[y][x]);
+					
+				}
+			}
+		}
+		
+		return playersOnPitch;
+		
 	}
     
 }

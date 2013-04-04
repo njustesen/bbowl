@@ -66,12 +66,17 @@ public abstract class AIAgent {
 			if (state.getReceivingTeam() == myTeam(state))
 				return highKick(state);
 			
+		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
+			
+			if (state.getKickingTeam() == myTeam(state))
+				return perfectDefense(state);
+			
 		}
 		
 		return null;
 		
 	}
-	
+
 	protected Team myTeam(GameState state){
 		
 		if (homeTeam){
@@ -90,5 +95,6 @@ public abstract class AIAgent {
 	protected abstract Action blitz(GameState state);
 	protected abstract Action quickSnap(GameState state);
 	protected abstract Action highKick(GameState state);
+	protected abstract Action perfectDefense(GameState state);
 	
 }
