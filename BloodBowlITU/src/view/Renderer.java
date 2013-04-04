@@ -622,7 +622,7 @@ public class Renderer extends JPanel{
 			
 			Font font = new Font("Arial", Font.PLAIN, 32);	    
 		    g.setFont(font);
-			if(gameMaster.getState().getCoinToss().isResult()){
+			if(gameMaster.getState().getCoinToss().isResultHeads()){
 				g.drawString("HEADS", 300, 120);
 			}else{
 				g.drawString("TAILS", 300, 120);
@@ -632,10 +632,10 @@ public class Renderer extends JPanel{
 		    g.setFont(font);
 		    
 		    String coinTossWinner;
-			if(gameMaster.getState().getCoinToss().isHomePicked() == gameMaster.getState().getCoinToss().isResult()){
-				coinTossWinner = gameMaster.getState().getHomeTeam().getTeamName()+" won the coin toss";
-			}else{
+			if(gameMaster.getState().getCoinToss().hasAwayPickedHeads() == gameMaster.getState().getCoinToss().isResultHeads()){
 				coinTossWinner = gameMaster.getState().getAwayTeam().getTeamName()+" won the coin toss";
+			}else{
+				coinTossWinner = gameMaster.getState().getHomeTeam().getTeamName()+" won the coin toss";
 			}
 			g.drawString(coinTossWinner, 300, 150);
 		}

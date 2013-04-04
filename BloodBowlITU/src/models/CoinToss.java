@@ -5,14 +5,14 @@ import models.dice.D6;
 public class CoinToss {
 	
 	boolean tossed;
-	boolean homePicked;
-	boolean result;
+	boolean awayPickedHeads;
+	boolean resultHeads;
 	boolean homeReceives;
 	
 	public CoinToss() {
 		this.tossed = false;
-		this.homePicked = false;
-		this.result = false;
+		this.awayPickedHeads = false;
+		this.resultHeads = false;
 		this.homeReceives = false;
 	}
 
@@ -24,20 +24,20 @@ public class CoinToss {
 		this.tossed = tossed;
 	}
 
-	public boolean isHomePicked() {
-		return homePicked;
+	public boolean hasAwayPickedHeads() {
+		return awayPickedHeads;
 	}
 
-	public void setHomePicked(boolean homePicked) {
-		this.homePicked = homePicked;
+	public void setAwayPickedHeads(boolean pick) {
+		this.awayPickedHeads = pick;
 	}
 
-	public boolean isResult() {
-		return result;
+	public boolean isResultHeads() {
+		return resultHeads;
 	}
 
-	public void setResult(boolean result) {
-		this.result = result;
+	public void setResultHeads(boolean result) {
+		this.resultHeads = result;
 	}
 
 	public boolean isHomeReceives() {
@@ -55,9 +55,9 @@ public class CoinToss {
 		d.roll();
 
 		if(d.getResultAsInt() > 3){
-			setResult(true);
+			setResultHeads(true);
 		} else {
-			setResult(false);
+			setResultHeads(false);
 		}
 		
 		tossed = true;

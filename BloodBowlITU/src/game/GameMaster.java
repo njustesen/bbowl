@@ -439,7 +439,7 @@ public class GameMaster {
 	}
 
 	/**
-	 * Home team picks a coin side.
+	 * Away team picks a coin side.
 	 * @param heads
 	 * 		True if heads, false if tails.
 	 */
@@ -449,21 +449,21 @@ public class GameMaster {
 		if (state.getGameStage() == GameStage.COIN_TOSS){
 			
 			// Set coin side pick
-			state.getCoinToss().setHomePicked(heads);
+			state.getCoinToss().setAwayPickedHeads(heads);
 			
 			if (heads){
-				GameLog.push(state.getHomeTeam().getTeamName() + " picked heads.");
+				GameLog.push(state.getAwayTeam().getTeamName() + " picked heads.");
 			} else {
-				GameLog.push(state.getHomeTeam().getTeamName() + " picked tails.");
+				GameLog.push(state.getAwayTeam().getTeamName() + " picked tails.");
 			}
 			
 			// Toss the coin
 			state.getCoinToss().Toss();
 			
-			if (state.getCoinToss().isResult() == state.getCoinToss().isHomePicked()){
-				GameLog.push(state.getHomeTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
-			} else {
+			if (state.getCoinToss().isResultHeads() == state.getCoinToss().hasAwayPickedHeads()){
 				GameLog.push(state.getAwayTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
+			} else {
+				GameLog.push(state.getHomeTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
 			}
 			
 			// Go to pick coin toss effect
@@ -483,36 +483,36 @@ public class GameMaster {
 		// Legal action?
 		if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
 			
-			// If home picked correct
-			if (state.getCoinToss().isHomePicked() == state.getCoinToss().isResult()){
+			// If away picked correct
+			if (state.getCoinToss().hasAwayPickedHeads() == state.getCoinToss().isResultHeads()){
 				
-				// Home chooses to receive or kick
-				state.getCoinToss().setHomeReceives(receive);
+				// Away chooses to receive or kick
+				state.getCoinToss().setHomeReceives(!receive);
 				if (receive){
-					state.setReceivingTeam(state.getHomeTeam());
-					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push(state.getHomeTeam().getTeamName() + " selected to recieve the ball.");
-					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
-				} else {
-					state.setKickingTeam(state.getHomeTeam());
 					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push(state.getHomeTeam().getTeamName() + " selected to kick the ball.");
+					state.setKickingTeam(state.getHomeTeam());
+					GameLog.push(state.getAwayTeam().getTeamName() + " selected to recieve the ball.");
 					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
+				} else {
+					state.setKickingTeam(state.getAwayTeam());
+					state.setReceivingTeam(state.getHomeTeam());
+					GameLog.push(state.getAwayTeam().getTeamName() + " selected to kick the ball.");
+					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
 				}
 				
 			} else {
 				
 				// Away chooses to receive or kick
-				state.getCoinToss().setHomeReceives(!receive);
-				if (!receive){
+				state.getCoinToss().setHomeReceives(receive);
+				if (receive){
 					state.setReceivingTeam(state.getHomeTeam());
 					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push(state.getAwayTeam().getTeamName() + " selected to kick the ball.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " selected to receive the ball.");
 					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
 				} else {
 					state.setKickingTeam(state.getHomeTeam());
 					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push(state.getAwayTeam().getTeamName() + " selected to receive the ball.");
+					GameLog.push(state.getHomeTeam().getTeamName() + " selected to kick the ball.");
 					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
 				}
 				
