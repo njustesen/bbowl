@@ -45,8 +45,9 @@ public class Main {
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
 		AIAgent montiCarlos = new MontiCarlos(true);
+		AIAgent montiCarlosB = new MontiCarlos(false);
 		Pitch pitch = new Pitch(home, away);
-		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, null);
+		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB);
 		gameMaster.setSoundManager(new SoundManager());
 		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(60, gameMaster, inputManager);

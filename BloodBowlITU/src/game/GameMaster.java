@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 import ai.AIAgent;
 import ai.actions.Action;
+import ai.actions.EndSetupAction;
+import ai.actions.PlaceBallAction;
+import ai.actions.PlacePlayerAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
 
@@ -140,6 +143,20 @@ public class GameMaster {
 		} else if(action instanceof SelectCoinTossEffectAction){
 			
 			pickCoinTossEffect(((SelectCoinTossEffectAction)action).isReceive());
+			
+		} else if(action instanceof EndSetupAction){
+			
+			endSetup();
+			
+		} else if(action instanceof PlacePlayerAction){
+			
+			placePlayerIfAllowed(((PlacePlayerAction)action).getPlayer(), ((PlacePlayerAction)action).getSquare());
+			
+		} else if(action instanceof PlaceBallAction){
+			
+			placeBall(((PlaceBallAction)action).getSquare());
+			
+			endPhase();
 			
 		}
 		

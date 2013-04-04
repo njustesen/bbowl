@@ -5,6 +5,7 @@ import game.GameMaster;
 import models.Coach;
 import models.GameStage;
 import models.GameState;
+import models.Team;
 
 public abstract class AIAgent {
 	
@@ -23,56 +24,60 @@ public abstract class AIAgent {
 		} else if (state.getGameStage() == GameStage.COIN_TOSS && !homeTeam){
 			return pickCoinSide(state);
 		} else if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+			
 			if (state.getCoinToss().hasAwayPickedHeads() == state.getCoinToss().isResultHeads() && !homeTeam){
 				return pickCoinSideEffect(state);
 			} else if (state.getCoinToss().hasAwayPickedHeads() != state.getCoinToss().isResultHeads() && homeTeam){
 				return pickCoinSideEffect(state);
 			}
+			
 		} else if (state.getGameStage() == GameStage.KICKING_SETUP){
-			if (state.getKickingTeam() == state.getHomeTeam() && homeTeam){
+			
+			if (state.getKickingTeam() == myTeam(state))
 				return setup(state);
-			} else if (state.getKickingTeam() != state.getHomeTeam() && !homeTeam){
-				return setup(state);
-			}
+			
 		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
-			if (state.getReceivingTeam() == state.getHomeTeam() && homeTeam){
+			
+			if (state.getReceivingTeam() == myTeam(state))
 				return setup(state);
-			} else if (state.getReceivingTeam() != state.getHomeTeam() && !homeTeam){
-				return setup(state);
-			}
+			
 		} else if (state.getGameStage() == GameStage.KICK_PLACEMENT){
-			if (state.getKickingTeam() == state.getHomeTeam() && homeTeam){
+			
+			if (state.getKickingTeam() == myTeam(state))
 				return placeKick(state);
-			} else if (state.getKickingTeam() != state.getHomeTeam() && !homeTeam){
-				return placeKick(state);
-			}
+			
 		} else if (state.getGameStage() == GameStage.PLACE_BALL_ON_PLAYER){
-			if (state.getReceivingTeam() == state.getHomeTeam() && homeTeam){
+			
+			if (state.getReceivingTeam() == myTeam(state))
 				return placeBallOnPlayer(state);
-			} else if (state.getReceivingTeam() != state.getHomeTeam() && !homeTeam){
-				return placeBallOnPlayer(state);
-			}
+			
 		} else if (state.getGameStage() == GameStage.BLITZ){
-			if (state.getKickingTeam() == state.getHomeTeam() && homeTeam){
+			
+			if (state.getKickingTeam() == myTeam(state))
 				return blitz(state);
-			} else if (state.getKickingTeam() != state.getHomeTeam() && !homeTeam){
-				return blitz(state);
-			}
+			
 		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
-			if (state.getReceivingTeam() == state.getHomeTeam() && homeTeam){
+			
+			if (state.getReceivingTeam() == myTeam(state))
 				return quickSnap(state);
-			} else if (state.getReceivingTeam() != state.getHomeTeam() && !homeTeam){
-				return quickSnap(state);
-			}
+			
 		} else if (state.getGameStage() == GameStage.HIGH_KICK){
-			if (state.getReceivingTeam() == state.getHomeTeam() && homeTeam){
+			
+			if (state.getReceivingTeam() == myTeam(state))
 				return highKick(state);
-			} else if (state.getReceivingTeam() != state.getHomeTeam() && !homeTeam){
-				return highKick(state);
-			}
+			
 		}
 		
 		return null;
+		
+	}
+	
+	protected Team myTeam(GameState state){
+		
+		if (homeTeam){
+			return state.getHomeTeam();
+		}
+		return state.getAwayTeam();
 		
 	}
 

@@ -715,6 +715,104 @@ public class Pitch {
 		return line;
 		
 	}
+
+	public Square getRandomFreeScrimmageSquare(Team team) {
+		
+		boolean found = false;
+		int x = 1;
+		int y = 1;
+		
+		while (!found){
+			y = 5 + (int) (Math.random() * 6);
+			x = 13;
+			if (!isTeamHome(team)){
+				x = 14;
+			}
+			if (playerArr[y][x] == null){
+				found = true;
+			}
+		}
+		
+		return new Square(x,y);
+			
+	}
+	
+	public Square getRandomFreeFlankSquare(Team team, boolean up) {
+		
+		boolean found = false;
+		int x = 1;
+		int y = 1;
+		
+		while (!found){
+			x = 1 + (int) (Math.random() * 13);
+			y = 1 + (int) (Math.random() * 4);
+			if (!isTeamHome(team)){
+				x+=13;
+			}
+			if (!up){
+				y+=8;
+			}
+			if (playerArr[y][x] == null){
+				found = true;
+			}
+		}
+		return new Square(x,y);
+			
+	}
+	
+	public Square getRandomFreeMiddleSquare(Team team) {
+		
+		boolean found = false;
+		int x = 1;
+		int y = 1;
+		
+		while (!found){
+			x = 1 + (int) (Math.random() * 13);
+			y = 5 + (int) (Math.random() * 7);
+			if (!isTeamHome(team)){
+				x+=13;
+			}
+			if (playerArr[y][x] == null){
+				found = true;
+			}
+		}
+		return new Square(x,y);
+			
+	}
+	
+	public Square getRandomFreeSquare(Team team) {
+		
+		boolean found = false;
+		int x = 1;
+		int y = 1;
+		
+		while (!found){
+			x = 1 + (int) (Math.random() * 13);
+			y = 1 + (int) (Math.random() * 15);
+			if (!isTeamHome(team)){
+				x+=13;
+			}
+			if (playerArr[y][x] == null){
+				found = true;
+			}
+		}
+		return new Square(x,y);
+			
+	}
+
+	public Square getRandomOpposingSquare(Team team) {
+		
+		int x = 1;
+		int y = 1;
+
+		x = 1 + (int) (Math.random() * 13);
+		y = 1 + (int) (Math.random() * 15);
+		if (isTeamHome(team)){
+			x+=13;
+		}
+		
+		return new Square(x,y);
+	}
     
 }
 
