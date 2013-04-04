@@ -1,5 +1,7 @@
 package ai;
 
+import java.util.ArrayList;
+
 import ai.actions.Action;
 import ai.actions.EndPhaseAction;
 import ai.actions.EndPlayerTurnAction;
@@ -125,10 +127,71 @@ public class MontiCarlos extends AIAgent {
 
 	@Override
 	protected Action turn(GameState state) {
+
+		ArrayList<Player> usable = new ArrayList<Player>();
+		
+		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
+			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED){
+				usable.add(p);
+			}
+		}
+		
+		if (usable.size() != 0){
+		
+			int i = (int) (Math.random() * usable.size());
+			Player player = usable.get(i);
+			
+			switch(player.getPlayerStatus().getTurn()){
+			case UNUSED : return startPlayerAction(player);
+			case MOVE_ACTION : return continueMoveAction(player);
+			case BLOCK_ACTION : return continueBlockAction(player);
+			case BLITZ_ACTION : return continueBlitzAction(player);
+			case PASS_ACTION : return continuePassAction(player);
+			case HAND_OFF_ACTION : return continueHandOffAction(player);
+			case FOUL_ACTION : return continueFoulAction(player);
+			case USED : break;
+			}
+			
+		}
+		
+		return new EndPhaseAction();
+		
+	}
+	
+	private Action continueFoulAction(Player player) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
+	private Action continueHandOffAction(Player player) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Action continuePassAction(Player player) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Action continueBlitzAction(Player player) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Action continueBlockAction(Player player) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Action continueMoveAction(Player player) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Action startPlayerAction(Player player) {
+		return new EndPlayerTurnAction(player);
+	}
+
 	private Action placeRandomPlayer(GameState state) {
 
 		int rand = (int) (Math.random() * state.getPitch().getDogout(myTeam(state)).getReserves().size());

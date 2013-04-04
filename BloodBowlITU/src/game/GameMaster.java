@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import ai.AIAgent;
 import ai.actions.Action;
 import ai.actions.EndPhaseAction;
+import ai.actions.EndPlayerTurnAction;
 import ai.actions.EndSetupAction;
 import ai.actions.MovePlayerAction;
 import ai.actions.PlaceBallAction;
@@ -79,6 +80,7 @@ public class GameMaster {
 			e.printStackTrace();
 		}
 		*/
+		
 		boolean home = false;
 		boolean away = false;
 		
@@ -185,12 +187,19 @@ public class GameMaster {
 			
 		} else if(action instanceof PlaceBallOnPlayerAction){
 			
-			selectedPlayer = ((SelectPlayerAction) action).getPlayer();
+			Square square = state.getPitch().getPlayerPosition(((PlaceBallOnPlayerAction) action).getPlayer());
+			state.getPitch().getBall().setSquare(square);
+			state.getPitch().getBall().setOnGround(true);
+			state.getPitch().getBall().setUnderControl(true);
 			endPhase();
 			
 		} else if(action instanceof MovePlayerAction){
 			
 			movePlayerIfAllowed(((MovePlayerAction) action).getPlayer(), ((MovePlayerAction) action).getSquare());
+			
+		} else if(action instanceof EndPlayerTurnAction){
+			
+			((EndPlayerTurnAction) action).getPlayer().getPlayerStatus().setTurn(PlayerTurn.USED);
 			
 		} else if(action instanceof EndPhaseAction){
 			
