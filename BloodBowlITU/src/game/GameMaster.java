@@ -2,6 +2,11 @@ package game;
 
 import java.util.ArrayList;
 
+import ai.AIAgent;
+import ai.actions.Action;
+import ai.actions.SelectCoinSideAction;
+import ai.actions.SelectCoinTossEffectAction;
+
 import sound.Sound;
 import sound.SoundManager;
 import models.BlockSum;
@@ -41,17 +46,15 @@ public class GameMaster {
 	private SoundManager soundManager;
 	private Player passTarget;
 	private Player handOffTarget;
-	//private PlayerAgent homeAgent;
-	//private PlayerAgent awayAgent;
+	private AIAgent homeAgent;
+	private AIAgent awayAgent;
 	private Player foulTarget;
 	
-	public GameMaster(GameState gameState, PlayerAgent homeAgent, PlayerAgent awayAgent) {
+	public GameMaster(GameState gameState, AIAgent homeAgent, AIAgent awayAgent) {
 		super();
 		this.state = gameState;
-		
-		// For debugging
-		//this.state.setGameStage(GameStage.KICKING_SETUP);
-		//this.state.setKickingTeam(this.state.getHomeTeam());
+		this.homeAgent = homeAgent;
+		this.awayAgent = awayAgent;
 	}
 	
 	public void setSoundManager(SoundManager soundManager){
@@ -61,21 +64,87 @@ public class GameMaster {
 	}
 	
 	public void update(){
-		/*
-		switch(state.getGameStage()){
-		case KICK_PLACEMENT : getKickingAgent().takeAction(this, state);	
-		case HOME_TURN : homeAgent.takeAction(this, state);	
-		case AWAY_TURN : awayAgent.takeAction(this, state);	
-		}
-		*/
 		
-	  /*String msg = GameLog.poll();
-		if (msg != "" && msg != null){
-			System.out.println(msg);
+		boolean home = false;
+		boolean away = false;
+		
+		if (state.getGameStage() == GameStage.HOME_TURN){
+			home = true;
+		} else if (state.getGameStage() == GameStage.AWAY_TURN){
+			away = true;
+		} else if (state.getGameStage() == GameStage.COIN_TOSS){
+			away = true;
+		} else if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
+			if (state.getCoinToss().hasAwayPickedHeads() == state.getCoinToss().isResultHeads()){
+				away = true;
+			} else {
+				home = true;
+			}
+		} else if (state.getGameStage() == GameStage.KICKING_SETUP){
+			if (state.getKickingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getKickingTeam() == state.getAwayTeam()){
+				away = true;
+			}
+		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
+			if (state.getReceivingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getReceivingTeam() == state.getAwayTeam()){
+				away = true;
+			}
+		} else if (state.getGameStage() == GameStage.KICK_PLACEMENT){
+			if (state.getKickingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getKickingTeam() == state.getAwayTeam()){
+				away = true;
+			}
+		} else if (state.getGameStage() == GameStage.PLACE_BALL_ON_PLAYER){
+			if (state.getReceivingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getReceivingTeam() == state.getAwayTeam()){
+				away = true;
+			}
+		} else if (state.getGameStage() == GameStage.BLITZ){
+			if (state.getKickingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getKickingTeam() == state.getAwayTeam()){
+				away = true;
+			}
+		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
+			if (state.getReceivingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getReceivingTeam() == state.getAwayTeam()){
+				away = true;
+			}
+		} else if (state.getGameStage() == GameStage.HIGH_KICK){
+			if (state.getReceivingTeam() == state.getHomeTeam()){
+				home = true;
+			} else if (state.getReceivingTeam() == state.getAwayTeam()){
+				away = true;
+			}
 		}
-	  */
+		
+		if (home && homeAgent != null){
+			performAIAction(homeAgent.takeAction(this, state));
+		} else if (away && awayAgent != null){
+			performAIAction(awayAgent.takeAction(this, state));
+		}
 	}
 	
+	private void performAIAction(Action action) {
+		
+		if(action instanceof SelectCoinSideAction){
+			
+			pickCoinSide(((SelectCoinSideAction)action).isHeads());
+			
+		} else if(action instanceof SelectCoinTossEffectAction){
+			
+			pickCoinTossEffect(((SelectCoinTossEffectAction)action).isReceive());
+			
+		}
+		
+	}
+
 	/**
 	 * Ends the current phase.
 	 * Should only be called during the following phases:

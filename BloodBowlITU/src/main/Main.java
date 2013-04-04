@@ -2,6 +2,9 @@ package main;
 
 import java.util.Date;
 
+import ai.AIAgent;
+import ai.MontiCarlos;
+
 import models.Coach;
 import models.GameState;
 import models.Pitch;
@@ -9,8 +12,6 @@ import models.Team;
 import models.TeamFactory;
 
 import game.GameMaster;
-import game.HumanPlayerAgent;
-import game.PlayerAgent;
 import sound.SoundManager;
 import test.DiceTester;
 import view.InputManager;
@@ -43,10 +44,9 @@ public class Main {
 		
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
-		PlayerAgent humanPlayer = new HumanPlayerAgent(new Coach("Tommy", home));
-		PlayerAgent AI = new HumanPlayerAgent(new Coach("AI", away));
+		AIAgent montiCarlos = new MontiCarlos(true);
 		Pitch pitch = new Pitch(home, away);
-		gameMaster = new GameMaster(new GameState(home, away, pitch), humanPlayer, AI);
+		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, null);
 		gameMaster.setSoundManager(new SoundManager());
 		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(60, gameMaster, inputManager);
