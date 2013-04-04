@@ -290,6 +290,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 							y > arrayToScreen(s.getX(), s.getY()).getY() && y < arrayToScreen(s.getX(), s.getY()).getY()+pitchSquareSize){
 						System.out.println("PLAYER OUT OF BOUNDS!!!");
 						//Write new methodcall
+						gameMaster.squareClicked(s);
 					}
 				}
 			}
