@@ -397,21 +397,34 @@ public class Renderer extends JPanel{
 			g.setColor(Color.RED);
 			g.drawLine(screenX, screenY, screenX+30, screenY+30);	
 		}
-		
-		if(p.getPlayerStatus().getTurn() != null){
-			switch(p.getPlayerStatus().getTurn()){
-				case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
-				case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
-				case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-				case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-				case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-				case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-				case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-				case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-				default: break;		
+		GameStage stage = gameMaster.getState().getGameStage();
+		if(p.getPlayerStatus().getTurn() != null){	
+			if(stage == GameStage.HOME_TURN && gameMaster.getState().getHomeTeam().getPlayers().contains(p)){
+				switch(p.getPlayerStatus().getTurn()){
+					case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
+					case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
+					case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					default: break;	
+				}
+		    }else if(stage == GameStage.AWAY_TURN  && gameMaster.getState().getAwayTeam().getPlayers().contains(p)){
+		    	switch(p.getPlayerStatus().getTurn()){
+					case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
+					case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
+					case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					default: break;	
+		    	}
 			}
 		}
-		
 		g.setFont(standard);
 		g.setColor(Color.WHITE);
 	}
@@ -669,7 +682,7 @@ public class Renderer extends JPanel{
 		if(p != null){
 			int x = InputManager.getActionButtonOrigin().getX()+6*inputManager.getActionButtonWidth()+5;
 			int y = InputManager.getActionButtonOrigin().getY()+2;
-			g.drawRect(x, y, 140, 68);
+			g.drawRect(x, y, 140, 77);
 			int movesLeft = p.getMA() - gameMaster.getSelectedPlayer().getPlayerStatus().getMovementUsed();
 			
 			Font font = new Font("Arial", Font.PLAIN, 16);	    
@@ -679,9 +692,14 @@ public class Renderer extends JPanel{
 			font = new Font("Arial", Font.PLAIN, 12);	    
 		    g.setFont(font); //<--
 			g.drawString("MA = "+movesLeft+"/"+p.getMA(), x+15, y+37);
-			g.drawString("AG = "+p.getAG(), x+75, y+37);
-			g.drawString("AV = "+p.getAV(), x+15, y+57);
-			g.drawString("ST = "+p.getST(), x+75, y+57);
+			g.drawString("AG = "+p.getAG(), x+75, y+35);
+			g.drawString("AV = "+p.getAV(), x+15, y+55);
+			g.drawString("ST = "+p.getST(), x+75, y+55);
+			
+			Font font2 = new Font("Arial", Font.PLAIN, 10);	    
+		    g.setFont(font2); //<--
+			g.drawString(p.getSkills().toString(), x+15, y+70);
+			g.setFont(font);
 		}
 	}
 	
