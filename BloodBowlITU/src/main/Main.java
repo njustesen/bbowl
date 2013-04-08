@@ -3,7 +3,7 @@ package main;
 import java.util.Date;
 
 import ai.AIAgent;
-import ai.MontiCarlos;
+import ai.RandomAI;
 
 import models.Coach;
 import models.GameState;
@@ -44,8 +44,8 @@ public class Main {
 		
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
-		AIAgent montiCarlos = new MontiCarlos(true);
-		AIAgent montiCarlosB = new MontiCarlos(false);
+		AIAgent montiCarlos = new RandomAI(true);
+		AIAgent montiCarlosB = new RandomAI(false);
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB);
 		gameMaster.setSoundManager(new SoundManager());
@@ -64,11 +64,13 @@ public class Main {
 	private static void loop(long startTime) {
 
 		while(true){
-			startTime = new Date().getTime();
+			//startTime = new Date().getTime();
+			
+			renderer.renderFrame();
 			
 			gameMaster.update();
 			
-			renderer.renderFrame();
+			
 			/*
 			long delta = new Date().getTime() - startTime;
 			try {

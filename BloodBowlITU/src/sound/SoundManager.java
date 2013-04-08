@@ -33,5 +33,6 @@ public class SoundManager {
 			case DICEROLL: diceRoll.start(); break;
 			case WHISTLE: whistle.start(); break;
 		}
+		
 	}
 }

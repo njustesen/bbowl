@@ -1,6 +1,7 @@
 package game;
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 public class GameLog {
 	
@@ -15,7 +16,12 @@ public class GameLog {
 	public static String poll(){
 		
 		if (messeges.size() > 0){
-			return messeges.removeFirst();
+			try {
+				return messeges.removeFirst();
+			} catch (NoSuchElementException e){
+				return "";
+			}
+			
 		}
 		
 		return "";

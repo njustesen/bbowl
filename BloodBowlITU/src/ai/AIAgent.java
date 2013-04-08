@@ -2,7 +2,6 @@ package ai;
 
 import ai.actions.Action;
 import game.GameMaster;
-import models.Coach;
 import models.GameStage;
 import models.GameState;
 import models.Team;
@@ -17,10 +16,26 @@ public abstract class AIAgent {
 
 	public Action takeAction(GameMaster master, GameState state) {
 		
-		if (state.getGameStage() == GameStage.HOME_TURN && homeTeam){
+		if ((state.getGameStage() == GameStage.HOME_TURN && homeTeam) || 
+				(state.getGameStage() == GameStage.AWAY_TURN && !homeTeam)){
+
+			if (state.isAwaitingReroll() && state.getCurrentDiceRoll() != null)
+				return decideReroll(state);
+			
+			if (state.isAwaitingPush())
+				return decidePush(state);
+			
+			if (state.isAwaitingFollowUp())
+				return decideFollowUp(state);
+			
 			return turn(state);
-		} else if (state.getGameStage() == GameStage.AWAY_TURN && !homeTeam){
-			return turn(state);
+			
+		} else if (state.getCurrentPass() != null &&
+				state.getCurrentPass().getInterceptionPlayers() != null &&
+				state.getCurrentPass().getInterceptionPlayers().size() > 0){
+			
+			return pickIntercepter(state);
+			
 		} else if (state.getGameStage() == GameStage.COIN_TOSS && !homeTeam){
 			return pickCoinSide(state);
 		} else if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
@@ -53,8 +68,19 @@ public abstract class AIAgent {
 			
 		} else if (state.getGameStage() == GameStage.BLITZ){
 			
-			if (state.getKickingTeam() == myTeam(state))
+			if (state.getKickingTeam() == myTeam(state)){
+				
+				if (state.isAwaitingReroll() && state.getCurrentDiceRoll() != null)
+					return decideReroll(state);
+				
+				if (state.isAwaitingPush())
+					return decidePush(state);
+				
+				if (state.isAwaitingFollowUp())
+					return decideFollowUp(state);
+				
 				return blitz(state);
+			}
 			
 		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
 			
@@ -87,6 +113,10 @@ public abstract class AIAgent {
 	}
 
 	protected abstract Action turn(GameState state);
+	protected abstract Action decideReroll(GameState state);
+	protected abstract Action pickIntercepter(GameState state);
+	protected abstract Action decidePush(GameState state);
+	protected abstract Action decideFollowUp(GameState state);
 	protected abstract Action pickCoinSide(GameState state);
 	protected abstract Action pickCoinSideEffect(GameState state);
 	protected abstract Action setup(GameState state);

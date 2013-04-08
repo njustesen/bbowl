@@ -1,19 +1,30 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import ai.AIAgent;
 import ai.actions.Action;
+import ai.actions.BlockPlayerAction;
 import ai.actions.EndPhaseAction;
 import ai.actions.EndPlayerTurnAction;
 import ai.actions.EndSetupAction;
+import ai.actions.FollowUpAction;
+import ai.actions.FoulPlayerAction;
+import ai.actions.HandOffPlayerAction;
+import ai.actions.SelectInterceptionAction;
 import ai.actions.MovePlayerAction;
+import ai.actions.PassPlayerAction;
 import ai.actions.PlaceBallAction;
 import ai.actions.PlaceBallOnPlayerAction;
 import ai.actions.PlacePlayerAction;
+import ai.actions.RerollAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
+import ai.actions.SelectDieAction;
 import ai.actions.SelectPlayerAction;
+import ai.actions.SelectPlayerTurnAction;
+import ai.actions.SelectPushSquareAction;
 
 import sound.Sound;
 import sound.SoundManager;
@@ -57,6 +68,7 @@ public class GameMaster {
 	private AIAgent homeAgent;
 	private AIAgent awayAgent;
 	private Player foulTarget;
+	private Date time;
 	
 	public GameMaster(GameState gameState, AIAgent homeAgent, AIAgent awayAgent) {
 		super();
@@ -74,25 +86,33 @@ public class GameMaster {
 	public void update(){
 		/*
 		try {
-			Thread.sleep(100);
+			Thread.sleep(30);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		*/
-		
 		boolean home = false;
-		boolean away = false;
 		
 		if (state.getGameStage() == GameStage.HOME_TURN){
 			home = true;
+			if (state.getCurrentPass() != null &&
+					state.getCurrentPass().getInterceptionPlayers() != null &&
+					state.getCurrentPass().getInterceptionPlayers().size() > 0){
+				home = false;
+			}
 		} else if (state.getGameStage() == GameStage.AWAY_TURN){
-			away = true;
+			home = false;
+			if (state.getCurrentPass() != null &&
+					state.getCurrentPass().getInterceptionPlayers() != null &&
+					state.getCurrentPass().getInterceptionPlayers().size() > 0){
+				home = true;
+			}
 		} else if (state.getGameStage() == GameStage.COIN_TOSS){
-			away = true;
+			home = false;
 		} else if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
 			if (state.getCoinToss().hasAwayPickedHeads() == state.getCoinToss().isResultHeads()){
-				away = true;
+				home = false;
 			} else {
 				home = true;
 			}
@@ -100,82 +120,72 @@ public class GameMaster {
 			if (state.getKickingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getKickingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
 			if (state.getReceivingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getReceivingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		} else if (state.getGameStage() == GameStage.KICK_PLACEMENT){
 			if (state.getKickingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getKickingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		} else if (state.getGameStage() == GameStage.PLACE_BALL_ON_PLAYER){
 			if (state.getReceivingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getReceivingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		} else if (state.getGameStage() == GameStage.BLITZ){
 			if (state.getKickingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getKickingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
 			if (state.getReceivingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getReceivingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		} else if (state.getGameStage() == GameStage.HIGH_KICK){
 			if (state.getReceivingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getReceivingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
 			if (state.getKickingTeam() == state.getHomeTeam()){
 				home = true;
 			} else if (state.getKickingTeam() == state.getAwayTeam()){
-				away = true;
+				home = false;
 			}
 		}
 		
 		if (home && homeAgent != null){
 			performAIAction(homeAgent.takeAction(this, state));
-		} else if (away && awayAgent != null){
+		} else if (!home && awayAgent != null){
 			performAIAction(awayAgent.takeAction(this, state));
 		}
 	}
 	
 	private void performAIAction(Action action) {
 		
-		if(action instanceof SelectCoinSideAction){
+		if(action instanceof RerollAction){
 			
-			pickCoinSide(((SelectCoinSideAction)action).isHeads());
+			reroll();
 			
-		} else if(action instanceof SelectCoinTossEffectAction){
+		} else if(action instanceof SelectDieAction){
 			
-			pickCoinTossEffect(((SelectCoinTossEffectAction)action).isReceive());
-			
-		} else if(action instanceof EndSetupAction){
-			
-			endSetup();
+			selectDie(((SelectDieAction) action).getDie());
 			
 		} else if(action instanceof PlacePlayerAction){
 			
 			placePlayerIfAllowed(((PlacePlayerAction)action).getPlayer(), ((PlacePlayerAction)action).getSquare());
-			
-		} else if(action instanceof PlaceBallAction){
-			
-			placeBall(((PlaceBallAction)action).getSquare());
-			
-			endPhase();
 			
 		} else if(action instanceof SelectPlayerAction){
 			
@@ -184,6 +194,12 @@ public class GameMaster {
 			if (state.getGameStage() == GameStage.HIGH_KICK){
 				endPhase();
 			}
+			
+		} else if(action instanceof SelectPlayerTurnAction){
+			
+			selectedPlayer = ((SelectPlayerTurnAction) action).getPlayer();
+			
+			selectAction(((SelectPlayerTurnAction) action).getTurn());
 			
 		} else if(action instanceof PlaceBallOnPlayerAction){
 			
@@ -197,11 +213,71 @@ public class GameMaster {
 			
 			movePlayerIfAllowed(((MovePlayerAction) action).getPlayer(), ((MovePlayerAction) action).getSquare());
 			
+		} else if(action instanceof BlockPlayerAction){
+			
+			Player attacker = ((BlockPlayerAction) action).getAttacker();
+			Player defender = ((BlockPlayerAction) action).getDefender();
+			blockTarget = defender;
+			performBlock(attacker, defender);
+			
+		} else if(action instanceof PassPlayerAction){
+			
+			Player passer = ((PassPlayerAction) action).getPasser();
+			Player catcher = ((PassPlayerAction) action).getCatcher();
+			passTarget = catcher;
+			performPass(passer, catcher);
+			
+		} else if(action instanceof HandOffPlayerAction){
+			
+			Player ballCarrier = ((HandOffPlayerAction) action).getBallCarrier();
+			Player catcher = ((HandOffPlayerAction) action).getCatcher();
+			handOffTarget = catcher;
+			performHandOff(ballCarrier, catcher);
+			
+		} else if(action instanceof FoulPlayerAction){
+			
+			Player fouler = ((FoulPlayerAction) action).getFouler();
+			Player enemy = ((FoulPlayerAction) action).getEnemy();
+			foulTarget = enemy;
+			performFoul(fouler, enemy);
+			
+		} else if(action instanceof FollowUpAction){
+
+			followUp(((FollowUpAction) action).isFollowUp());
+			
+		} else if(action instanceof SelectPushSquareAction){
+			
+			Square from = state.getCurrentBlock().getCurrentPush().getFrom();
+			
+			pushToSquare(from, ((SelectPushSquareAction) action).getSquare());
+			
 		} else if(action instanceof EndPlayerTurnAction){
 			
 			((EndPlayerTurnAction) action).getPlayer().getPlayerStatus().setTurn(PlayerTurn.USED);
 			
 		} else if(action instanceof EndPhaseAction){
+			
+			endPhase();
+			
+		} else if(action instanceof SelectInterceptionAction){
+			
+			continueInterception(((SelectInterceptionAction) action).getIntercepter());
+			
+		} else if(action instanceof SelectCoinSideAction){
+			
+			pickCoinSide(((SelectCoinSideAction)action).isHeads());
+			
+		} else if(action instanceof SelectCoinTossEffectAction){
+			
+			pickCoinTossEffect(((SelectCoinTossEffectAction)action).isReceive());
+			
+		} else if(action instanceof EndSetupAction){
+			
+			endSetup();
+			
+		} else if(action instanceof PlaceBallAction){
+			
+			placeBall(((PlaceBallAction)action).getSquare());
 			
 			endPhase();
 			
@@ -281,10 +357,7 @@ public class GameMaster {
 				
 				pushToSquare(from, square);
 				
-				if (state.getCurrentBlock().getCurrentPush() == null){
-					endPush();
-					return;
-				}
+				
 				
 			}	
 			
@@ -551,6 +624,8 @@ public class GameMaster {
 		
 		// Legal action?
 		if (state.getGameStage() == GameStage.START_UP){
+			
+			time = new Date();
 			
 			// Roll for fans and FAME
 			rollForFans();
@@ -1027,7 +1102,7 @@ public class GameMaster {
 		
 	}
 
-	private PassRange passingRange(Player passer, Player catcher) {
+	public PassRange passingRange(Player passer, Player catcher) {
 		
 		Square a = state.getPitch().getPlayerPosition(passer);
 		Square b = state.getPitch().getPlayerPosition(catcher);
@@ -1510,6 +1585,7 @@ public class GameMaster {
 			}
 			
 			selectedPlayer.getPlayerStatus().setTurn(action);
+			endTurnForOtherPlayers(playerOwner(selectedPlayer), selectedPlayer);
 			
 		}
 		
@@ -1692,6 +1768,11 @@ public class GameMaster {
 			
 		}
 		
+		if (state.getCurrentBlock().getCurrentPush() == null){
+			endPush();
+			return;
+		}
+		
 	}
 
 	private void performPush(Square to) {
@@ -1798,7 +1879,9 @@ public class GameMaster {
 		
 		for(Player p : team.getPlayers()){
 			if (p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
-				p.getPlayerStatus().setTurn(PlayerTurn.USED);
+				if (p != player){
+					p.getPlayerStatus().setTurn(PlayerTurn.USED);
+				}
 			}
 		}
 		
@@ -2348,7 +2431,7 @@ public class GameMaster {
 		
 		state.getPitch().getBall().setSquare(ballOn);
 		
-		Player player = state.getPitch().getPlayerArr()[ballOn.getY()][ballOn.getX()];
+		Player player = state.getPitch().getPlayerAt( ballOn );
 		
 		// Land on player
 		if (player != null){
@@ -2684,8 +2767,18 @@ public class GameMaster {
 
 	private boolean moveAllowed(Player player, Square square) {
 		
+		// Block?
+		if (state.isAwaitingPush() || state.isAwaitingFollowUp()){
+			return false;
+		}
+		
 		// Legal square
 		if (!nextToEachOther(player, square)){
+			return false;
+		}
+		
+		// Square on pitch
+		if (!state.getPitch().isOnPitch(square)){
 			return false;
 		}
 		
@@ -2724,7 +2817,7 @@ public class GameMaster {
 		return false;
 		
 	}
-	
+
 	private boolean playerMovementLeft(Player player) {
 
 		boolean movementLeft = false;
@@ -2852,7 +2945,6 @@ public class GameMaster {
 		
 		state.setAwaitReroll(false);
 		
-		
 		state.getCurrentBlock().setResult(face);
 		
 		switch(face){
@@ -2950,6 +3042,10 @@ public class GameMaster {
 
 	private void endTurn() {
 		
+		if (state.isAwaitingFollowUp() || state.isAwaitingPush() || state.isAwaitingReroll()){
+			return;
+		}
+		
 		// Clear dice roll
 		state.setCurrentBlock(null);
 		state.setCurrentDodge(null);
@@ -2958,6 +3054,9 @@ public class GameMaster {
 		state.setCurrentCatch(null);
 		state.setCurrentHandOff(null);
 		state.setCurrentGoingForIt(null);
+		state.setAwaitFollowUp(false);
+		state.setAwaitPush(false);
+		state.setAwaitReroll(false);
 		
 		// Any turns left?
 		if (state.getGameStage() == GameStage.HOME_TURN){
@@ -3050,6 +3149,10 @@ public class GameMaster {
 
 	private void endGame() {
 		
+		Date now = new Date();
+		
+		System.out.println("Game took: " + (now.getTime() - time.getTime()) + " ms.");
+		
 		state.setGameStage(GameStage.GAME_ENDED);
 		
 	}
@@ -3141,31 +3244,38 @@ public class GameMaster {
 		D6 da = new D6();
 		
 		// Home team
+		ArrayList<Player> ready = new ArrayList<Player>();
 		for(Player player : state.getPitch().getHomeDogout().getKnockedOut()){
 			
 			da.roll();
 			
 			if (da.getResultAsInt()> 3){
-				
-				state.getPitch().getHomeDogout().getKnockedOut().remove(player);
-				state.getPitch().getHomeDogout().getReserves().add(player);
+				ready.add(player);
 				
 			}
 			
 		}
 		
+		for(Player player : ready){
+			state.getPitch().getHomeDogout().getKnockedOut().remove(player);
+			state.getPitch().getHomeDogout().getReserves().add(player);
+		}
+		
 		// Away team
+		ready = new ArrayList<Player>();
 		for(Player player : state.getPitch().getAwayDogout().getKnockedOut()){
 			
 			da.roll();
 			
 			if (da.getResultAsInt() > 3){
-				
-				state.getPitch().getAwayDogout().getKnockedOut().remove(player);
-				state.getPitch().getAwayDogout().getReserves().add(player);
-				
+				ready.add(player);
 			}
 			
+		}
+		
+		for(Player player : ready){
+			state.getPitch().getAwayDogout().getKnockedOut().remove(player);
+			state.getPitch().getAwayDogout().getReserves().add(player);
 		}
 		
 	}
@@ -3675,9 +3785,8 @@ public class GameMaster {
 		//throwARock();
 		//highKick();
 		//perfectDefense();
-		quickSnap();
+		//quickSnap();
 		
-		/*
 		switch(roll){
 			case 2: getTheRef(); break;
 			case 3: riot(); break;
@@ -3691,7 +3800,7 @@ public class GameMaster {
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
 		}
-		*/
+		
 	}
 
 	/**
