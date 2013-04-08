@@ -28,6 +28,7 @@ import javax.swing.JTextField;
 
 import models.GameStage;
 import models.Player;
+import models.PlayerTurn;
 import models.Race;
 import models.Square;
 import models.Standing;
@@ -114,7 +115,10 @@ public class Renderer extends JPanel{
 	private BBAnimation greenTile = new BBAnimation("greenTile", true, 10);
 	private BBAnimation whiteTile = new BBAnimation("whiteTile", true, 10);
 	private BBAnimation selectedPlayer = new BBAnimation("selectedTile", true, 20);
-	private BBAnimation roll = new BBAnimation("roll", true, 30);	
+	private BBAnimation roll = new BBAnimation("roll", true, 30);
+	private BBAnimation greenDot = new BBAnimation("greenDot", true, 5);
+	private BBAnimation redDot = new BBAnimation("redDot", true, 5);
+	private BBAnimation yellowDot = new BBAnimation("yellowDot", true, 5);
 	//orcs
 	private BBImage olineman = new BBImage("olineman.png");
 	private BBImage oblackorc = new BBImage("oblackorc.png");
@@ -172,6 +176,9 @@ public class Renderer extends JPanel{
 		whiteTile.loopAnimation();
 		roll.loopAnimation();
 		selectedPlayer.loopAnimation();
+		redDot.loopAnimation();
+		greenDot.loopAnimation();
+		yellowDot.loopAnimation();
 	}
 	
 	public void drawWeather(Graphics g){
@@ -390,6 +397,34 @@ public class Renderer extends JPanel{
 			g.setColor(Color.RED);
 			g.drawLine(screenX, screenY, screenX+30, screenY+30);	
 		}
+		GameStage stage = gameMaster.getState().getGameStage();
+		if(p.getPlayerStatus().getTurn() != null){	
+			if(stage == GameStage.HOME_TURN && gameMaster.getState().getHomeTeam().getPlayers().contains(p)){
+				switch(p.getPlayerStatus().getTurn()){
+					case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
+					case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
+					case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					default: break;	
+				}
+		    }else if(stage == GameStage.AWAY_TURN  && gameMaster.getState().getAwayTeam().getPlayers().contains(p)){
+		    	switch(p.getPlayerStatus().getTurn()){
+					case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
+					case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
+					case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+					default: break;	
+		    	}
+			}
+		}
 		g.setFont(standard);
 		g.setColor(Color.WHITE);
 	}
@@ -604,6 +639,7 @@ public class Renderer extends JPanel{
 	
 	public void drawCoinToss(Graphics g){
 		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
+			g.drawString(gameMaster.getState().getAwayTeam().getTeamName()+" pick a coin", 350, 420);
 			g.drawImage(heads.getBufferedImage(), inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, null);
 			g.drawImage(tails.getBufferedImage(), inputManager.getTailsCenter().getX()-tails.getWidth()/2, inputManager.getTailsCenter().getY()-tails.getHeight()/2, null);
 		}else if(gameMaster.getState().getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
@@ -645,7 +681,7 @@ public class Renderer extends JPanel{
 			Player p = gameMaster.getSelectedPlayer();
 			int x = InputManager.getActionButtonOrigin().getX()+6*inputManager.getActionButtonWidth()+5;
 			int y = InputManager.getActionButtonOrigin().getY()+2;
-			g.drawRect(x, y, 140, 68);
+			g.drawRect(x, y, 140, 77);
 			int movesLeft = p.getMA() - gameMaster.getSelectedPlayer().getPlayerStatus().getMovementUsed();
 			
 			Font font = new Font("Arial", Font.PLAIN, 16);	    
@@ -655,9 +691,14 @@ public class Renderer extends JPanel{
 			font = new Font("Arial", Font.PLAIN, 12);	    
 		    g.setFont(font); //<--
 			g.drawString("MA = "+movesLeft+"/"+p.getMA(), x+15, y+37);
-			g.drawString("AG = "+p.getAG(), x+75, y+37);
-			g.drawString("AV = "+p.getAV(), x+15, y+57);
-			g.drawString("ST = "+p.getST(), x+75, y+57);
+			g.drawString("AG = "+p.getAG(), x+75, y+35);
+			g.drawString("AV = "+p.getAV(), x+15, y+55);
+			g.drawString("ST = "+p.getST(), x+75, y+55);
+			
+			Font font2 = new Font("Arial", Font.PLAIN, 10);	    
+		    g.setFont(font2); //<--
+			g.drawString(p.getSkills().toString(), x+15, y+70);
+			g.setFont(font);
 		}
 	}
 	
