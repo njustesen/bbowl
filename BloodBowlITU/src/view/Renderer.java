@@ -614,7 +614,7 @@ public class Renderer extends JPanel{
 		for (int i = 0; i < gameMaster.getState().getPitch().getAwayDogout().getReserves().size(); i++){
 			
 			Player p = gameMaster.getState().getPitch().getAwayDogout().getReserves().get(i);
-			drawPlayer(g, p, i%2 - 1, i/2 + 1);
+			drawPlayer(g, p, i%2 + 1 + 26, i/2 + 1);
 			
 		}
 

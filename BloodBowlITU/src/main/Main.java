@@ -5,7 +5,6 @@ import java.util.Date;
 import ai.AIAgent;
 import ai.RandomAI;
 
-import models.Coach;
 import models.GameState;
 import models.Pitch;
 import models.Team;
@@ -47,7 +46,7 @@ public class Main {
 		AIAgent montiCarlos = new RandomAI(true);
 		AIAgent montiCarlosB = new RandomAI(false);
 		Pitch pitch = new Pitch(home, away);
-		gameMaster = new GameMaster(new GameState(home, away, pitch), null, null);
+		gameMaster = new GameMaster(new GameState(home, away, pitch), null, montiCarlosB);
 		gameMaster.setSoundManager(new SoundManager());
 		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(60, gameMaster, inputManager);

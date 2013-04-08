@@ -86,7 +86,7 @@ public class GameMaster {
 	public void update(){
 		/*
 		try {
-			Thread.sleep(30);
+			Thread.sleep(50);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -174,6 +174,13 @@ public class GameMaster {
 	}
 	
 	private void performAIAction(Action action) {
+		
+		try {
+			Thread.sleep(20);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		if(action instanceof RerollAction){
 			
@@ -356,8 +363,6 @@ public class GameMaster {
 				Square from = state.getCurrentBlock().getCurrentPush().getTo();
 				
 				pushToSquare(from, square);
-				
-				
 				
 			}	
 			
@@ -1147,6 +1152,8 @@ public class GameMaster {
 			fouler.getPlayerStatus().setTurn(PlayerTurn.FOUL_ACTION);
 		}
 		
+		endTurnForOtherPlayers(playerOwner(fouler), fouler);
+		
 		playerOwner(fouler).getTeamStatus().setHasFouled(true);
 		
 		int foulSum = calculateFoulSum(fouler, target);
@@ -1281,6 +1288,8 @@ public class GameMaster {
 		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 			attacker.getPlayerStatus().setTurn(PlayerTurn.BLOCK_ACTION);
 		}
+		
+		endTurnForOtherPlayers(playerOwner(attacker), attacker);
 		
 		// Blitz?
 		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.BLITZ_ACTION){
@@ -1654,7 +1663,7 @@ public class GameMaster {
 			
 			removePlayerFromReserves(player);
 			
-			state.getPitch().getHomeDogout().getReserves().add(selectedPlayer);
+			state.getPitch().getHomeDogout().getReserves().add(player);
 			
 			
 		} else if (playerOwner(player) == state.getAwayTeam() && !home){
@@ -1663,7 +1672,7 @@ public class GameMaster {
 			
 			removePlayerFromReserves(player);
 			
-			state.getPitch().getAwayDogout().getReserves().add(selectedPlayer);
+			state.getPitch().getAwayDogout().getReserves().add(player);
 			
 		}
 		
@@ -1821,7 +1830,8 @@ public class GameMaster {
 				
 				knockDown(player, false);
 				
-				if (player.getPlayerStatus().getStanding() == Standing.STUNNED){
+				if (player.getPlayerStatus().getStanding() == Standing.STUNNED || player.getPlayerStatus().getStanding() == Standing.DOWN){
+					player.getPlayerStatus().setStanding(Standing.UP);
 					removePlayerFromCurrentSquare(player);
 					movePlayerToReserves(player, (playerOwner(player) == state.getHomeTeam()));
 				}
@@ -3008,26 +3018,32 @@ public class GameMaster {
 	}
 
 	private ArrayList<Square> eliminatedPushSquares(Push push) {
-		// Eliminate squares
-		boolean playersOnAll = true;
+		
+		ArrayList<Square> squaresOOB = new ArrayList<Square>();
+		ArrayList<Square> squaresWithPlayers = new ArrayList<Square>();
 		ArrayList<Square> squaresWithoutPlayers = new ArrayList<Square>();
-		
 		for (Square sq : push.getPushSquares()){
-			
-			Player player = state.getPitch().getPlayerAt(sq);
-			
-			if (player == null){
-				playersOnAll = false;
-				squaresWithoutPlayers.add(sq);
+			if (state.getPitch().isOnPitch(sq)){
+				if (state.getPitch().getPlayerAt(sq) == null){
+					squaresWithoutPlayers.add(sq);
+				} else {
+					squaresWithPlayers.add(sq);
+				}
+			} else {
+				squaresOOB.add(sq);
 			}
-			
 		}
 		
-		if (!playersOnAll){
+		if (squaresWithoutPlayers.size() == 3){
 			return squaresWithoutPlayers;
+		} else if (squaresWithoutPlayers.size() == 0){
+			if (squaresOOB.size() > 0){
+				return squaresOOB;
+			}
+			return squaresWithPlayers;
 		}
 		
-		return push.getPushSquares();
+		return squaresWithoutPlayers;
 	}
 
 	private void attackerDown(Block block) {
