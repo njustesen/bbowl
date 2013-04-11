@@ -85,14 +85,14 @@ public class GameMaster {
 	}
 	
 	public void update(){
-		/*
+		
 		try {
 			Thread.sleep(220);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		*/
+		
 		if (state.getGameStage() == GameStage.START_UP){
 			return;
 		}

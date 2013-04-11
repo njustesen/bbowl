@@ -10,18 +10,18 @@ public class SoundManager {
 	BBSound whistle;
 	
 	public SoundManager(){
-		/*
+		
 		buttonClick = new BBSound("buttonClick.wav");
 		beginTurn = new BBSound("beginTurn.wav");
 		knockedDown = new BBSound("knockedDown.wav");
 		cheer = new BBSound("cheer.wav"); //from http://www.mediacollege.com/downloads/sound-effects/audience/
 		diceRoll = new BBSound("diceRoll.wav");//from http://soundbible.com/181-Roll-Dice-2.html
 		whistle = new BBSound("whistle.wav");
-		*/
+		
 	}
 	
 	public void playSound(Sound sound){
-		/*
+		
 		// Ignore loud sounds when developing
 		if (sound == Sound.CHEER){
 			return;
@@ -35,6 +35,6 @@ public class SoundManager {
 			case DICEROLL: diceRoll.start(); break;
 			case WHISTLE: whistle.start(); break;
 		}
-		*/
+		
 	}
 }

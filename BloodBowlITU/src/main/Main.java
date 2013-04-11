@@ -63,12 +63,12 @@ public class Main {
 	private static void loop(long startTime) {
 
 		while(true){
+			
 			//startTime = new Date().getTime();
 			
-			//renderer.renderFrame();
+			renderer.renderFrame();
 			
 			gameMaster.update();
-			
 			
 			/*
 			long delta = new Date().getTime() - startTime;
