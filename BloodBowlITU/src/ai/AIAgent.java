@@ -1,5 +1,6 @@
 package ai;
 
+import Statistics.StatisticManager;
 import ai.actions.Action;
 import game.GameMaster;
 import models.GameStage;
@@ -8,7 +9,7 @@ import models.Team;
 
 public abstract class AIAgent {
 	
-	boolean homeTeam;
+	protected boolean homeTeam;
 	
 	public AIAgent(boolean homeTeam) {
 		this.homeTeam = homeTeam;
@@ -16,8 +17,10 @@ public abstract class AIAgent {
 
 	public Action takeAction(GameMaster master, GameState state) {
 		
-		if ((state.getGameStage() == GameStage.HOME_TURN && homeTeam) || 
-				(state.getGameStage() == GameStage.AWAY_TURN && !homeTeam)){
+		StatisticManager.actions++;
+		
+		if (state.getGameStage() == GameStage.HOME_TURN || 
+				state.getGameStage() == GameStage.AWAY_TURN){
 
 			if (state.isAwaitingReroll() && state.getCurrentDiceRoll() != null)
 				return decideReroll(state);
@@ -40,35 +43,35 @@ public abstract class AIAgent {
 			return pickCoinSide(state);
 		} else if (state.getGameStage() == GameStage.PICK_COIN_TOSS_EFFECT){
 			
-			if (state.getCoinToss().hasAwayPickedHeads() == state.getCoinToss().isResultHeads() && !homeTeam){
+			//if (state.getCoinToss().hasAwayPickedHeads() == state.getCoinToss().isResultHeads() && !homeTeam){
 				return pickCoinSideEffect(state);
-			} else if (state.getCoinToss().hasAwayPickedHeads() != state.getCoinToss().isResultHeads() && homeTeam){
-				return pickCoinSideEffect(state);
-			}
+			//} else if (state.getCoinToss().hasAwayPickedHeads() != state.getCoinToss().isResultHeads() && homeTeam){
+				//return pickCoinSideEffect(state);
+			//}
 			
 		} else if (state.getGameStage() == GameStage.KICKING_SETUP){
 			
-			if (state.getKickingTeam() == myTeam(state))
+			//if (state.getKickingTeam() == myTeam(state))
 				return setup(state);
 			
 		} else if (state.getGameStage() == GameStage.RECEIVING_SETUP){
 			
-			if (state.getReceivingTeam() == myTeam(state))
+			//if (state.getReceivingTeam() == myTeam(state))
 				return setup(state);
 			
 		} else if (state.getGameStage() == GameStage.KICK_PLACEMENT){
 			
-			if (state.getKickingTeam() == myTeam(state))
+			//if (state.getKickingTeam() == myTeam(state))
 				return placeKick(state);
 			
 		} else if (state.getGameStage() == GameStage.PLACE_BALL_ON_PLAYER){
 			
-			if (state.getReceivingTeam() == myTeam(state))
+			//if (state.getReceivingTeam() == myTeam(state))
 				return placeBallOnPlayer(state);
 			
 		} else if (state.getGameStage() == GameStage.BLITZ){
 			
-			if (state.getKickingTeam() == myTeam(state)){
+			//if (state.getKickingTeam() == myTeam(state)){
 				
 				if (state.isAwaitingReroll() && state.getCurrentDiceRoll() != null)
 					return decideReroll(state);
@@ -80,21 +83,21 @@ public abstract class AIAgent {
 					return decideFollowUp(state);
 				
 				return blitz(state);
-			}
+			//}
 			
 		} else if (state.getGameStage() == GameStage.QUICK_SNAP){
 			
-			if (state.getReceivingTeam() == myTeam(state))
+			//if (state.getReceivingTeam() == myTeam(state))
 				return quickSnap(state);
 			
 		} else if (state.getGameStage() == GameStage.HIGH_KICK){
 			
-			if (state.getReceivingTeam() == myTeam(state))
+			//if (state.getReceivingTeam() == myTeam(state))
 				return highKick(state);
 			
 		} else if (state.getGameStage() == GameStage.PERFECT_DEFENSE){
 			
-			if (state.getKickingTeam() == myTeam(state))
+			//if (state.getKickingTeam() == myTeam(state))
 				return perfectDefense(state);
 			
 		}

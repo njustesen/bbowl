@@ -46,7 +46,7 @@ public class Main {
 		AIAgent montiCarlos = new RandomAI(true);
 		AIAgent montiCarlosB = new RandomAI(false);
 		Pitch pitch = new Pitch(home, away);
-		gameMaster = new GameMaster(new GameState(home, away, pitch), null, montiCarlosB);
+		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB);
 		gameMaster.setSoundManager(new SoundManager());
 		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(60, gameMaster, inputManager);
@@ -65,7 +65,7 @@ public class Main {
 		while(true){
 			//startTime = new Date().getTime();
 			
-			renderer.renderFrame();
+			//renderer.renderFrame();
 			
 			gameMaster.update();
 			

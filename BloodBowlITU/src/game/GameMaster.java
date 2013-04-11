@@ -3,6 +3,7 @@ package game;
 import java.util.ArrayList;
 import java.util.Date;
 
+import Statistics.StatisticManager;
 import ai.AIAgent;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
@@ -86,12 +87,22 @@ public class GameMaster {
 	public void update(){
 		/*
 		try {
-			Thread.sleep(50);
+			Thread.sleep(220);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		*/
+		if (state.getGameStage() == GameStage.START_UP){
+			return;
+		}
+		if (state.getGameStage() == GameStage.GAME_ENDED){
+			StatisticManager.print();
+			StatisticManager.stopped = true;
+		}
+		
+		long time = System.nanoTime();
+		
 		boolean home = false;
 		
 		if (state.getGameStage() == GameStage.HOME_TURN){
@@ -101,12 +112,18 @@ public class GameMaster {
 					state.getCurrentPass().getInterceptionPlayers().size() > 0){
 				home = false;
 			}
+			if (state.isAwaitingReroll() && state.getCurrentDiceRoll() != null && state.getCurrentBlock() != null && state.getCurrentGoingForIt() == null){
+				home = (state.getHomeTeam() == state.getCurrentBlock().getSelectTeam());
+			}
 		} else if (state.getGameStage() == GameStage.AWAY_TURN){
 			home = false;
 			if (state.getCurrentPass() != null &&
 					state.getCurrentPass().getInterceptionPlayers() != null &&
 					state.getCurrentPass().getInterceptionPlayers().size() > 0){
 				home = true;
+			}
+			if (state.isAwaitingReroll() && state.getCurrentDiceRoll() != null && state.getCurrentBlock() != null && state.getCurrentGoingForIt() == null){
+				home = (state.getHomeTeam() == state.getCurrentBlock().getSelectTeam());
 			}
 		} else if (state.getGameStage() == GameStage.COIN_TOSS){
 			home = false;
@@ -166,21 +183,30 @@ public class GameMaster {
 			}
 		}
 		
+		StatisticManager.timeSpendByGameMaster += System.nanoTime() - time;
+		
+		long agentTime = System.nanoTime();
+		Action action = null;
 		if (home && homeAgent != null){
-			performAIAction(homeAgent.takeAction(this, state));
+			action = homeAgent.takeAction(this, state);
 		} else if (!home && awayAgent != null){
-			performAIAction(awayAgent.takeAction(this, state));
+			action = awayAgent.takeAction(this, state);
 		}
+		StatisticManager.timeSpendByAIAgent += System.nanoTime() - agentTime;
+		performAIAction(action);
+		
 	}
 	
 	private void performAIAction(Action action) {
-		
+		/*
 		try {
 			Thread.sleep(20);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
+		long time = System.nanoTime();
 		
 		if(action instanceof RerollAction){
 			
@@ -289,6 +315,8 @@ public class GameMaster {
 			endPhase();
 			
 		}
+		
+		StatisticManager.timeSpendByGameMaster += System.nanoTime() - time;
 		
 	}
 
