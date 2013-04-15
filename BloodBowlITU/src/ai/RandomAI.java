@@ -167,7 +167,7 @@ public class RandomAI extends AIAgent {
 			
 			if (p.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
 				
-				Square square = state.getPitch().getPlayerPosition(p);
+				Square square = p.getPosition();
 				int i = 1 + (int) (Math.random() * 9);
 				switch(i){
 				case 1 : square = new Square(square.getX()-1, square.getY()-1); break;
@@ -328,7 +328,7 @@ public class RandomAI extends AIAgent {
 		if (r > 0.5 || player.getPlayerStatus().hasMovedToBlock()){
 			// Enemies
 			ArrayList<Player> enemies = new ArrayList<Player>();
-			Square playerPos = state.getPitch().getPlayerPosition(player);
+			Square playerPos = player.getPosition();
 			
 			for(int y = -1; y <= 1; y++){
 				for(int x = -1; x <= 1; x++){
@@ -366,7 +366,7 @@ public class RandomAI extends AIAgent {
 				
 				// Team members
 				ArrayList<Player> teamMembers = new ArrayList<Player>();
-				Square playerPos = state.getPitch().getPlayerPosition(player);
+				Square playerPos = player.getPosition();
 				
 				for(int y = -1; y <= 1; y++){
 					for(int x = -1; x <= 1; x++){
@@ -431,8 +431,8 @@ public class RandomAI extends AIAgent {
 	}
 
 	private boolean isInRange(Player passer, Player catcher, GameState state) {
-		Square a = state.getPitch().getPlayerPosition(passer);
-		Square b = state.getPitch().getPlayerPosition(catcher);
+		Square a = passer.getPosition();
+		Square b = catcher.getPosition();
 		int x = (a.getX() - b.getX()) * (a.getX() - b.getX());
 		int y = (a.getY() - b.getY()) * (a.getY() - b.getY());
 		int distance = (int) Math.sqrt(x + y);
@@ -461,7 +461,7 @@ public class RandomAI extends AIAgent {
 			
 			// Enemies
 			ArrayList<Player> enemies = new ArrayList<Player>();
-			Square playerPos = state.getPitch().getPlayerPosition(player);
+			Square playerPos = player.getPosition();
 			
 			for(int y = -1; y <= 1; y++){
 				for(int x = -1; x <= 1; x++){
@@ -492,7 +492,7 @@ public class RandomAI extends AIAgent {
 		
 		// Enemies
 		ArrayList<Player> enemies = new ArrayList<Player>();
-		Square playerPos = state.getPitch().getPlayerPosition(player);
+		Square playerPos = player.getPosition();
 		
 		for(int y = -1; y <= 1; y++){
 			for(int x = -1; x <= 1; x++){
@@ -532,7 +532,7 @@ public class RandomAI extends AIAgent {
 		}
 		
 		ArrayList<Square> squares = new ArrayList<Square>();
-		Square playerPos = state.getPitch().getPlayerPosition(player);
+		Square playerPos = player.getPosition();
 		
 		for(int y = -1; y <= 1; y++){
 			for(int x = -1; x <= 1; x++){

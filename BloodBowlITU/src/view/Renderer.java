@@ -448,7 +448,7 @@ public class Renderer extends JPanel{
 		if(gameMaster.getState().getCurrentPass() != null){
 			if(gameMaster.getState().getCurrentPass().getInterceptionPlayers() != null)
 				for(Player p: gameMaster.getState().getCurrentPass().getInterceptionPlayers()){
-					Square s = gameMaster.getState().getPitch().getPlayerPosition(p);
+					Square s = p.getPosition();
 					g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(s.getX(), s.getY()).getX(),inputManager.arrayToScreen(s.getX(), s.getY()).getY(), null);
 			}	
 		}
@@ -456,7 +456,7 @@ public class Renderer extends JPanel{
 	
 	public void drawFollowUpSquares(Graphics g){
 		if (gameMaster.getState().isAwaitingFollowUp() && gameMaster.getState().getCurrentBlock() != null){
-				Square notFollow = gameMaster.getState().getPitch().getPlayerPosition(gameMaster.getState().getCurrentBlock().getAttacker());
+				Square notFollow = gameMaster.getState().getCurrentBlock().getAttacker().getPosition();
 				Square followUp = gameMaster.getState().getCurrentBlock().getFollowUpSquare();
 				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getX(),inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getY(),null);
 				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getX(),inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getY(),null);
