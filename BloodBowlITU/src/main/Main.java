@@ -3,6 +3,7 @@ package main;
 import java.util.Date;
 
 import ai.AIAgent;
+import ai.BaseLineAI;
 import ai.RandomAI;
 
 import models.GameState;
@@ -44,7 +45,7 @@ public class Main {
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
 		AIAgent montiCarlos = new RandomAI(true);
-		AIAgent montiCarlosB = new RandomAI(false);
+		AIAgent montiCarlosB = new BaseLineAI(false);
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB);
 		gameMaster.setSoundManager(new SoundManager());
@@ -64,20 +65,20 @@ public class Main {
 
 		while(true){
 			
-			//startTime = new Date().getTime();
+			startTime = new Date().getTime();
 			
 			//renderer.renderFrame();
 			
 			gameMaster.update();
 			
-			/*
+			
 			long delta = new Date().getTime() - startTime;
 			try {
 				
 				Thread.sleep(Math.max(1,(1000/renderer.getFps() - delta)));
 				
 			} catch (InterruptedException e) {e.printStackTrace();}
-			*/
+			
 		}
 	}
 }

@@ -1,10 +1,21 @@
 package ai;
+import Mover;
+
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
+
+import javax.swing.JPanel;
 
 import Statistics.StatisticManager;
 import ai.actions.Action;
 import game.GameMaster;
 import models.GameStage;
 import models.GameState;
+import models.Pitch;
+import models.Player;
+import models.Square;
 import models.Team;
 
 public abstract class AIAgent {
@@ -132,4 +143,189 @@ public abstract class AIAgent {
 	protected abstract Action highKick(GameState state);
 	protected abstract Action perfectDefense(GameState state);
 	
+	//inner class
+	private class AStar{ 
+		
+		Pitch pitch;
+		Player player;
+		int goalX;
+		int goalY;
+		int pitchWidth;
+		int pitchHeight;
+		
+		private Queue <Mover> pq = new PriorityQueue <Mover>();
+		private Set <String> aStarVisited = new HashSet <String>();
+		private Mover curMover;
+		
+		public AStar(Pitch pitch, Player player, int goalX, int goalY){
+			this.pitch = pitch;
+			this.player = player;
+			this.goalX = goalX;
+			this.goalY = goalY;
+			this.pitchWidth = 28;
+			this.pitchHeight = 17;
+			curMover = new Mover(player.getPosition().getX(), player.getPosition().getY(),  goalX, goalY, 0, null, pitch);
+		}
+		
+		protected Mover findPath(Mover mover){
+			
+			pq.add(mover);
+			
+			while(!mover.isGoal()){
+				for(int i = 1; i <=8; i++){
+					if(mover.isMoveLegal(i, player.getPosition()) && !aStarVisited.contains(mover.cloneMover(i).toString())){
+						aStarVisited.add(mover.cloneMover(i).toString());	
+						pq.add(mover.cloneMover(i));
+						
+					}
+				}
+			mover = pq.poll();
+			}
+			return mover;
+		}
+		
+		//inner inner class
+		protected class Mover implements Comparable{
+			
+			int currentX;
+			int currentY;
+			
+			int goalX;
+			int goalY;
+			
+			int pitchWidth = 28;
+			int pitchHeight = 17;
+			
+			int cost;
+			
+			Mover parent;
+			
+			Pitch p;
+			
+			public Mover(int x, int y, int goalX, int goalY, int cost, Mover parent,Pitch p){
+				this.parent = parent;
+				this.cost = cost;
+				currentX = x;
+				currentY = y;
+				this.goalX = goalX;
+				this.goalY = goalY;
+				this.p = p;
+			}
+			
+			public Mover cloneMover(int i){
+				
+				switch(i){
+					//clone up
+					case 1: return new Mover(currentX,currentY+1,goalX,goalY,cost+1,this,p);
+					//clone upRight
+					case 2: return new Mover(currentX+1,currentY+1,goalX,goalY,cost+1,this,p);
+					//clone right
+					case 3: return new Mover(currentX+1,currentY,goalX,goalY,cost+1,this,p);
+					//clone rightDown
+					case 4: return new Mover(currentX+1,currentY-1,goalX,goalY,cost+1,this,p); 
+					//clone down
+					case 5: return new Mover(currentX,currentY-1,goalX,goalY,cost+1,this,p);
+					//clone downLeft
+					case 6: return new Mover(currentX-1,currentY-1,goalX,goalY,cost+1,this,p);
+					//clone left
+					case 7: return new Mover(currentX-1,currentY,goalX,goalY,cost+1,this,p);
+					//clone upLeft
+					case 8: return new Mover(currentX-1,currentY+1,goalX,goalY,cost+1,this,p); 
+					default: System.out.println("clone error");return null;
+				}
+			}
+			
+			public int isDodgeSquare(int x, int y){
+				
+				int counter = 0;
+				Player[][] pa = p.getPlayerArr();
+				
+				if(pa[y+1][x] != null){
+					counter++;
+				} if(pa[y+1][x+1] != null){
+					counter++;
+				} if(pa[y][x+1] != null){
+					counter++;
+				} if(pa[y-1][x+1] != null){
+					counter++;
+				} if(pa[y-1][x] != null){
+					counter++;
+				} if(pa[y-1][x-1] != null){
+					counter++;
+				} if(pa[y][x-1] != null){
+					counter++;
+				} if(pa[y+1][x-1] != null){
+					counter++;
+				}
+				
+				return counter;
+			}
+			
+			public boolean isGoal(){
+				if(currentX == goalX && currentY == goalY)
+					return true;
+				else return false;
+			}
+			
+			public boolean isMoveLegal(int i, Square sq){
+				switch(i){
+				//check up
+				case 1: if(!isGridOccupied(sq.getX(), sq.getY()+1))return true; break;
+				//check upRight
+				case 2: if(!isGridOccupied(sq.getX()+1, sq.getY()+1))return true; break;
+				//check Right
+				case 3: if(!isGridOccupied(sq.getX()+1, sq.getY()))return true; break;
+				//check downRight
+				case 4: if(!isGridOccupied(sq.getX()+1, sq.getY()-1))return true; break;
+				//check down
+				case 5: if(!isGridOccupied(sq.getX(), sq.getY()-1))return true; break;
+				//check downLeft
+				case 6: if(!isGridOccupied(sq.getX()-1, sq.getY()-1))return true; break;
+				//check left
+				case 7: if(!isGridOccupied(sq.getX()-1, sq.getY()))return true; break;
+				//check upLeft
+				case 8: if(!isGridOccupied(sq.getX()-1, sq.getY()+1))return true; break;
+				default: System.out.println("illegal direction"); break;
+				}
+			return false;
+			}
+			
+			protected boolean isGridOccupied(int x, int y){
+				
+				if(x > 0 && x < pitchWidth-1 && y > 0 && y < pitchHeight -1){
+					Player[][] playerArr = p.getPlayerArr();
+				
+					if(playerArr[y][x] == null){
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			public double manhattanTotalValue(){
+				return cost+manhattanHeuristicValue();
+			}
+
+			public double manhattanHeuristicValue(){
+				
+				int difX = (Math.abs(currentX-goalX));
+				int difY = (Math.abs(currentY-goalY));
+				
+				return difX+difY;
+			}
+			
+			@Override
+			public int compareTo(Object o) {
+				if(manhattanTotalValue() < ((Mover) o).manhattanTotalValue())
+					return -1;
+				else if(manhattanTotalValue() > ((Mover) o).manhattanTotalValue())
+					return 1;
+				else return 0;
+			}
+			
+			public String toString(){
+				return currentX+" "+currentY;
+			}
+		}
+	}
 }
