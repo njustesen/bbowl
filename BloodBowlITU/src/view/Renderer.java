@@ -35,6 +35,7 @@ import models.Standing;
 import models.Team;
 import models.Weather;
 import models.actions.Block;
+import models.actions.Pass;
 import models.actions.Push;
 import models.dice.DiceFace;
 import models.dice.DiceRoll;
@@ -246,9 +247,10 @@ public class Renderer extends JPanel{
 				//default: System.out.println("dont have that image");
 				}
 			}
-			if(gameMaster.getSelectedPlayer() != null){
-				if(gameMaster.getSelectedPlayer().getPlayerStatus().getTurn() != null){
-					switch(gameMaster.getSelectedPlayer().getPlayerStatus().getTurn()){
+			Player p = gameMaster.getSelectedPlayer();
+			if(p != null){
+				if(p.getPlayerStatus().getTurn() != null){
+					switch(p.getPlayerStatus().getTurn()){
 						case MOVE_ACTION: g.drawImage(greenGlow.getBufferedImage(), 0*actionButtonWidth-12, 501, null); break;
 						case BLOCK_ACTION: g.drawImage(greenGlow.getBufferedImage(), 1*actionButtonWidth-12, 501, null); break;
 						case BLITZ_ACTION: g.drawImage(greenGlow.getBufferedImage(), 2*actionButtonWidth-12, 501, null); break;
@@ -445,9 +447,10 @@ public class Renderer extends JPanel{
 	}
 	
 	public void drawInterceptingPlayers(Graphics g){
-		if(gameMaster.getState().getCurrentPass() != null){
-			if(gameMaster.getState().getCurrentPass().getInterceptionPlayers() != null)
-				for(Player p: gameMaster.getState().getCurrentPass().getInterceptionPlayers()){
+		Pass pass = gameMaster.getState().getCurrentPass();
+		if(pass != null){
+			if(pass.getInterceptionPlayers() != null)
+				for(Player p: pass.getInterceptionPlayers()){
 					Square s = p.getPosition();
 					g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(s.getX(), s.getY()).getX(),inputManager.arrayToScreen(s.getX(), s.getY()).getY(), null);
 			}	
@@ -455,9 +458,10 @@ public class Renderer extends JPanel{
 	}
 	
 	public void drawFollowUpSquares(Graphics g){
-		if (gameMaster.getState().isAwaitingFollowUp() && gameMaster.getState().getCurrentBlock() != null){
-				Square notFollow = gameMaster.getState().getCurrentBlock().getAttacker().getPosition();
-				Square followUp = gameMaster.getState().getCurrentBlock().getFollowUpSquare();
+		Block block = gameMaster.getState().getCurrentBlock();
+		if (gameMaster.getState().isAwaitingFollowUp() && block != null){
+				Square notFollow = block.getAttacker().getPosition();
+				Square followUp = block.getFollowUpSquare();
 				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getX(),inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getY(),null);
 				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getX(),inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getY(),null);
 			}
@@ -606,7 +610,7 @@ public class Renderer extends JPanel{
 			
 			int index = gameMaster.getState().getPitch().getHomeDogout().getDeadAndInjured().indexOf(p);
 			
-			drawPlayer(g, p, index%2 + 1 + -1, index/2 + 13);
+			drawPlayer(g, p, index%2 + 1 -1, index/2 + 13);
 			
 		}
 		
@@ -679,11 +683,13 @@ public class Renderer extends JPanel{
 	public void drawStats(Graphics g){
 		if(gameMaster.getSelectedPlayer() != null){
 			Player p = gameMaster.getSelectedPlayer();
+			if (p == null){
+				return;
+			}
 			int x = InputManager.getActionButtonOrigin().getX()+6*inputManager.getActionButtonWidth()+5;
 			int y = InputManager.getActionButtonOrigin().getY()+2;
 			g.drawRect(x, y, 140, 77);
-			int movesLeft = p.getMA() - gameMaster.getSelectedPlayer().getPlayerStatus().getMovementUsed();
-			
+			int movesLeft = p.getMA() - p.getPlayerStatus().getMovementUsed();
 			Font font = new Font("Arial", Font.PLAIN, 16);	    
 		    g.setFont(font); //<--
 			g.drawString(p.getTitle(), x+15, y+17);

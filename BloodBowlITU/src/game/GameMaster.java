@@ -72,14 +72,17 @@ public class GameMaster {
 	private AIAgent awayAgent;
 	private Player foulTarget;
 	private Date time;
-	private boolean restart = true;
+	private boolean restart = false;
 	private boolean rerollsAllowed = false;
+	private boolean fast = false;
 	
-	public GameMaster(GameState gameState, AIAgent homeAgent, AIAgent awayAgent) {
+	public GameMaster(GameState gameState, AIAgent homeAgent, AIAgent awayAgent, boolean fast, boolean restart) {
 		super();
 		this.state = gameState;
 		this.homeAgent = homeAgent;
 		this.awayAgent = awayAgent;
+		this.fast  = fast;
+		this.restart = restart;
 	}
 	
 	public void setSoundManager(SoundManager soundManager){
@@ -89,14 +92,16 @@ public class GameMaster {
 	}
 	
 	public void update(){
-		/*
-		try {
-			Thread.sleep(150);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
+		if (!fast){
+			try {
+				Thread.sleep(150);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		*/
+		
 		if (state.getGameStage() == GameStage.START_UP){
 			StatisticManager.stopped = false;
 			StatisticManager.games++;
@@ -219,7 +224,7 @@ public class GameMaster {
 		
 	}
 	
-	private void performAIAction(Action action) {
+	public void performAIAction(Action action) {
 
 		if (action == null)
 			return;
