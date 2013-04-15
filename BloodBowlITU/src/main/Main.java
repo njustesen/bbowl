@@ -49,7 +49,7 @@ public class Main {
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB);
 		gameMaster.setSoundManager(new SoundManager());
 		inputManager = new InputManager(gameMaster);
-		renderer = new Renderer(60, gameMaster, inputManager);
+		//renderer = new Renderer(60, gameMaster, inputManager);
 	}
 	
 	public static void startGame(){
@@ -66,7 +66,7 @@ public class Main {
 			
 			//startTime = new Date().getTime();
 			
-			renderer.renderFrame();
+			//renderer.renderFrame();
 			
 			gameMaster.update();
 			

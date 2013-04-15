@@ -9,7 +9,7 @@ public class GameLog {
 
 	public static void push(String msg){
 		
-		messeges.add(msg);
+		//messeges.add(msg);
 		
 	}
 	

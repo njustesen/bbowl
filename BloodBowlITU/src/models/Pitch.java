@@ -582,7 +582,7 @@ public class Pitch {
 		ArrayList<Player> players = new ArrayList<Player>();
 		for(Square s : line){
 			Player p = getPlayerAt(s);
-			if (p != null && playerOwner(pass.getPasser()) != playerOwner(p)){
+			if (p != null && playerOwner(pass.getPasser()) != playerOwner(p) && p.getPlayerStatus().getStanding() == Standing.UP){
 				players.add(p);
 			}
 		}

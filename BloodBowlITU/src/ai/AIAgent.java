@@ -31,13 +31,15 @@ public abstract class AIAgent {
 			if (state.isAwaitingFollowUp())
 				return decideFollowUp(state);
 			
-			return turn(state);
-			
-		} else if (state.getCurrentPass() != null &&
+			if (state.getCurrentPass() != null &&
 				state.getCurrentPass().getInterceptionPlayers() != null &&
 				state.getCurrentPass().getInterceptionPlayers().size() > 0){
+				
+				return pickIntercepter(state);
+				
+			}
 			
-			return pickIntercepter(state);
+			return turn(state);
 			
 		} else if (state.getGameStage() == GameStage.COIN_TOSS && !homeTeam){
 			return pickCoinSide(state);

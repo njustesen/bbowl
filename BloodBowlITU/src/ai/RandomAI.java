@@ -287,7 +287,7 @@ public class RandomAI extends AIAgent {
 		ArrayList<Player> usable = new ArrayList<Player>();
 		if (player == null){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
-				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
+				if (p.getPlayerStatus().getTurn() == PlayerTurn.UNUSED && 
 						p.getPlayerStatus().getStanding() != Standing.STUNNED){
 					usable.add(p);
 				}
@@ -413,7 +413,11 @@ public class RandomAI extends AIAgent {
 					}
 				}
 				
+				if (inRange.isEmpty())
+					return new EndPlayerTurnAction(player);
+				
 				int i = (int) (Math.random() * inRange.size());
+				i = Math.min(i, inRange.size());
 				
 				return new PassPlayerAction(player, inRange.get(i));
 			}
@@ -451,6 +455,10 @@ public class RandomAI extends AIAgent {
 		double r = Math.random();
 		
 		if (r > 0.5 || player.getPlayerStatus().hasMovedToBlock()){
+			
+			if (myTeam(state).getTeamStatus().hasBlitzed())
+				return new EndPlayerTurnAction(player);
+			
 			// Enemies
 			ArrayList<Player> enemies = new ArrayList<Player>();
 			Square playerPos = state.getPitch().getPlayerPosition(player);
@@ -568,7 +576,6 @@ public class RandomAI extends AIAgent {
 			if(action == PlayerTurn.BLOCK_ACTION && player.getPlayerStatus().getStanding() != Standing.UP){
 				action = PlayerTurn.MOVE_ACTION;
 			}
-			
 			if (action == PlayerTurn.HAND_OFF_ACTION && myTeam(state).getTeamStatus().hasHandedOf()){
 				action = PlayerTurn.MOVE_ACTION;
 			}

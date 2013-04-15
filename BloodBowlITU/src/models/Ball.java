@@ -13,7 +13,7 @@ public class Ball {
 	public Ball(Square square, boolean inGame, boolean underControl) {
 		this.square = square;
 		this.inGame = inGame;
-		this.underControl = underControl;
+		this.underControl = false;
 	}
 
 	public Square getSquare() {
