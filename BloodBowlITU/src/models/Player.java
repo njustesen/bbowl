@@ -2,8 +2,6 @@ package models;
 
 import java.util.ArrayList;
 
-import javax.swing.JComponent;
-
 public abstract class Player {
 
 	protected Race race;

@@ -103,7 +103,7 @@ public class GameMaster {
 			startGame();
 			return;
 		}
-		if (state.getGameStage() == GameStage.GAME_ENDED){
+		if (state.getGameStage() == GameStage.GAME_ENDED && restart){
 			if (state.getHomeTeam().getTeamStatus().getScore() == state.getAwayTeam().getTeamStatus().getScore()){
 				StatisticManager.draws++;
 			} else if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
@@ -117,11 +117,6 @@ public class GameMaster {
 			Team away = TeamFactory.getHumanOrc();
 			Pitch pitch = new Pitch(home, away);
 			state = new GameState(home, away, pitch);
-		}
-		
-		if (state.isAwaitingReroll() && state.getCurrentDiceRoll() == null){
-			int i = 0;
-			i++;
 		}
 		
 		long time = System.nanoTime();
