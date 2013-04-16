@@ -21,6 +21,7 @@ public class Dugout {
 		
 		for(Player p : team.getPlayers()){
 			reserves.add(p);
+			p.setPosition(null);
 		}
 		
 	}

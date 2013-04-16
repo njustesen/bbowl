@@ -40,7 +40,6 @@ public class GameState {
 	private boolean awaitPush;
 	private boolean awaitFollowUp;
 	
-	
 	public GameState(Team homeTeam, Team awayTeam, Pitch pitch) {
 		super();
 		this.homeTeam = homeTeam;

@@ -62,6 +62,12 @@ public class D8 implements IDice{
 		return rolled;
 	}
 	
-	
+	public void setResult(DiceFace result) {
+		this.result = result;
+	}
+
+	public void setRolled(boolean rolled) {
+		this.rolled = rolled;
+	}
 	
 }

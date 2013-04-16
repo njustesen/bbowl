@@ -217,29 +217,19 @@ public class Pitch {
 
 	public void removePlayer(Player player) {
 		
-		// Count players
-		for(int y = 0; y < playerArr.length; y++){
-			for(int x = 0; x < playerArr[0].length; x++){
-				
-				// If the found player is on the team
-				if (playerArr[y][x] == player){
-					
-					playerArr[y][x] = null;
-					
-				}
-			}
+		if (player.getPosition() != null){
+			playerArr[player.getPosition().getY()][player.getPosition().getX()] = null;
+			player.setPosition(null);
 		}
 		
 	}
 
 	public boolean isOnPitch(Player player) {
 		
-		Square pos = getPlayerPosition(player);
-		
-		if (pos == null)
+		if (player.getPosition() == null)
 			return false;
 		
-		return isOnPitch(pos);
+		return isOnPitch(player.getPosition());
 		
 	}
 	
@@ -250,20 +240,6 @@ public class Pitch {
 		}
 		
 		return false;
-	}
-	
-	public Square getPlayerPosition(Player player) {
-
-		for(int y = 0; y < playerArr.length; y++){
-			for(int x = 0; x < playerArr[0].length; x++){
-				
-				if (playerArr[y][x] == player)
-					return new Square(x,y);
-				
-			}
-		}
-		
-		return null;
 	}
 	
 	public int teamPlayersOnPitch(Team team) {
@@ -476,6 +452,7 @@ public class Pitch {
 			if (playerArr[y][scrimmageLine] == null){
 				
 				playerArr[y][scrimmageLine] = p;
+				p.setPosition(new Square(scrimmageLine, y));
 				
 				getDogout(team).getReserves().remove(p);
 				return;
@@ -503,6 +480,7 @@ public class Pitch {
 				if (playerArr[y][x] == null){
 					
 					playerArr[y][x] = p;
+					p.setPosition(new Square(x, y));
 					getDogout(team).getReserves().remove(p);
 					return;
 					
@@ -531,6 +509,8 @@ public class Pitch {
 				if (playerArr[y][x] == null){
 					
 					playerArr[y][x] = p;
+
+					p.setPosition(new Square(x, y));
 					getDogout(team).getReserves().remove(p);
 					return;
 					
@@ -572,8 +552,8 @@ public class Pitch {
 
 	public ArrayList<Player> interceptionPlayers(Pass pass) {
 		
-		Square from = getPlayerPosition(pass.getPasser());
-		Square to = getPlayerPosition(pass.getCatcher());
+		Square from = pass.getPasser().getPosition();
+		Square to = pass.getCatcher().getPosition();
 		
 		ArrayList<Square> line = line(from, to);
 		line = includeManhattanNeighbors(line);
@@ -582,7 +562,7 @@ public class Pitch {
 		ArrayList<Player> players = new ArrayList<Player>();
 		for(Square s : line){
 			Player p = getPlayerAt(s);
-			if (p != null && playerOwner(pass.getPasser()) != playerOwner(p)){
+			if (p != null && playerOwner(pass.getPasser()) != playerOwner(p) && p.getPlayerStatus().getStanding() == Standing.UP){
 				players.add(p);
 			}
 		}

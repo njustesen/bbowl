@@ -14,6 +14,7 @@ public abstract class Player {
 	private int number;
 	protected ArrayList<Skill> skills = new ArrayList<Skill>();
 	protected PlayerStatus playerStatus;
+	private Square position;
 	
 	public Player(Race race, String title, int number) {
 		super();
@@ -21,6 +22,7 @@ public abstract class Player {
 		this.title = title;
 		this.number = number;
 		this.playerStatus = new PlayerStatus(); 
+		this.position = null;
 	}
 
 	public Race getRace() {
@@ -89,6 +91,15 @@ public abstract class Player {
 
 	public int getNumber() {
 		return number;
+	}
+
+	public Square getPosition() {
+		return position;
+	}
+	
+	public void setPosition(Square position){
+		
+		this.position = position;
 	}
 
 }

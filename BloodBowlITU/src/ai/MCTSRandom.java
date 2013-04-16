@@ -1,7 +1,51 @@
 package ai;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import sound.FakeSoundManager;
+
+import models.Ball;
+import models.CoinToss;
+import models.Dugout;
+import models.GameStage;
+import models.GameState;
+import models.PassRange;
+import models.Pitch;
+import models.Player;
+import models.PlayerStatus;
+import models.PlayerTurn;
+import models.Race;
+import models.RangeRuler;
+import models.Skill;
+import models.Square;
+import models.Standing;
+import models.Team;
+import models.TeamStatus;
+import models.Weather;
+import models.actions.Block;
+import models.actions.Catch;
+import models.actions.Dodge;
+import models.actions.Foul;
+import models.actions.GoingForIt;
+import models.actions.HandOff;
+import models.actions.Pass;
+import models.actions.PickUp;
+import models.dice.BB;
+import models.dice.D3;
+import models.dice.D6;
+import models.dice.D8;
+import models.dice.DiceRoll;
+import models.dice.IDice;
+import models.humans.HumanBlitzer;
+import models.humans.HumanCatcher;
+import models.humans.HumanLineman;
+import models.humans.HumanThrower;
+import models.orcs.OrcBlackOrc;
+import models.orcs.OrcBlitzer;
+import models.orcs.OrcLineman;
+import models.orcs.OrcThrower;
 import Statistics.StatisticManager;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
@@ -11,7 +55,6 @@ import ai.actions.EndSetupAction;
 import ai.actions.FollowUpAction;
 import ai.actions.FoulPlayerAction;
 import ai.actions.HandOffPlayerAction;
-import ai.actions.SelectInterceptionAction;
 import ai.actions.MovePlayerAction;
 import ai.actions.PassPlayerAction;
 import ai.actions.PlaceBallAction;
@@ -21,32 +64,72 @@ import ai.actions.RerollAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
 import ai.actions.SelectDieAction;
+import ai.actions.SelectInterceptionAction;
 import ai.actions.SelectPlayerAction;
 import ai.actions.SelectPlayerTurnAction;
 import ai.actions.SelectPushSquareAction;
-import models.GameState;
-import models.PassRange;
-import models.Player;
-import models.PlayerTurn;
-import models.RangeRuler;
-import models.Square;
-import models.Standing;
-import models.Weather;
+import ai.util.GameStateCloner;
+import game.GameMaster;
 
-public class RandomAI extends AIAgent {
+public class MCTSRandom extends AIAgent{
 	
 	private static final int ACTIVE_PLAYER_PERCENTAGE = 80;
 	private static final int GOING_FOR_IT_PERCENTAGE = 20;
 	private static long time;
 
-	public RandomAI(boolean homeTeam) {
+	private static final int simulations = 20;
+	public MCTSRandom(boolean homeTeam) {
 		super(homeTeam);
 	}
 	
+	private Action search(List<Action> possibleActions, GameState state){
+		
+		//MCTSNode root = new MCTSNode(null, null);
+		int bestSum = 0;
+		Action best = null;
+		GameStateCloner cloner = new GameStateCloner();
+		
+		for(Action a : possibleActions){
+			
+			int sum = 0;
+			
+			for(int i = 0; i < simulations; i++){
+				Date now = new Date();
+				
+				GameState as = cloner.clone(state);
+				GameMaster gameMaster = new GameMaster(as, new RandomAI(true), new RandomAI(false), true, false);
+				gameMaster.setSoundManager(new FakeSoundManager());
+				gameMaster.performAIAction(a);
+				
+				while(as.getGameStage() != GameStage.GAME_ENDED){
+					gameMaster.update();
+				}
+				
+				if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
+					sum++;
+				} else if (state.getHomeTeam().getTeamStatus().getScore() < state.getAwayTeam().getTeamStatus().getScore()){
+					sum--;
+				}
+				
+				Date newNow = new Date();
+				
+				System.out.println("simtime: " + (newNow.getTime() - now.getTime()));
+				
+			}
+			
+			if (best == null || 
+					(sum > bestSum && homeTeam) || 
+					(sum < bestSum && !homeTeam)){
+				bestSum = sum;
+				best = a;
+			}
+		}
+		
+		return best;
+	}	
+
 	@Override
 	protected Action decideReroll(GameState state) {
-		
-		time = System.nanoTime();
 		
 		int r = (int) (Math.random() * 2);
 		if (r == 0){
@@ -55,20 +138,14 @@ public class RandomAI extends AIAgent {
 		
 		r = (int) (Math.random() * state.getCurrentDiceRoll().getDices().size());
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new SelectDieAction(r);
 		
 	}
 
 	@Override
 	protected Action decidePush(GameState state) {
-		
-		time = System.nanoTime();
 
 		int r = (int) (Math.random() * state.getCurrentBlock().getCurrentPushSquares().size());
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return new SelectPushSquareAction(state.getCurrentBlock().getCurrentPushSquares().get(r));
 		
@@ -77,14 +154,10 @@ public class RandomAI extends AIAgent {
 	@Override
 	protected Action decideFollowUp(GameState state) {
 		
-		time = System.nanoTime();
-		
 		double f = Math.random() * 2;
 		
 		if (f > 1.0)
 			return new FollowUpAction(true);
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return new FollowUpAction(false);
 		
@@ -93,12 +166,8 @@ public class RandomAI extends AIAgent {
 	@Override
 	protected Action placeBallOnPlayer(GameState state) {
 		
-		time = System.nanoTime();
-		
 		int rand = (int) (Math.random() * state.getPitch().playersOnPitch(myTeam(state)));
 		Player player = state.getPitch().getPlayersOnPitch(myTeam(state)).get(rand);
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return new PlaceBallOnPlayerAction(player);
 		
@@ -106,8 +175,6 @@ public class RandomAI extends AIAgent {
 
 	@Override
 	protected Action blitz(GameState state) {
-		
-		time = System.nanoTime();
 		
 		Player player = null;
 		
@@ -153,15 +220,11 @@ public class RandomAI extends AIAgent {
 			
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new EndPhaseAction();
 	}
 
 	@Override
 	protected Action quickSnap(GameState state) {
-		
-		time = System.nanoTime();
 		
 		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 			
@@ -193,20 +256,14 @@ public class RandomAI extends AIAgent {
 			
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new EndPhaseAction();
 	}
 
 	@Override
 	protected Action highKick(GameState state) {
 		
-		time = System.nanoTime();
-		
 		int rand = (int) (Math.random() * state.getPitch().playersOnPitch(myTeam(state)));
 		Player player = state.getPitch().getPlayersOnPitch(myTeam(state)).get(rand);
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return new SelectPlayerAction(player);
 		
@@ -222,11 +279,7 @@ public class RandomAI extends AIAgent {
 	@Override
 	protected Action placeKick(GameState state) {
 		
-		time = System.nanoTime();
-		
 		Square square = state.getPitch().getRandomOpposingSquare(myTeam(state));
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return new PlaceBallAction(square);
 		
@@ -234,8 +287,6 @@ public class RandomAI extends AIAgent {
 
 	@Override
 	protected Action setup(GameState state) {
-		
-		time = System.nanoTime();
 		
 		if (state.getPitch().getDogout(myTeam(state)).getReserves().size() == 0 ||  
 				state.getPitch().playersOnPitch(myTeam(state)) == 11){
@@ -246,8 +297,6 @@ public class RandomAI extends AIAgent {
 			}
 			
 		}
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return placeRandomPlayer(state);
 		
@@ -266,62 +315,36 @@ public class RandomAI extends AIAgent {
 	@Override
 	protected Action turn(GameState state) {
 		
-		time = System.nanoTime();
-		
-		Player player = null;
-		
-		// Pick active player
-		int r = (int) (Math.random() * 100);
-		
-		if (r <= ACTIVE_PLAYER_PERCENTAGE){
-			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
-				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
-						p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
-					player = p;
-					break;
-				}
-			}
-		}
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
 		// Pick non used player
 		ArrayList<Player> usable = new ArrayList<Player>();
-		if (player == null){
-			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
-				if (p.getPlayerStatus().getTurn() == PlayerTurn.UNUSED && 
-						p.getPlayerStatus().getStanding() != Standing.STUNNED){
-					usable.add(p);
-				}
-			}
-			if (usable.size() != 0){
-				int i = (int) (Math.random() * usable.size());
-				player = usable.get(i);
+		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
+			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
+					p.getPlayerStatus().getStanding() != Standing.STUNNED){
+				usable.add(p);
 			}
 		}
-		
-		// Continue action
-		if (player != null) {
-			switch(player.getPlayerStatus().getTurn()){
-			case UNUSED : return startPlayerAction(player, state);
-			case MOVE_ACTION : return continueMoveAction(player, state);
-			case BLOCK_ACTION : return continueBlockAction(player, state);
-			case BLITZ_ACTION : return continueBlitzAction(player, state);
-			case PASS_ACTION : return continuePassAction(player, state);
-			case HAND_OFF_ACTION : return continueHandOffAction(player, state);
-			case FOUL_ACTION : return continueFoulAction(player, state);
+		for(Player p : usable){
+			switch(p.getPlayerStatus().getTurn()){
+			case UNUSED : actions.add( startPlayerAction(p, state) ); break;
+			case MOVE_ACTION : actions.add( continueMoveAction(p, state) ); break;
+			case BLOCK_ACTION : actions.add( continueBlockAction(p, state) ); break;
+			case BLITZ_ACTION : actions.add( continueBlitzAction(p, state) ); break;
+			case PASS_ACTION : actions.add( continuePassAction(p, state) ); break;
+			case HAND_OFF_ACTION : actions.add( continueHandOffAction(p, state) ); break;
+			case FOUL_ACTION : actions.add( continueFoulAction(p, state) ); break;
 			case USED : break;
 			}
-			
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
+		actions.add( new EndPhaseAction() );
 		
-		return new EndPhaseAction();
+		return search(actions, state);
 		
 	}
 	
 	private Action continueFoulAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		double r = Math.random();
 		
@@ -348,14 +371,10 @@ public class RandomAI extends AIAgent {
 			}
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return continueMoveAction(player, state);
 	}
 
 	private Action continueHandOffAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		double r = Math.random();
 		
@@ -390,14 +409,10 @@ public class RandomAI extends AIAgent {
 			
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return continueMoveAction(player, state);
 	}
 
 	private Action continuePassAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		double r = Math.random();
 		
@@ -424,8 +439,6 @@ public class RandomAI extends AIAgent {
 			
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return continueMoveAction(player, state);
 		
 	}
@@ -449,8 +462,6 @@ public class RandomAI extends AIAgent {
 	}
 
 	private Action continueBlitzAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		double r = Math.random();
 		
@@ -481,14 +492,10 @@ public class RandomAI extends AIAgent {
 			}
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return continueMoveAction(player, state);
 	}
 
 	private Action continueBlockAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		// Enemies
 		ArrayList<Player> enemies = new ArrayList<Player>();
@@ -511,15 +518,11 @@ public class RandomAI extends AIAgent {
 		
 		int r = (int) (Math.random() * enemies.size());
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new BlockPlayerAction(player, enemies.get(r));
 		
 	}
 
 	private Action continueMoveAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
 			return new EndPlayerTurnAction(player);
@@ -549,15 +552,11 @@ public class RandomAI extends AIAgent {
 		
 		int i = (int) (Math.random() * squares.size());
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new MovePlayerAction(player, squares.get(i));
 		
 	}
 
 	private Action startPlayerAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		PlayerTurn action = null;
 		
@@ -592,15 +591,11 @@ public class RandomAI extends AIAgent {
 			break;
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new SelectPlayerTurnAction(action, player);
 	}
 	
 
 	private Action startPlayerActionBlitz(Player player, GameState state) {
-		
-		time = System.nanoTime();
 		
 		PlayerTurn action = null;
 
@@ -614,16 +609,12 @@ public class RandomAI extends AIAgent {
 			}
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new SelectPlayerTurnAction(action, player);
 		
 	}
 
 	private Action placeRandomPlayer(GameState state) {
 		
-		time = System.nanoTime();
-
 		int rand = (int) (Math.random() * state.getPitch().getDogout(myTeam(state)).getReserves().size());
 		Player player = state.getPitch().getDogout(myTeam(state)).getReserves().get(rand);
 		Square square = new Square(1,1);
@@ -643,8 +634,6 @@ public class RandomAI extends AIAgent {
 			
 		}
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
 		return new PlacePlayerAction(player, square);
 		
 	}
@@ -661,15 +650,10 @@ public class RandomAI extends AIAgent {
 	@Override
 	protected Action pickIntercepter(GameState state) {
 		
-		time = System.nanoTime();
-
 		int i = (int) (Math.random() * state.getCurrentPass().getInterceptionPlayers().size());
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return new SelectInterceptionAction(state.getCurrentPass().getInterceptionPlayers().get(i));
 		
 	}
-
 	
 }
