@@ -497,6 +497,13 @@ private Action continueFoulAction(Player player, GameState state) {
 			return new EndPlayerTurnAction(player);
 		}
 		
+		for(Player e: enemies){
+			if(state.getPitch().getBall().getSquare().getX() == state.getPitch().getPlayerPosition(e).getX() &&
+				state.getPitch().getBall().getSquare().getY() == state.getPitch().getPlayerPosition(e).getY()){
+				return new BlockPlayerAction(player, e);
+			}
+		}
+		
 		int r = (int) (Math.random() * enemies.size());
 		
 		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
@@ -514,7 +521,7 @@ private Action continueFoulAction(Player player, GameState state) {
 		}
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA()){
-			if (Math.random() * 100 < GOING_FOR_IT_PERCENTAGE){
+			if (Math.random() * 100 > calculateGoingForItPercentage(state, player)){
 				return new EndPlayerTurnAction(player);
 			}
 		}
@@ -522,6 +529,54 @@ private Action continueFoulAction(Player player, GameState state) {
 		ArrayList<Square> squares = new ArrayList<Square>();
 		Square playerPos = state.getPitch().getPlayerPosition(player);
 		
+		int x = 0;
+		int y = 0;
+		
+		if(playerPos.getX() == state.getPitch().getBall().getSquare().getX() && 
+			playerPos.getY() == state.getPitch().getBall().getSquare().getY()){
+			
+			//System.out.println("SAMESQUARE!! playerPos == state.getPitch().getBall().getSquare() ");
+			return moveToGoal(player, state);
+		}
+		
+		if(playerPos.getX() < state.getPitch().getBall().getSquare().getX()){
+			x++;
+			if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+1, playerPos.getY())) != null){
+				y++;
+			}else if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+1, playerPos.getY()+1)) != null){
+				y--;
+			}
+		}else if(playerPos.getX() > state.getPitch().getBall().getSquare().getX()){
+			x--;
+			if(state.getPitch().getPlayerAt(new Square(playerPos.getX()-1, playerPos.getY())) != null){
+				y++;
+			}else if(state.getPitch().getPlayerAt(new Square(playerPos.getX()-1, playerPos.getY()+1)) != null){
+				y--;
+			}
+		}
+		
+		if(playerPos.getY() < state.getPitch().getBall().getSquare().getY() && y == 0){
+			y++;
+		}else if(playerPos.getY() > state.getPitch().getBall().getSquare().getY() && y == 0){
+			y--;
+		}
+		
+		Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
+	
+		
+		if (state.getPitch().isOnPitch(sq) && state.getPitch().getPlayerAt(sq) == null){
+			return new MovePlayerAction(player, sq);
+		}else if(state.getPitch().isOnPitch(sq) && state.getPitch().getPlayerAt(sq) != null){
+			if(x != 0 && y == 0){
+				y++;
+				sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
+				return new MovePlayerAction(player, sq);
+			}
+		}
+		return new EndPlayerTurnAction(player);
+
+		//OLD RANDOM MOVEMENT
+		/*
 		for(int y = -1; y <= 1; y++){
 			for(int x = -1; x <= 1; x++){
 				Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
@@ -540,6 +595,62 @@ private Action continueFoulAction(Player player, GameState state) {
 		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
 		return new MovePlayerAction(player, squares.get(i));
+		*/
+	}
+	
+	public Action moveToGoal(Player player, GameState state){
+		
+		Square playerPos = state.getPitch().getPlayerPosition(player);
+		Square sq = new Square(playerPos.getX(), playerPos.getY());
+		System.out.println(" moveToGoalCalled ");
+		if(state.getAwayTeam().getPlayers().contains(player)){
+			sq = new Square(playerPos.getX() - 1, playerPos.getY());
+			if(state.getPitch().getPlayerAt(sq) != null){
+				sq = new Square(playerPos.getX() - 1, playerPos.getY()+1);
+				if(state.getPitch().getPlayerAt(sq) != null){
+					sq = new Square(playerPos.getX() - 1, playerPos.getY()-1);
+					if(state.getPitch().getPlayerAt(sq) != null){
+						sq = new Square(playerPos.getX(), playerPos.getY()-1);
+						if(state.getPitch().getPlayerAt(sq) != null){
+							sq = new Square(playerPos.getX(), playerPos.getY()+1);
+						}
+					}
+				}
+			}
+		}else{
+			sq = new Square(playerPos.getX() + 1, playerPos.getY());
+			if(state.getPitch().getPlayerAt(sq) != null){
+				sq = new Square(playerPos.getX() + 1, playerPos.getY()+1);
+				if(state.getPitch().getPlayerAt(sq) != null){
+					sq = new Square(playerPos.getX() + 1, playerPos.getY()-1);
+				}
+			}
+		}
+		
+		return new MovePlayerAction(player, sq);
+	}
+	
+	//The higher the number of unused players, the higher the
+	private int calculateGoingForItPercentage(GameState state, Player chosenPlayer){
+		
+		/*		if(chosenPlayer.getMA() > (Math.abs(chosenPlayer.getPosition().getX() - state.getPitch().getBall().getSquare().getX()) +
+		  			Math.abs(chosenPlayer.getPosition().getY() - state.getPitch().getBall().getSquare().getY())) &&
+					chosenPlayer.getMA() < (Math.abs(chosenPlayer.getPosition().getX() - state.getPitch().getBall().getSquare().getX()) +
+				  	Math.abs(chosenPlayer.getPosition().getY() - state.getPitch().getBall().getSquare().getY())+2) &&
+				  	state.getPitch().getBall().isOnGround()){
+				return 100;
+				}
+		 */
+		
+		int usedTurns = 0;
+		int numberOfPlayers = state.getPitch().getPlayersOnPitch(myTeam(state)).size();
+		
+		for(Player p: state.getPitch().getPlayersOnPitch(myTeam(state))){
+			if(p.getPlayerStatus().getTurn() == PlayerTurn.USED){
+				usedTurns++;
+			}
+		}
+		return 100/numberOfPlayers*usedTurns;
 		
 	}
 	
@@ -548,9 +659,29 @@ private Action startPlayerAction(Player player, GameState state) {
 		time = System.nanoTime();
 		
 		PlayerTurn action = null;
+		Square playerPos = state.getPitch().getPlayerPosition(player);
+		int i = (int) (Math.random() * 6);
+		
+		ArrayList<Player> surroundingPlayers = getSurroundingPlayers(player, state);
+		
+		if(!surroundingPlayers.isEmpty()){
+			for(Player p: surroundingPlayers){
+				Square playerSquare = state.getPitch().getPlayerPosition(p);
+				if(state.getPitch().getBall().getSquare().getX() == playerSquare.getX() &&
+					state.getPitch().getBall().getSquare().getY() == playerSquare.getY() &&
+					player.getRace() != p.getRace()){
+					i = 1;
+				}
+			}
+		}
+		
+		if(playerPos.getX() == state.getPitch().getBall().getSquare().getX() &&
+				playerPos.getY() == state.getPitch().getBall().getSquare().getY()){
+			i = 0;
+		}
 		
 		while(true){
-			int i = (int) (Math.random() * 6);
+			//int i = (int) (Math.random() * 6);
 			//int i = 3;
 			switch(i){
 			case 0: action = PlayerTurn.MOVE_ACTION; break;
@@ -586,8 +717,28 @@ private Action startPlayerAction(Player player, GameState state) {
 		return new SelectPlayerTurnAction(action, player);
 	}
 	
-
-private Action startPlayerActionBlitz(Player player, GameState state) {
+	private ArrayList<Player> getSurroundingPlayers(Player player, GameState state){
+		
+		Square playerPos = state.getPitch().getPlayerPosition(player);
+		ArrayList<Player> surroundingPlayers = new ArrayList<Player>();
+		
+		for(int i = 0; i < 8; i++){
+			switch(i){
+				case 0: Square up = new Square(playerPos.getX(), playerPos.getY()-1); surroundingPlayers.add(state.getPitch().getPlayerAt(up)); break;
+				case 1: Square upRight = new Square(playerPos.getX()+1, playerPos.getY()-1); surroundingPlayers.add(state.getPitch().getPlayerAt(upRight)); break;
+				case 2: Square right = new Square(playerPos.getX()+1, playerPos.getY()); surroundingPlayers.add(state.getPitch().getPlayerAt(right)); break;
+				case 3: Square downRight = new Square(playerPos.getX()+1, playerPos.getY()+1); surroundingPlayers.add(state.getPitch().getPlayerAt(downRight)); break;
+				case 4: Square down = new Square(playerPos.getX(), playerPos.getY()+1); surroundingPlayers.add(state.getPitch().getPlayerAt(down)); break;
+				case 5: Square downLeft = new Square(playerPos.getX()-1, playerPos.getY()+1); surroundingPlayers.add(state.getPitch().getPlayerAt(downLeft)); break;
+				case 6: Square left = new Square(playerPos.getX()-1, playerPos.getY()); surroundingPlayers.add(state.getPitch().getPlayerAt(left)); break;
+				case 7: Square upLeft = new Square(playerPos.getX()-1, playerPos.getY()-1); surroundingPlayers.add(state.getPitch().getPlayerAt(upLeft)); break;
+				default: break;
+			}
+		}
+		return surroundingPlayers;
+	}
+	
+	private Action startPlayerActionBlitz(Player player, GameState state) {
 	
 	time = System.nanoTime();
 	

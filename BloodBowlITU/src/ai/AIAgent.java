@@ -1,5 +1,4 @@
 package ai;
-import Mover;
 
 import java.util.HashSet;
 import java.util.PriorityQueue;
@@ -154,15 +153,17 @@ public abstract class AIAgent {
 		private Queue <Mover> pq = new PriorityQueue <Mover>();
 		private Set <String> aStarVisited = new HashSet <String>();
 		private Mover curMover;
+		Square playerPos;
 		
-		public AStar(Pitch pitch, Player player, int goalX, int goalY){
+		public AStar(Pitch pitch, Player player, int goalX, int goalY, GameState state){
 			this.pitch = pitch;
 			this.player = player;
 			this.goalX = goalX;
 			this.goalY = goalY;
 			this.pitchWidth = 28;
 			this.pitchHeight = 17;
-			curMover = new Mover(player.getPosition().getX(), player.getPosition().getY(),  goalX, goalY, 0, null, pitch);
+			this.playerPos = state.getPitch().getPlayerPosition(player);
+			curMover = new Mover(playerPos.getX(), playerPos.getY(),  goalX, goalY, 0, null, pitch);
 		}
 		
 		protected Mover findPath(Mover mover){
@@ -171,7 +172,7 @@ public abstract class AIAgent {
 			
 			while(!mover.isGoal()){
 				for(int i = 1; i <=8; i++){
-					if(mover.isMoveLegal(i, player.getPosition()) && !aStarVisited.contains(mover.cloneMover(i).toString())){
+					if(mover.isMoveLegal(i, playerPos) && !aStarVisited.contains(mover.cloneMover(i).toString())){
 						aStarVisited.add(mover.cloneMover(i).toString());	
 						pq.add(mover.cloneMover(i));
 						
