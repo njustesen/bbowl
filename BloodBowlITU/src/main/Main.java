@@ -4,7 +4,7 @@ import java.util.Date;
 
 import ai.AIAgent;
 import ai.BaseLineAI;
-import ai.MCTSRandom;
+import ai.MCRandom;
 import ai.RandomAI;
 
 import models.GameState;
@@ -46,7 +46,7 @@ public class Main {
 		
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
-		AIAgent montiCarlos = new MCTSRandom(true);
+		AIAgent montiCarlos = new BaseLineAI(true);
 		AIAgent montiCarlosB = new RandomAI(false);
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);

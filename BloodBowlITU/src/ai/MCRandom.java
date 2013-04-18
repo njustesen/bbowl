@@ -6,46 +6,15 @@ import java.util.List;
 
 import sound.FakeSoundManager;
 
-import models.Ball;
-import models.CoinToss;
-import models.Dugout;
 import models.GameStage;
 import models.GameState;
 import models.PassRange;
-import models.Pitch;
 import models.Player;
-import models.PlayerStatus;
 import models.PlayerTurn;
-import models.Race;
 import models.RangeRuler;
-import models.Skill;
 import models.Square;
 import models.Standing;
-import models.Team;
-import models.TeamStatus;
 import models.Weather;
-import models.actions.Block;
-import models.actions.Catch;
-import models.actions.Dodge;
-import models.actions.Foul;
-import models.actions.GoingForIt;
-import models.actions.HandOff;
-import models.actions.Pass;
-import models.actions.PickUp;
-import models.dice.BB;
-import models.dice.D3;
-import models.dice.D6;
-import models.dice.D8;
-import models.dice.DiceRoll;
-import models.dice.IDice;
-import models.humans.HumanBlitzer;
-import models.humans.HumanCatcher;
-import models.humans.HumanLineman;
-import models.humans.HumanThrower;
-import models.orcs.OrcBlackOrc;
-import models.orcs.OrcBlitzer;
-import models.orcs.OrcLineman;
-import models.orcs.OrcThrower;
 import Statistics.StatisticManager;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
@@ -71,14 +40,12 @@ import ai.actions.SelectPushSquareAction;
 import ai.util.GameStateCloner;
 import game.GameMaster;
 
-public class MCTSRandom extends AIAgent{
+public class MCRandom extends AIAgent{
 	
-	private static final int ACTIVE_PLAYER_PERCENTAGE = 80;
-	private static final int GOING_FOR_IT_PERCENTAGE = 20;
 	private static long time;
 
 	private static final int simulations = 20;
-	public MCTSRandom(boolean homeTeam) {
+	public MCRandom(boolean homeTeam) {
 		super(homeTeam);
 	}
 	
@@ -173,90 +140,59 @@ public class MCTSRandom extends AIAgent{
 		
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	@Override
 	protected Action blitz(GameState state) {
 		
-		Player player = null;
-		
-		// Pick active player
-		int r = (int) (Math.random() * 100);
-		
-		if (r <= ACTIVE_PLAYER_PERCENTAGE){
-			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
-				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
-					player = p;
-					break;
-				}
-			}
-		}
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
 		// Pick non used player
 		ArrayList<Player> usable = new ArrayList<Player>();
-		if (player == null){
-			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
-				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED){
-					usable.add(p);
-				}
-			}
-			if (usable.size() != 0){
-				int i = (int) (Math.random() * usable.size());
-				player = usable.get(i);
+		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
+			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
+					p.getPlayerStatus().getStanding() != Standing.STUNNED){
+				usable.add(p);
 			}
 		}
-		
-		// Select action
-		if (player != null) {
-			switch(player.getPlayerStatus().getTurn()){
-			case UNUSED : return startPlayerActionBlitz(player, state);
-			case MOVE_ACTION : return continueMoveAction(player, state);
-			case BLITZ_ACTION : return continueBlitzAction(player, state);
-			case PASS_ACTION : return continuePassAction(player, state);
-			case HAND_OFF_ACTION : return continueHandOffAction(player, state);
-			case FOUL_ACTION : return continueFoulAction(player, state);
+		for(Player p : usable){
+			switch(p.getPlayerStatus().getTurn()){
+			case UNUSED : actions.addAll( startPlayerActions(p, state, false, false) ); break;
+			case MOVE_ACTION : actions.addAll( continuedMoveActions(p, state) ); break;
+			case BLITZ_ACTION : actions.addAll( continuedBlitzActions(p, state) ); break;
 			case USED : break;
-			default:
-				break;
 			}
-			
 		}
 		
-		return new EndPhaseAction();
+		actions.add( new EndPhaseAction() );
+		
+		return search(actions, state);
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	@Override
 	protected Action quickSnap(GameState state) {
 		
+		ArrayList<Action> actions = new ArrayList<Action>();
+		
+		// Pick non used player
+		ArrayList<Player> usable = new ArrayList<Player>();
 		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
-			
-			if (p.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
-				
-				Square square = p.getPosition();
-				int i = 1 + (int) (Math.random() * 9);
-				switch(i){
-				case 1 : square = new Square(square.getX()-1, square.getY()-1); break;
-				case 2 : square = new Square(square.getX(), square.getY()-1); break;
-				case 3 : square = new Square(square.getX()+1, square.getY()-1); break;
-				case 4 : square = new Square(square.getX()-1, square.getY()); break;
-				case 5 : return new EndPlayerTurnAction(p);
-				case 6 : square = new Square(square.getX()+1, square.getY()); break;
-				case 7 : square = new Square(square.getX()-1, square.getY()+1); break;
-				case 8 : square = new Square(square.getX(), square.getY()+1); break;
-				case 9 : square = new Square(square.getX()+1, square.getY()+1); break;
-				}
-				
-				if (state.getPitch().getPlayerAt(square) == null && state.getPitch().isOnPitch(square)){
-					StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-					return new MovePlayerAction(p, square);
-				} else {
-					StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-					return new EndPlayerTurnAction(p);
-				}
-				
+			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
+					p.getPlayerStatus().getStanding() != Standing.STUNNED){
+				usable.add(p);
 			}
-			
+		}
+		for(Player p : usable){
+			switch(p.getPlayerStatus().getTurn()){
+			case UNUSED : actions.addAll( startPlayerActions(p, state, false, true) ); break;
+			case MOVE_ACTION : actions.addAll( continuedMoveActions(p, state) ); break;
+			case USED : break;
+			}
 		}
 		
-		return new EndPhaseAction();
+		actions.add( new EndPhaseAction() );
+		
+		return search(actions, state);
 	}
 
 	@Override
@@ -319,21 +255,35 @@ public class MCTSRandom extends AIAgent{
 		
 		// Pick non used player
 		ArrayList<Player> usable = new ArrayList<Player>();
+		Player active = null;
 		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
 					p.getPlayerStatus().getStanding() != Standing.STUNNED){
+				if (p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
+					active = p;
+					break;
+				}
 				usable.add(p);
 			}
 		}
-		for(Player p : usable){
-			switch(p.getPlayerStatus().getTurn()){
-			case UNUSED : actions.add( startPlayerAction(p, state) ); break;
-			case MOVE_ACTION : actions.add( continueMoveAction(p, state) ); break;
-			case BLOCK_ACTION : actions.add( continueBlockAction(p, state) ); break;
-			case BLITZ_ACTION : actions.add( continueBlitzAction(p, state) ); break;
-			case PASS_ACTION : actions.add( continuePassAction(p, state) ); break;
-			case HAND_OFF_ACTION : actions.add( continueHandOffAction(p, state) ); break;
-			case FOUL_ACTION : actions.add( continueFoulAction(p, state) ); break;
+		
+		if (active == null && !usable.isEmpty()){
+			if (usable.size() == 1){
+				active = usable.get(0);
+			} else {
+				active = findActivePlayer(state, usable);
+			}
+		}
+		
+		if (active != null){
+			switch(active.getPlayerStatus().getTurn()){
+			case UNUSED : actions.addAll( startPlayerActions(active, state, false, false) ); break;
+			case MOVE_ACTION : actions.addAll( continuedMoveActions(active, state) ); break;
+			case BLOCK_ACTION : actions.addAll( continuedBlockActions(active, state) ); break;
+			case BLITZ_ACTION : actions.addAll( continuedBlitzActions(active, state) ); break;
+			case PASS_ACTION : actions.addAll( continuedPassActions(active, state) ); break;
+			case HAND_OFF_ACTION : actions.addAll( continuedHandOffActions(active, state) ); break;
+			case FOUL_ACTION : actions.addAll( continuedFoulActions(active, state) ); break;
 			case USED : break;
 			}
 		}
@@ -344,47 +294,93 @@ public class MCTSRandom extends AIAgent{
 		
 	}
 	
-	private Action continueFoulAction(Player player, GameState state) {
+	private Player findActivePlayer(GameState state, ArrayList<Player> players) {
 		
-		double r = Math.random();
+		int bestSum = 0;
+		Player bestPlayer = null;
+		GameStateCloner cloner = new GameStateCloner();
 		
-		if (r > 0.5 || player.getPlayerStatus().hasMovedToBlock()){
-			// Enemies
-			ArrayList<Player> enemies = new ArrayList<Player>();
-			Square playerPos = player.getPosition();
+		for(Player p : players){
 			
+			int sum = 0;
+			
+			for(int i = 0; i < simulations; i++){
+				Date now = new Date();
+				
+				GameState as = cloner.clone(state);
+				GameMaster gameMaster = new GameMaster(as, new RandomAI(true), new RandomAI(false), true, false);
+				gameMaster.setSoundManager(new FakeSoundManager());
+				
+				Action randAction = new SelectPlayerTurnAction(getRandomPlayerTurn(state), p);
+				gameMaster.performAIAction(randAction);
+				
+				while(as.getGameStage() != GameStage.GAME_ENDED){
+					gameMaster.update();
+				}
+				
+				if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
+					sum++;
+				} else if (state.getHomeTeam().getTeamStatus().getScore() < state.getAwayTeam().getTeamStatus().getScore()){
+					sum--;
+				}
+				
+				Date newNow = new Date();
+				
+				System.out.println("simtime: " + (newNow.getTime() - now.getTime()));
+				
+			}
+			
+			if (bestPlayer == null || 
+					(sum > bestSum && homeTeam) || 
+					(sum < bestSum && !homeTeam)){
+				bestSum = sum;
+				bestPlayer = p;
+			}
+		}
+		
+		return bestPlayer;
+		
+	}
+
+	private PlayerTurn getRandomPlayerTurn(GameState state) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private ArrayList<Action> continuedFoulActions(Player player, GameState state) {
+		
+		ArrayList<Action> actions = new ArrayList<Action>();
+		actions.add(new EndPlayerTurnAction(player));
+
+		// Enemies
+		Square playerPos = player.getPosition();
+			
+		if (!myTeam(state).getTeamStatus().hasFouled()){
 			for(int y = -1; y <= 1; y++){
 				for(int x = -1; x <= 1; x++){
 					Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
 					Player enemy = state.getPitch().getPlayerAt(sq);
 					if (enemy != null && !myTeam(state).getPlayers().contains(enemy) && enemy.getPlayerStatus().getStanding() != Standing.UP){
-						enemies.add(enemy);
+						actions.add(new FoulPlayerAction(player, enemy));
 					}
 				}
 			}
-			
-			// Block random enemy if any
-			if (!enemies.isEmpty()){
-				int rr = (int) (Math.random() * enemies.size());
-				
-				return new FoulPlayerAction(player, enemies.get(rr));
-			}
 		}
 		
-		return continueMoveAction(player, state);
+		return continuedMoveActions(player, state);
 	}
 
-	private Action continueHandOffAction(Player player, GameState state) {
+	private ArrayList<Action> continuedHandOffActions(Player player, GameState state) {
 		
-		double r = Math.random();
+		ArrayList<Action> actions = new ArrayList<Action>();
+		actions.add(new EndPlayerTurnAction(player));
 		
-		if (r > 0.0 && state.getPitch().getBall().isUnderControl()){
+		if (state.getPitch().getBall().isUnderControl()){
 			
 			Player ballCarrier = state.getPitch().getPlayerAt(state.getPitch().getBall().getSquare());
 			if (player == ballCarrier){
 				
 				// Team members
-				ArrayList<Player> teamMembers = new ArrayList<Player>();
 				Square playerPos = player.getPosition();
 				
 				for(int y = -1; y <= 1; y++){
@@ -395,51 +391,44 @@ public class MCTSRandom extends AIAgent{
 						Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
 						Player other = state.getPitch().getPlayerAt(sq);
 						if (other != null && myTeam(state).getPlayers().contains(other) && other.getPlayerStatus().getStanding() == Standing.UP){
-							teamMembers.add(other);
+							actions.add(new HandOffPlayerAction(player, other) );
 						}
 					}
 				}
-				if (teamMembers.size() > 0){
-					int i = (int) (Math.random() * teamMembers.size());
-					
-					return new HandOffPlayerAction(player, teamMembers.get(i));
-				}
-				
 			}
+			
+			return actions;
 			
 		}
 		
-		return continueMoveAction(player, state);
+		actions.addAll( continuedMoveActions(player, state) );
+		
+		return actions;
+		
 	}
 
-	private Action continuePassAction(Player player, GameState state) {
+	private ArrayList<Action> continuedPassActions(Player player, GameState state) {
 		
-		double r = Math.random();
+		ArrayList<Action> actions = new ArrayList<Action>();
+		actions.add(new EndPlayerTurnAction(player));
 		
-		if (r > 0.5 && state.getPitch().getBall().isUnderControl()){
+		if (state.getPitch().getBall().isUnderControl()){
 			
 			Player ballCarrier = state.getPitch().getPlayerAt(state.getPitch().getBall().getSquare());
 			if (player == ballCarrier){
-				ArrayList<Player> inRange = new ArrayList<Player>();
 				
 				for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 					if (p != player && isInRange(player, p, state)){
-						inRange.add(p);
+						actions.add(new PassPlayerAction(player, p));
 					}
 				}
-				
-				if (inRange.isEmpty())
-					return new EndPlayerTurnAction(player);
-				
-				int i = (int) (Math.random() * inRange.size());
-				i = Math.min(i, inRange.size());
-				
-				return new PassPlayerAction(player, inRange.get(i));
 			}
 			
 		}
 		
-		return continueMoveAction(player, state);
+		actions.addAll( continuedMoveActions(player, state) );
+		
+		return actions;
 		
 	}
 
@@ -461,156 +450,100 @@ public class MCTSRandom extends AIAgent{
 		return true;
 	}
 
-	private Action continueBlitzAction(Player player, GameState state) {
+	private ArrayList<Action> continuedBlitzActions(Player player, GameState state) {
 		
-		double r = Math.random();
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		if (r > 0.5 || player.getPlayerStatus().hasMovedToBlock()){
-			
-			if (myTeam(state).getTeamStatus().hasBlitzed())
-				return new EndPlayerTurnAction(player);
-			
-			// Enemies
-			ArrayList<Player> enemies = new ArrayList<Player>();
-			Square playerPos = player.getPosition();
-			
+		actions.add( new EndPlayerTurnAction(player) );
+
+		if (!myTeam(state).getTeamStatus().hasBlitzed()){
 			for(int y = -1; y <= 1; y++){
 				for(int x = -1; x <= 1; x++){
-					Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
+					Square sq = new Square(player.getPosition().getX() + x, player.getPosition().getY() + y);
 					Player enemy = state.getPitch().getPlayerAt(sq);
 					if (enemy != null && !myTeam(state).getPlayers().contains(enemy) && enemy.getPlayerStatus().getStanding() == Standing.UP){
-						enemies.add(enemy);
+						actions.add( new BlockPlayerAction(player, enemy) );
 					}
 				}
 			}
-			
-			// Block random enemy if any
-			if (!enemies.isEmpty()){
-				int rr = (int) (Math.random() * enemies.size());
-				
-				return new BlockPlayerAction(player, enemies.get(rr));
-			}
 		}
 		
-		return continueMoveAction(player, state);
+		actions.addAll(continuedMoveActions(player, state));
+		
+		return actions;
 	}
 
-	private Action continueBlockAction(Player player, GameState state) {
+	private ArrayList<Action> continuedBlockActions(Player player, GameState state) {
 		
 		// Enemies
-		ArrayList<Player> enemies = new ArrayList<Player>();
-		Square playerPos = player.getPosition();
+		ArrayList<Action> actions = new ArrayList<Action>();
+		actions.add(new EndPlayerTurnAction(player));
 		
 		for(int y = -1; y <= 1; y++){
 			for(int x = -1; x <= 1; x++){
-				Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
+				Square sq = new Square(player.getPosition().getX() + x, player.getPosition().getY() + y);
 				Player enemy = state.getPitch().getPlayerAt(sq);
 				if (enemy != null && !myTeam(state).getPlayers().contains(enemy) && enemy.getPlayerStatus().getStanding() == Standing.UP){
-					enemies.add(enemy);
+					actions.add(new BlockPlayerAction(player, enemy));
 				}
 			}
 		}
 		
-		// Block random enemy if any
-		if (enemies.isEmpty()){
-			return new EndPlayerTurnAction(player);
-		}
-		
-		int r = (int) (Math.random() * enemies.size());
-		
-		return new BlockPlayerAction(player, enemies.get(r));
+		return actions;
 		
 	}
 
-	private Action continueMoveAction(Player player, GameState state) {
+	private ArrayList<Action> continuedMoveActions(Player player, GameState state) {
 		
-		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
-			return new EndPlayerTurnAction(player);
-		}
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		if (player.getPlayerStatus().getMovementUsed() >= player.getMA()){
-			if (Math.random() * 100 < GOING_FOR_IT_PERCENTAGE){
-				return new EndPlayerTurnAction(player);
-			}
-		}
+		actions.add(new EndPlayerTurnAction(player));
 		
-		ArrayList<Square> squares = new ArrayList<Square>();
-		Square playerPos = player.getPosition();
+		if (player.getPlayerStatus().getMovementUsed() == 1 && state.getGameStage() == GameStage.QUICK_SNAP)
+			return actions;
+		
+		if (player.getPlayerStatus().getMovementUsed() == player.getMA() + 2)
+			return actions;
 		
 		for(int y = -1; y <= 1; y++){
 			for(int x = -1; x <= 1; x++){
-				Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
+				Square sq = new Square(player.getPosition().getX() + x, player.getPosition().getY() + y);
 				if (state.getPitch().isOnPitch(sq) && state.getPitch().getPlayerAt(sq) == null){
-					squares.add(sq);
+					actions.add(new MovePlayerAction(player, sq));
 				}
 			}
 		}
-		
-		if (squares.isEmpty()){
-			return new EndPlayerTurnAction(player);
-		}
-		
-		int i = (int) (Math.random() * squares.size());
-		
-		return new MovePlayerAction(player, squares.get(i));
+
+		return actions;
 		
 	}
 
-	private Action startPlayerAction(Player player, GameState state) {
+	private ArrayList<Action> startPlayerActions(Player player, GameState state, boolean blitzPhase, boolean quickPhase) {
 		
-		PlayerTurn action = null;
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		while(true){
-			int i = (int) (Math.random() * 6);
-			//int i = 3;
-			switch(i){
-			case 0: action = PlayerTurn.MOVE_ACTION; break;
-			case 1: action = PlayerTurn.BLOCK_ACTION; break;
-			case 2: action = PlayerTurn.PASS_ACTION; break;
-			case 3: action = PlayerTurn.HAND_OFF_ACTION; break;
-			case 4: action = PlayerTurn.BLITZ_ACTION; break;
-			case 5: action = PlayerTurn.FOUL_ACTION; break;
-			}
-			
-			if(action == PlayerTurn.BLOCK_ACTION && player.getPlayerStatus().getStanding() != Standing.UP){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			if (action == PlayerTurn.HAND_OFF_ACTION && myTeam(state).getTeamStatus().hasHandedOf()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			if (action == PlayerTurn.PASS_ACTION && myTeam(state).getTeamStatus().hasPassed()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			if (action == PlayerTurn.BLITZ_ACTION && myTeam(state).getTeamStatus().hasBlitzed()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			if (action == PlayerTurn.FOUL_ACTION && myTeam(state).getTeamStatus().hasFouled()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			
-			break;
+		actions.add( new SelectPlayerTurnAction(PlayerTurn.MOVE_ACTION, player) );
+		
+		if (!myTeam(state).getTeamStatus().hasBlitzed() && !quickPhase){
+			actions.add( new SelectPlayerTurnAction(PlayerTurn.BLITZ_ACTION, player) );
 		}
 		
-		return new SelectPlayerTurnAction(action, player);
-	}
-	
-
-	private Action startPlayerActionBlitz(Player player, GameState state) {
-		
-		PlayerTurn action = null;
-
-		if (myTeam(state).getTeamStatus().hasBlitzed()){
-			action = PlayerTurn.MOVE_ACTION;
-		} else {
-			int i = (int) (Math.random() * 2);
-			switch(i){
-			case 0: action = PlayerTurn.MOVE_ACTION; break;
-			case 1: action = PlayerTurn.BLITZ_ACTION; break;
+		if (!blitzPhase && !quickPhase){
+			if (player.getPlayerStatus().getStanding() == Standing.UP){
+				actions.add( new SelectPlayerTurnAction(PlayerTurn.BLOCK_ACTION, player) );
+			}
+			if (!myTeam(state).getTeamStatus().hasPassed()){
+				actions.add( new SelectPlayerTurnAction(PlayerTurn.PASS_ACTION, player) );
+			}
+			if (!myTeam(state).getTeamStatus().hasHandedOf()){
+				actions.add( new SelectPlayerTurnAction(PlayerTurn.HAND_OFF_ACTION, player) );
+			}
+			if (!myTeam(state).getTeamStatus().hasFouled()){
+				actions.add( new SelectPlayerTurnAction(PlayerTurn.FOUL_ACTION, player) );
 			}
 		}
 		
-		return new SelectPlayerTurnAction(action, player);
-		
+		return actions;
 	}
 
 	private Action placeRandomPlayer(GameState state) {

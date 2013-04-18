@@ -1104,10 +1104,11 @@ public class GameMaster {
 		
 		int scatters = 3;
 		Square ballOn = state.getPitch().getBall().getSquare();
+		if (ballOn == null)
+			return;
+		
 		while(scatters > 0){
 			int result = (int) (Math.random() * 8 + 1);
-			
-			ballOn = state.getPitch().getBall().getSquare();
 			
 			switch (result){
 			case 1 : ballOn = new Square(ballOn.getX() - 1, ballOn.getY() - 1); break;
