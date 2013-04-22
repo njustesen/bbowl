@@ -22,6 +22,7 @@ import models.actions.GoingForIt;
 import models.actions.HandOff;
 import models.actions.Pass;
 import models.actions.PickUp;
+import models.actions.Push;
 import models.dice.BB;
 import models.dice.D3;
 import models.dice.D6;
@@ -266,7 +267,36 @@ public class GameStateCloner {
 			select = away;
 		}
 		
-		return new Block(attacker, defender, select);
+		Block newBlock = new Block(attacker, defender, select);
+		
+		if (block.getPush() != null)
+			newBlock.setPush(clonePush(block.getPush(), home, away));
+		
+		if (block.getFollowUpSquare() != null)
+			newBlock.setFollowUpSquare(new Square(block.getFollowUpSquare().getX(), block.getFollowUpSquare().getY()));
+		
+		return newBlock;
+	}
+
+	private Push clonePush(Push push, Team home, Team away) {
+		
+		if (push == null)
+			return null;
+		
+		Square from = null;
+		if (push.getFrom() != null)
+			from = new Square(push.getFrom().getX(), push.getFrom().getY());
+		
+		Square to = null;
+		if (push.getTo() != null)
+			to = new Square(push.getTo().getX(), push.getTo().getY());
+		
+		Push newPush = new Push(getPlayer(push.getPushedPlayer(), home, away), from, to);
+		
+		if (push.getFollowingPush() != null)
+			newPush.setFollowingPush(clonePush(newPush.getFollowingPush(), home, away));
+		
+		return newPush;
 	}
 
 	private CoinToss cloneCoinToss(CoinToss coinToss) {
@@ -336,9 +366,20 @@ public class GameStateCloner {
 	}
 
 	private Ball cloneBall(Ball ball) {
-		Ball newBall = new Ball(new Square(ball.getSquare().getX(), ball.getSquare().getY()), 
-				ball.isInGame(), 
-				ball.isOnGround());
+		if (ball == null){
+			return null;
+		}
+		Ball newBall = null;
+		if (ball.getSquare() != null){
+			newBall = new Ball(new Square(ball.getSquare().getX(), ball.getSquare().getY()), 
+					ball.isInGame(), 
+					ball.isOnGround());
+		} else {
+			newBall = new Ball(null,
+					ball.isInGame(), 
+					ball.isOnGround());
+		}
+		
 		newBall.setUnderControl(ball.isUnderControl());
 		return newBall;
 	}
@@ -367,6 +408,10 @@ public class GameStateCloner {
 		Team newTeam = new Team(players, team.getRerolls(), team.getFanFactor(), team.getAssistantCoaches(), team.getTeamName());
 		
 		newTeam.setTeamStatus(cloneTeamStatus(team.getTeamStatus()));
+		
+		for (Player p : newTeam.getPlayers()){
+			p.setTeam(team);
+		}
 		
 		return newTeam;
 		

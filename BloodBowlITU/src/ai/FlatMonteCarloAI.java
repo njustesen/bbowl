@@ -3,6 +3,7 @@ package ai;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import sound.FakeSoundManager;
 
@@ -14,10 +15,11 @@ import models.PlayerTurn;
 import models.RangeRuler;
 import models.Square;
 import models.Standing;
+import models.Team;
 import models.Weather;
-import Statistics.StatisticManager;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
+import ai.actions.DoublePlayerAction;
 import ai.actions.EndPhaseAction;
 import ai.actions.EndPlayerTurnAction;
 import ai.actions.EndSetupAction;
@@ -29,6 +31,7 @@ import ai.actions.PassPlayerAction;
 import ai.actions.PlaceBallAction;
 import ai.actions.PlaceBallOnPlayerAction;
 import ai.actions.PlacePlayerAction;
+import ai.actions.PlayerAction;
 import ai.actions.RerollAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
@@ -40,21 +43,26 @@ import ai.actions.SelectPushSquareAction;
 import ai.util.GameStateCloner;
 import game.GameMaster;
 
-public class MCRandom extends AIAgent{
+public class FlatMonteCarloAI extends AIAgent{
 	
 	private static long time;
 
-	private static final int simulations = 20;
-	public MCRandom(boolean homeTeam) {
+	private static final int MULTIPLIER = 8;
+	private static final int FEW = 1 * MULTIPLIER;
+	private static final int MEDIUM = 2 * MULTIPLIER;
+	private static final int MANY = 4 * MULTIPLIER;
+	private static final int INSANE = 10 * MULTIPLIER;
+	
+	public FlatMonteCarloAI(boolean homeTeam) {
 		super(homeTeam);
 	}
 	
-	private Action search(List<Action> possibleActions, GameState state){
+	private Action search(List<Action> possibleActions, GameState state, int simulations){
 		
 		//MCTSNode root = new MCTSNode(null, null);
-		int bestSum = 0;
-		Action best = null;
+		int bestSum = -100000;
 		GameStateCloner cloner = new GameStateCloner();
+		ArrayList<Integer> sums = new ArrayList<Integer>();
 		
 		for(Action a : possibleActions){
 			
@@ -73,9 +81,17 @@ public class MCRandom extends AIAgent{
 				}
 				
 				if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
-					sum++;
+					if (myTeam(state) == state.getHomeTeam()){
+						sum++;
+					} else {
+						sum--;
+					}
 				} else if (state.getHomeTeam().getTeamStatus().getScore() < state.getAwayTeam().getTeamStatus().getScore()){
-					sum--;
+					if (myTeam(state) == state.getHomeTeam()){
+						sum--;
+					} else {
+						sum++;
+					}
 				}
 				
 				Date newNow = new Date();
@@ -84,59 +100,87 @@ public class MCRandom extends AIAgent{
 				
 			}
 			
-			if (best == null || 
-					(sum > bestSum && homeTeam) || 
-					(sum < bestSum && !homeTeam)){
-				bestSum = sum;
-				best = a;
+			sums.add(sum);
+			
+		}
+		
+		ArrayList<Action> bestActions = new ArrayList<Action>();
+		for (int i = 0; i < sums.size(); i++){
+			if (sums.get(i) > bestSum){
+				bestActions = new ArrayList<Action>();
+				bestActions.add(possibleActions.get(i));
+				bestSum = sums.get(i);
+			} else if (sums.get(i) == bestSum){
+				bestActions.add(possibleActions.get(i));
 			}
 		}
 		
-		return best;
+		return pickRandom(bestActions);
 	}	
+
+	private Action pickRandom(ArrayList<Action> bestActions) {
+		int x = (int) (Math.random() * bestActions.size());
+		return bestActions.get(x);
+	}
 
 	@Override
 	protected Action decideReroll(GameState state) {
 		
-		int r = (int) (Math.random() * 2);
-		if (r == 0){
-			return new RerollAction();
+		ArrayList<Action> actions = new ArrayList<Action>();
+		
+		if ((state.getGameStage() == GameStage.HOME_TURN && homeTeam) || 
+				(state.getGameStage() == GameStage.AWAY_TURN && !homeTeam)){
+			
+			if (!myTeam(state).getTeamStatus().rerolledThisTurn())
+				actions.add(new RerollAction());
+			
 		}
 		
-		r = (int) (Math.random() * state.getCurrentDiceRoll().getDices().size());
+		for(int i = 0; i < state.getCurrentDiceRoll().getDices().size(); i++){
+			actions.add(new SelectDieAction(i));
+		}
 		
-		return new SelectDieAction(r);
+		return search(actions, state, INSANE);
 		
 	}
 
 	@Override
 	protected Action decidePush(GameState state) {
 
-		int r = (int) (Math.random() * state.getCurrentBlock().getCurrentPushSquares().size());
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		return new SelectPushSquareAction(state.getCurrentBlock().getCurrentPushSquares().get(r));
+		for(int i = 0; i < state.getCurrentBlock().getCurrentPushSquares().size(); i++){
+			actions.add(new SelectPushSquareAction(state.getCurrentBlock().getCurrentPushSquares().get(i)));
+		}
+		
+		return search(actions, state, INSANE);
 		
 	}
 
 	@Override
 	protected Action decideFollowUp(GameState state) {
 		
-		double f = Math.random() * 2;
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		if (f > 1.0)
-			return new FollowUpAction(true);
+		actions.add( new FollowUpAction(true) );
+		actions.add( new FollowUpAction(false) );
 		
-		return new FollowUpAction(false);
+		return search(actions, state, INSANE);
 		
 	}
 	
 	@Override
 	protected Action placeBallOnPlayer(GameState state) {
 		
-		int rand = (int) (Math.random() * state.getPitch().playersOnPitch(myTeam(state)));
-		Player player = state.getPitch().getPlayersOnPitch(myTeam(state)).get(rand);
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		return new PlaceBallOnPlayerAction(player);
+		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state)) ){
+			
+			actions.add(new PlaceBallOnPlayerAction(p));
+			
+		}
+		
+		return search(actions, state, MANY);
 		
 	}
 
@@ -148,24 +192,38 @@ public class MCRandom extends AIAgent{
 		
 		// Pick non used player
 		ArrayList<Player> usable = new ArrayList<Player>();
+		Player active = null;
 		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
 					p.getPlayerStatus().getStanding() != Standing.STUNNED){
+				if (p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
+					active = p;
+					break;
+				}
 				usable.add(p);
 			}
 		}
-		for(Player p : usable){
-			switch(p.getPlayerStatus().getTurn()){
-			case UNUSED : actions.addAll( startPlayerActions(p, state, false, false) ); break;
-			case MOVE_ACTION : actions.addAll( continuedMoveActions(p, state) ); break;
-			case BLITZ_ACTION : actions.addAll( continuedBlitzActions(p, state) ); break;
+		
+		if (active == null && !usable.isEmpty()){
+			if (usable.size() == 1){
+				active = usable.get(0);
+			} else {
+				active = findActivePlayer(state, usable);
+			}
+		}
+		
+		if (active != null){
+			switch(active.getPlayerStatus().getTurn()){
+			case UNUSED : actions.addAll( startPlayerActions(active, state, true, false) ); break;
+			case MOVE_ACTION : actions.addAll( continuedMoveActions(active, state) ); break;
+			case BLITZ_ACTION : actions.addAll( continuedBlitzActions(active, state) ); break;
 			case USED : break;
 			}
 		}
 		
 		actions.add( new EndPhaseAction() );
 		
-		return search(actions, state);
+		return search(actions, state, MANY);
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -176,32 +234,51 @@ public class MCRandom extends AIAgent{
 		
 		// Pick non used player
 		ArrayList<Player> usable = new ArrayList<Player>();
+		Player active = null;
 		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
 					p.getPlayerStatus().getStanding() != Standing.STUNNED){
+				if (p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
+					active = p;
+					break;
+				}
 				usable.add(p);
 			}
 		}
-		for(Player p : usable){
-			switch(p.getPlayerStatus().getTurn()){
-			case UNUSED : actions.addAll( startPlayerActions(p, state, false, true) ); break;
-			case MOVE_ACTION : actions.addAll( continuedMoveActions(p, state) ); break;
+		
+		if (active == null && !usable.isEmpty()){
+			if (usable.size() == 1){
+				active = usable.get(0);
+			} else {
+				active = findActivePlayer(state, usable);
+			}
+		}
+		
+		if (active != null){
+			switch(active.getPlayerStatus().getTurn()){
+			case UNUSED : actions.addAll( startPlayerActions(active, state, false, true) ); break;
+			case MOVE_ACTION : actions.addAll( continuedMoveActions(active, state) ); break;
 			case USED : break;
 			}
 		}
 		
 		actions.add( new EndPhaseAction() );
 		
-		return search(actions, state);
+		return search(actions, state, MANY);
 	}
 
 	@Override
 	protected Action highKick(GameState state) {
 		
-		int rand = (int) (Math.random() * state.getPitch().playersOnPitch(myTeam(state)));
-		Player player = state.getPitch().getPlayersOnPitch(myTeam(state)).get(rand);
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		return new SelectPlayerAction(player);
+		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state)) ){
+			
+			actions.add(new SelectPlayerAction(p));
+			
+		}
+		
+		return search(actions, state, INSANE);
 		
 	}
 	
@@ -215,26 +292,61 @@ public class MCRandom extends AIAgent{
 	@Override
 	protected Action placeKick(GameState state) {
 		
-		Square square = state.getPitch().getRandomOpposingSquare(myTeam(state));
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		return new PlaceBallAction(square);
+		for(Square square : state.getPitch().getOpposingSquares(myTeam(state)) ){
+			
+			actions.add(new PlaceBallAction(square));
+			
+		}
+		
+		return search(actions, state, MEDIUM);
 		
 	}
 
 	@Override
 	protected Action setup(GameState state) {
 		
+		ArrayList<Action> actions = new ArrayList<Action>();
+		
 		if (state.getPitch().getDogout(myTeam(state)).getReserves().size() == 0 ||  
 				state.getPitch().playersOnPitch(myTeam(state)) == 11){
 			
 			if (state.getPitch().isSetupLegal(myTeam(state), state.getHalf())){
-				StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 				return new EndSetupAction();
 			}
 			
 		}
+			
+		if (state.getPitch().playersOnScrimmage(myTeam(state)) < 3){
+			// Scrimmage
+			for(Square square : state.getPitch().getScrimmageSquares(myTeam(state))){
+				if (state.getPitch().getPlayerAt(square) == null){
+					for (Player p : state.getPitch().getDogout(myTeam(state)).getReserves()){
+						actions.add(new PlacePlayerAction(p, square));
+					}
+				}
+			}
+		} else {
+	
+			Player player = state.getPitch().getDogout(myTeam(state)).getReserves().get(0);
+			
+			int top = state.getPitch().playersOnTopWideZones(myTeam(state));
+			int bottom = state.getPitch().playersOnBottomWideZones(myTeam(state));
+			
+			for(Square square : state.getPitch().getTeamSquares(myTeam(state))){
+				if (state.getPitch().getPlayerAt(square) == null){
+					if (top >= 2 && state.getPitch().isInTopWideZone(square)){
+					} else if (bottom >= 2 && state.getPitch().isInBottomWideZone(square)){
+					} else {
+						actions.add(new PlacePlayerAction(player, square));
+					}
+				}
+			}
+			
+		}
 		
-		return placeRandomPlayer(state);
+		return search(actions, state, FEW);
 		
 	}
 
@@ -290,7 +402,7 @@ public class MCRandom extends AIAgent{
 		
 		actions.add( new EndPhaseAction() );
 		
-		return search(actions, state);
+		return search(actions, state, INSANE);
 		
 	}
 	
@@ -304,14 +416,15 @@ public class MCRandom extends AIAgent{
 			
 			int sum = 0;
 			
-			for(int i = 0; i < simulations; i++){
+			for(int i = 0; i < MEDIUM; i++){
 				Date now = new Date();
 				
 				GameState as = cloner.clone(state);
 				GameMaster gameMaster = new GameMaster(as, new RandomAI(true), new RandomAI(false), true, false);
 				gameMaster.setSoundManager(new FakeSoundManager());
 				
-				Action randAction = new SelectPlayerTurnAction(getRandomPlayerTurn(state), p);
+				Player clonedPlayer = findIdenticalPlayer(p, myTeam(as), state, as);
+				Action randAction = new SelectPlayerTurnAction(getRandomPlayerTurn(), clonedPlayer);
 				gameMaster.performAIAction(randAction);
 				
 				while(as.getGameStage() != GameStage.GAME_ENDED){
@@ -342,15 +455,34 @@ public class MCRandom extends AIAgent{
 		
 	}
 
-	private PlayerTurn getRandomPlayerTurn(GameState state) {
-		// TODO Auto-generated method stub
+	private Player findIdenticalPlayer(Player player, Team newTeam, GameState oldState, GameState newState) {
+
+		for(Player p : newTeam.getPlayers()){
+			if (p.getNumber() == player.getNumber()){
+				return p;
+			}
+		}
+		
 		return null;
+	}
+
+	private PlayerTurn getRandomPlayerTurn() {
+
+		int i = (int) (Math.random() * 6);
+		switch(i){
+		case 0: return PlayerTurn.BLITZ_ACTION;
+		case 1: return PlayerTurn.BLOCK_ACTION;
+		case 2: return PlayerTurn.FOUL_ACTION;
+		case 3: return PlayerTurn.HAND_OFF_ACTION;
+		case 4: return PlayerTurn.MOVE_ACTION;
+		case 5: return PlayerTurn.PASS_ACTION;
+		}
+		return PlayerTurn.MOVE_ACTION;
 	}
 
 	private ArrayList<Action> continuedFoulActions(Player player, GameState state) {
 		
 		ArrayList<Action> actions = new ArrayList<Action>();
-		actions.add(new EndPlayerTurnAction(player));
 
 		// Enemies
 		Square playerPos = player.getPosition();
@@ -367,13 +499,13 @@ public class MCRandom extends AIAgent{
 			}
 		}
 		
+		actions.add(new EndPlayerTurnAction(player));
 		return continuedMoveActions(player, state);
 	}
 
 	private ArrayList<Action> continuedHandOffActions(Player player, GameState state) {
 		
 		ArrayList<Action> actions = new ArrayList<Action>();
-		actions.add(new EndPlayerTurnAction(player));
 		
 		if (state.getPitch().getBall().isUnderControl()){
 			
@@ -397,12 +529,14 @@ public class MCRandom extends AIAgent{
 				}
 			}
 			
+			actions.add(new EndPlayerTurnAction(player));
 			return actions;
 			
 		}
 		
 		actions.addAll( continuedMoveActions(player, state) );
 		
+		actions.add(new EndPlayerTurnAction(player));
 		return actions;
 		
 	}
@@ -410,7 +544,6 @@ public class MCRandom extends AIAgent{
 	private ArrayList<Action> continuedPassActions(Player player, GameState state) {
 		
 		ArrayList<Action> actions = new ArrayList<Action>();
-		actions.add(new EndPlayerTurnAction(player));
 		
 		if (state.getPitch().getBall().isUnderControl()){
 			
@@ -427,6 +560,8 @@ public class MCRandom extends AIAgent{
 		}
 		
 		actions.addAll( continuedMoveActions(player, state) );
+		
+		actions.add(new EndPlayerTurnAction(player));
 		
 		return actions;
 		
@@ -453,8 +588,6 @@ public class MCRandom extends AIAgent{
 	private ArrayList<Action> continuedBlitzActions(Player player, GameState state) {
 		
 		ArrayList<Action> actions = new ArrayList<Action>();
-		
-		actions.add( new EndPlayerTurnAction(player) );
 
 		if (!myTeam(state).getTeamStatus().hasBlitzed()){
 			for(int y = -1; y <= 1; y++){
@@ -477,7 +610,6 @@ public class MCRandom extends AIAgent{
 		
 		// Enemies
 		ArrayList<Action> actions = new ArrayList<Action>();
-		actions.add(new EndPlayerTurnAction(player));
 		
 		for(int y = -1; y <= 1; y++){
 			for(int x = -1; x <= 1; x++){
@@ -489,6 +621,8 @@ public class MCRandom extends AIAgent{
 			}
 		}
 		
+		actions.add(new EndPlayerTurnAction(player));
+		
 		return actions;
 		
 	}
@@ -496,14 +630,16 @@ public class MCRandom extends AIAgent{
 	private ArrayList<Action> continuedMoveActions(Player player, GameState state) {
 		
 		ArrayList<Action> actions = new ArrayList<Action>();
-		
-		actions.add(new EndPlayerTurnAction(player));
-		
-		if (player.getPlayerStatus().getMovementUsed() == 1 && state.getGameStage() == GameStage.QUICK_SNAP)
+	
+		if (player.getPlayerStatus().getMovementUsed() == 1 && state.getGameStage() == GameStage.QUICK_SNAP){
+			actions.add(new EndPlayerTurnAction(player));
 			return actions;
+		}
 		
-		if (player.getPlayerStatus().getMovementUsed() == player.getMA() + 2)
+		if (player.getPlayerStatus().getMovementUsed() == player.getMA() + 2){
+			actions.add(new EndPlayerTurnAction(player));
 			return actions;
+		}
 		
 		for(int y = -1; y <= 1; y++){
 			for(int x = -1; x <= 1; x++){
@@ -514,6 +650,7 @@ public class MCRandom extends AIAgent{
 			}
 		}
 
+		actions.add(new EndPlayerTurnAction(player));
 		return actions;
 		
 	}
@@ -545,32 +682,21 @@ public class MCRandom extends AIAgent{
 		
 		return actions;
 	}
-
-	private Action placeRandomPlayer(GameState state) {
+	
+	@Override
+	protected Action pickIntercepter(GameState state) {
 		
-		int rand = (int) (Math.random() * state.getPitch().getDogout(myTeam(state)).getReserves().size());
-		Player player = state.getPitch().getDogout(myTeam(state)).getReserves().get(rand);
-		Square square = new Square(1,1);
+		ArrayList<Action> actions = new ArrayList<Action>();
 		
-		if (state.getPitch().playersOnScrimmage(myTeam(state)) < 3){
+		for(Player p : state.getCurrentPass().getInterceptionPlayers()){
 			
-			square = state.getPitch().getRandomFreeScrimmageSquare(myTeam(state));
-			
-		} else if (state.getPitch().playersOnTopWideZones(myTeam(state)) < 2 && 
-				state.getPitch().playersOnBottomWideZones(myTeam(state)) < 2){
-			
-			square = state.getPitch().getRandomFreeSquare(myTeam(state));
-			
-		} else {
-			
-			square = state.getPitch().getRandomFreeMiddleSquare(myTeam(state));
+			actions.add(new SelectInterceptionAction(p));
 			
 		}
 		
-		return new PlacePlayerAction(player, square);
+		return search(actions, state, MANY);
 		
 	}
-
 
 	public boolean isHomeTeam() {
 		return homeTeam;
@@ -580,13 +706,6 @@ public class MCRandom extends AIAgent{
 		this.homeTeam = homeTeam;
 	}
 
-	@Override
-	protected Action pickIntercepter(GameState state) {
-		
-		int i = (int) (Math.random() * state.getCurrentPass().getInterceptionPlayers().size());
-		
-		return new SelectInterceptionAction(state.getCurrentPass().getInterceptionPlayers().get(i));
-		
-	}
+	
 	
 }

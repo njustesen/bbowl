@@ -126,6 +126,15 @@ public abstract class AIAgent {
 		return state.getAwayTeam();
 		
 	}
+	
+	protected Team otherTeam(GameState state){
+		
+		if (!homeTeam){
+			return state.getHomeTeam();
+		}
+		return state.getAwayTeam();
+		
+	}
 
 	protected abstract Action turn(GameState state);
 	protected abstract Action decideReroll(GameState state);
@@ -164,7 +173,7 @@ public abstract class AIAgent {
 			this.goalY = goalY;
 			this.pitchWidth = 28;
 			this.pitchHeight = 17;
-			this.playerPos = state.getPitch().getPlayerPosition(player);
+			this.playerPos = player.getPosition();
 			curMover = new Mover(playerPos.getX(), playerPos.getY(),  goalX, goalY, 0, null, pitch);
 		}
 		

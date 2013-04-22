@@ -86,5 +86,13 @@ public class Team {
 		this.teamStatus.setRerolls(rerolls);
 		
 	}
+
+	public Player getPlayer(int number) {
+		for (Player p : players){
+			if (number == p.getNumber())
+				return p;
+		}
+		return null;
+	}
 	
 }

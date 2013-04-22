@@ -2,7 +2,7 @@ package ai.actions;
 
 import models.Player;
 
-public class PassPlayerAction implements Action {
+public class PassPlayerAction extends DoublePlayerAction {
 
 	Player passer;
 	Player catcher;
@@ -27,6 +27,26 @@ public class PassPlayerAction implements Action {
 
 	public void setCatcher(Player catcher) {
 		this.catcher = catcher;
+	}
+
+	@Override
+	public Player getPlayerA() {
+		return passer;
+	}
+
+	@Override
+	public Player getPlayerB() {
+		return catcher;
+	}
+
+	@Override
+	public void setPlayerA(Player player) {
+		passer = player;
+	}
+
+	@Override
+	public void setPlayerB(Player player) {
+		catcher = player;
 	}
 	
 	

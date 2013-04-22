@@ -31,7 +31,14 @@ public class TeamFactory {
 				Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)
 			);
 		
-		return new Team(players, 4, 5, 0, "Humans");
+		Team team = new Team(players, 4, 5, 0, "Humans");
+		
+		for (Player p : players){
+			p.setTeam(team);
+		}
+		
+		return team;
+		
 	}
 
 	public static Team getHumanOrc() {
@@ -51,7 +58,13 @@ public class TeamFactory {
 				Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)
 			);
 		
-		return new Team(players, 3, 6, 0, "Orcses");
+		Team team = new Team(players, 3, 6, 0, "Orcses");
+		
+		for (Player p : players){
+			p.setTeam(team);
+		}
+		
+		return team;
 	}
 	
 	

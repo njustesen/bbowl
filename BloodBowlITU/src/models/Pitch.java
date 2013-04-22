@@ -374,7 +374,7 @@ public class Pitch {
 
 		// Count players in top
 		for(int y = 1; y <= 4; y++){
-			for(int x = 2; x <= 25; x++){
+			for(int x = 1; x <= 25; x++){
 				
 				// If the found player is on the team
 				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){
@@ -394,7 +394,7 @@ public class Pitch {
 		int playersInBottomWideZones = 0;
 
 		for(int y = 12; y <= 15; y++){
-			for(int x = 2; x <= 25; x++){
+			for(int x = 1; x <= 25; x++){
 				
 				// If the found player is on the team
 				if (playerArr[y][x] != null && team.getPlayers().contains(playerArr[y][x])){
@@ -817,6 +817,77 @@ public class Pitch {
 		}
 		
 		return playersOnPitch;
+		
+	}
+
+	public ArrayList<Square> getOpposingSquares(Team team) {
+		
+		ArrayList<Square> squares = new ArrayList<Square>();
+		
+		int xx = 0;
+		if (isTeamHome(team)){
+			xx+=13;
+		}
+		
+		for(int x = 1; x <= 13; x++){
+			for(int y = 1; y <= 15; y++){
+				squares.add(new Square(x+xx,y));
+			}
+		}
+		
+		return squares;
+	}
+	
+	public ArrayList<Square> getTeamSquares(Team team) {
+		
+		ArrayList<Square> squares = new ArrayList<Square>();
+		
+		int xx = 0;
+		if (!isTeamHome(team)){
+			xx=13;
+		}
+		
+		for(int x = 1; x <= 13; x++){
+			for(int y = 1; y <= 15; y++){
+				squares.add(new Square(x+xx,y));
+			}
+		}
+		
+		return squares;
+	}
+
+	public ArrayList<Square> getScrimmageSquares(Team team) {
+
+		ArrayList<Square> squares = new ArrayList<Square>();
+		int x = 13;
+		if (!isTeamHome(team)){
+			x = 14;
+		}
+		
+		for(int y = 5; y <= 11; y++){
+			squares.add(new Square(x,y));
+		}
+		
+		return squares;
+	}
+
+	public boolean isInTopWideZone(Square square) {
+		
+		if (square.getY() <= 4){
+			return true;
+		}
+		
+		return false;
+		
+	}
+	
+	public boolean isInBottomWideZone(Square square) {
+		
+		if (square.getY() >= 12){
+			return true;
+		}
+		
+		return false;
 		
 	}
     

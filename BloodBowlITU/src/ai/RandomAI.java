@@ -624,6 +624,10 @@ public class RandomAI extends AIAgent {
 		
 		time = System.nanoTime();
 
+		if (state.getPitch().getDogout(myTeam(state)).getReserves().isEmpty()){
+			return new EndPhaseAction();
+		}
+		
 		int rand = (int) (Math.random() * state.getPitch().getDogout(myTeam(state)).getReserves().size());
 		Player player = state.getPitch().getDogout(myTeam(state)).getReserves().get(rand);
 		Square square = new Square(1,1);
