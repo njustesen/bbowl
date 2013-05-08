@@ -6,8 +6,8 @@ import models.Skill;
 
 public class OrcLineman extends Player{
 
-	public OrcLineman(int number){
-		super(Race.ORCS, "Lineman", number);
+	public OrcLineman(int number, String teamName){
+		super(Race.ORCS, "Lineman", number, teamName);
 		this.cost = 50000;
 		this.MA = 5;
 		this.ST = 3;

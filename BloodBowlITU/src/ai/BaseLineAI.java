@@ -2,6 +2,7 @@ package ai;
 
 import java.util.ArrayList;
 
+import models.Ball;
 import models.GameState;
 import models.PassRange;
 import models.Player;
@@ -9,6 +10,7 @@ import models.PlayerTurn;
 import models.RangeRuler;
 import models.Square;
 import models.Standing;
+import models.Team;
 import models.Weather;
 import Statistics.StatisticManager;
 import ai.actions.Action;
@@ -37,6 +39,7 @@ public class BaseLineAI extends AIAgent{
 	private static final int ACTIVE_PLAYER_PERCENTAGE = 80;
 	private static final int GOING_FOR_IT_PERCENTAGE = 20;
 	private static long time;
+	private ArrayList <Square> moves;
 	
 	public BaseLineAI(boolean homeTeam) {
 		super(homeTeam);
@@ -50,9 +53,9 @@ public class BaseLineAI extends AIAgent{
 		Player player = null;
 		
 		// Pick active player
-		int r = (int) (Math.random() * 100);
+//		int r = (int) (Math.random() * 100);
 		
-		if (r <= ACTIVE_PLAYER_PERCENTAGE){
+//		if (r <= ACTIVE_PLAYER_PERCENTAGE){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
 						p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
@@ -60,7 +63,7 @@ public class BaseLineAI extends AIAgent{
 					break;
 				}
 			}
-		}
+//		}
 		
 		// Pick non used player
 		ArrayList<Player> usable = new ArrayList<Player>();
@@ -99,7 +102,7 @@ public class BaseLineAI extends AIAgent{
 
 	@Override
 	protected Action decideReroll(GameState state) {
-		
+		//lol
 		time = System.nanoTime();
 		
 		int r = (int) (Math.random() * 2);
@@ -205,21 +208,21 @@ public class BaseLineAI extends AIAgent{
 
 	@Override
 	protected Action blitz(GameState state) {
-time = System.nanoTime();
+		time = System.nanoTime();
 		
 		Player player = null;
 		
 		// Pick active player
 		int r = (int) (Math.random() * 100);
 		
-		if (r <= ACTIVE_PLAYER_PERCENTAGE){
-			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
-				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
-					player = p;
-					break;
-				}
+		
+		for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
+			if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
+				player = p;
+				break;
 			}
 		}
+		
 		
 		// Pick non used player
 		ArrayList<Player> usable = new ArrayList<Player>();
@@ -315,7 +318,7 @@ time = System.nanoTime();
 	}
 	
 	//egne metoder
-private Action continueFoulAction(Player player, GameState state) {
+	private Action continueFoulAction(Player player, GameState state) {
 		
 		time = System.nanoTime();
 		
@@ -393,11 +396,9 @@ private Action continueFoulAction(Player player, GameState state) {
 
 	private Action continuePassAction(Player player, GameState state) {
 		
-		time = System.nanoTime();
+	
 		
-		double r = Math.random();
-		
-		if (r > 0.5 && state.getPitch().getBall().isUnderControl()){
+		if (state.getPitch().getBall().isUnderControl()){
 			
 			Player ballCarrier = state.getPitch().getPlayerAt(state.getPitch().getBall().getSquare());
 			if (player == ballCarrier){
@@ -441,33 +442,53 @@ private Action continueFoulAction(Player player, GameState state) {
 	}
 
 	private Action continueBlitzAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
-		
-		double r = Math.random();
-		
-		if (r > 0.5 || player.getPlayerStatus().hasMovedToBlock()){
-			// Enemies
-			ArrayList<Player> enemies = new ArrayList<Player>();
-			Square playerPos = player.getPosition();
+		System.out.println("BLIIITZ!!!");
+			if(!state.getAwayTeam().getTeamStatus().hasBlitzed()){
+				if(numberOfSurroundingOpponents(state, player.getPosition()) == 0){
+					System.out.println("numberOfSurroundingOpponents(state, player.getPosition()) == 0");
+					return continueMoveAction(player, state);
+				}
 			
-			for(int y = -1; y <= 1; y++){
-				for(int x = -1; x <= 1; x++){
-					Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
-					Player enemy = state.getPitch().getPlayerAt(sq);
-					if (enemy != null && !myTeam(state).getPlayers().contains(enemy) && enemy.getPlayerStatus().getStanding() == Standing.UP){
-						enemies.add(enemy);
+				// Enemies
+				ArrayList<Player> enemies = new ArrayList<Player>();
+				
+				
+				Square playerPos = player.getPosition();
+				Square ballPos = state.getPitch().getBall().getSquare();
+				
+				
+				for(int i = -1; i <= 1; i++){
+					for(int j = -1; j <= 1; j++){
+						if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+i,playerPos.getY()+j)) != null){
+							if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+i,playerPos.getY()+j)).getTeamName() != player.getTeamName()){
+								enemies.add(state.getPitch().getPlayerAt(new Square(playerPos.getX()+i,playerPos.getY()+j)));
+							}
+						}
 					}
 				}
-			}
-			
-			// Block random enemy if any
-			if (!enemies.isEmpty()){
-				int rr = (int) (Math.random() * enemies.size());
+				System.out.println("enemies = "+enemies);
 				
-				return new BlockPlayerAction(player, enemies.get(rr));
+				if (!enemies.isEmpty()){
+					System.out.println("blitz is NOT empty");
+					Player selected = enemies.get(0);
+					for(Player e: enemies){
+					
+						if(e.getST() < selected.getST()){
+							selected = e;
+						}
+							
+						if(e.getPosition().getX() == ballPos.getX() && e.getPosition().getY() == ballPos.getY()){
+							selected = e;
+						}
+						
+						if(enemies.size() == 1){
+							selected = e;
+						}
+					}
+					System.out.println("return selected = "+selected);
+					return new BlockPlayerAction(player, selected);
+				}
 			}
-		}
 		
 		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
@@ -498,8 +519,8 @@ private Action continueFoulAction(Player player, GameState state) {
 		}
 		
 		for(Player e: enemies){
-			if(state.getPitch().getBall().getSquare().getX() == state.getPitch().getPlayerPosition(e).getX() &&
-				state.getPitch().getBall().getSquare().getY() == state.getPitch().getPlayerPosition(e).getY()){
+			if(state.getPitch().getBall().getSquare().getX() == e.getPosition().getX() &&
+				state.getPitch().getBall().getSquare().getY() == e.getPosition().getY()){
 				return new BlockPlayerAction(player, e);
 			}
 		}
@@ -511,122 +532,91 @@ private Action continueFoulAction(Player player, GameState state) {
 		return new BlockPlayerAction(player, enemies.get(r));
 		
 	}
-
+	
 	private Action continueMoveAction(Player player, GameState state) {
+		
+		//System.out.println("continue move    player = "+player+"   standing at square "+player.getPosition().getX()+","+player.getPosition().getY()+"  moves used="+player.getPlayerStatus().getMovementUsed());
 		
 		time = System.nanoTime();
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
+		//	System.out.println("player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2   WHAT??");
+			moves.clear();
 			return new EndPlayerTurnAction(player);
 		}
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA()){
-			if (Math.random() * 100 > calculateGoingForItPercentage(state, player)){
-				return new EndPlayerTurnAction(player);
-			}
-		}
-		
-		ArrayList<Square> squares = new ArrayList<Square>();
-		
-		int x = 0;
-		int y = 0;
-		
-		if(playerPos.getX() == state.getPitch().getBall().getSquare().getX() && 
-			playerPos.getY() == state.getPitch().getBall().getSquare().getY()){
-			
-			//System.out.println("SAMESQUARE!! playerPos == state.getPitch().getBall().getSquare() ");
-			return moveToGoal(player, state);
-		}
-		
-		if(playerPos.getX() < state.getPitch().getBall().getSquare().getX()){
-			x++;
-			if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+1, playerPos.getY())) != null){
-				y++;
-			}else if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+1, playerPos.getY()+1)) != null){
-				y--;
-			}
-		}else if(playerPos.getX() > state.getPitch().getBall().getSquare().getX()){
-			x--;
-			if(state.getPitch().getPlayerAt(new Square(playerPos.getX()-1, playerPos.getY())) != null){
-				y++;
-			}else if(state.getPitch().getPlayerAt(new Square(playerPos.getX()-1, playerPos.getY()+1)) != null){
-				y--;
-			}
-		}
-		
-		if(playerPos.getY() < state.getPitch().getBall().getSquare().getY() && y == 0){
-			y++;
-		}else if(playerPos.getY() > state.getPitch().getBall().getSquare().getY() && y == 0){
-			y--;
-		}
-		
-		Square sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
-	
-		
-		if (state.getPitch().isOnPitch(sq) && state.getPitch().getPlayerAt(sq) == null){
-			return new MovePlayerAction(player, sq);
-		}else if(state.getPitch().isOnPitch(sq) && state.getPitch().getPlayerAt(sq) != null){
-			if(x != 0 && y == 0){
-				y++;
-				sq = new Square(playerPos.getX() + x, playerPos.getY() + y);
-				return new MovePlayerAction(player, sq);
-			}
-		}
-		return new EndPlayerTurnAction(player);
-
-		//OLD RANDOM MOVEMENT
-		/*
-		for(int y = -1; y <= 1; y++){
-			for(int x = -1; x <= 1; x++){
-				Square sq = new Square(player.getPosition().getX() + x, player.getPosition().getY() + y);
-				if (state.getPitch().isOnPitch(sq) && state.getPitch().getPlayerAt(sq) == null){
-					squares.add(sq);
-				}
-			}
-		}
-		
-		if (squares.isEmpty()){
+		//	if (Math.random() * 100 > calculateGoingForItPercentage(state, player)){
+		//	System.out.println("player.getPlayerStatus().getMovementUsed() >= player.getMA()   WHAT??");
+			moves.clear();
 			return new EndPlayerTurnAction(player);
+		//	}
 		}
 		
-		int i = (int) (Math.random() * squares.size());
+		Ball b = state.getPitch().getBall();
+		Square playerPos = player.getPosition();
 		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
+		if(player.getPlayerStatus().getMovementUsed() == 0){
 		
-		return new MovePlayerAction(player, squares.get(i));
-		*/
-	}
-	
-	public Action moveToGoal(Player player, GameState state){
+			//if ball is not on the ground
+		if(state.getPitch().getPlayerAt(b.getSquare()) == null){
+			
+			moves = aStar.findPath(player, b.getSquare(), state, false);
 		
-		Square playerPos = state.getPitch().getPlayerPosition(player);
-		Square sq = new Square(playerPos.getX(), playerPos.getY());
-		System.out.println(" moveToGoalCalled ");
-		if(state.getAwayTeam().getPlayers().contains(player)){
-			sq = new Square(playerPos.getX() - 1, playerPos.getY());
-			if(state.getPitch().getPlayerAt(sq) != null){
-				sq = new Square(playerPos.getX() - 1, playerPos.getY()+1);
-				if(state.getPitch().getPlayerAt(sq) != null){
-					sq = new Square(playerPos.getX() - 1, playerPos.getY()-1);
-					if(state.getPitch().getPlayerAt(sq) != null){
-						sq = new Square(playerPos.getX(), playerPos.getY()-1);
-						if(state.getPitch().getPlayerAt(sq) != null){
-							sq = new Square(playerPos.getX(), playerPos.getY()+1);
-						}
-					}
-				}
-			}
+		//if SOME player has the ball
 		}else{
-			sq = new Square(playerPos.getX() + 1, playerPos.getY());
-			if(state.getPitch().getPlayerAt(sq) != null){
-				sq = new Square(playerPos.getX() + 1, playerPos.getY()+1);
-				if(state.getPitch().getPlayerAt(sq) != null){
-					sq = new Square(playerPos.getX() + 1, playerPos.getY()-1);
+			
+			//if player has the ball
+			if(playerPos.getX() == b.getSquare().getX() && playerPos.getY() == b.getSquare().getY()){
+				moves = aStar.findPath(player, b.getSquare(), state, true);
+			//	System.out.println();
+			//	System.out.println("NEW PLAYER!!!");
+			//	System.out.println();
+			//	System.out.println("player has not used any moves - has the ball   moves.size = "+moves.size());
+			}else{ 
+			
+				//if player from team has the ball
+				if(state.getPitch().getPlayerAt(b.getSquare()).getTeamName() == player.getTeamName()){
+						
+					//if not grouped up
+					if(!isGroupedUp(state.getPitch().getPlayerAt(b.getSquare()), state)){
+						moves = aStar.findPath(player, groupUp(player, state), state, false);
+						
+					//find nearest opponent	
+					}else{
+						Player opponent = getNearestOpponents(player, state).get(0);
+					//	System.out.println("opponent = "+opponent);
+						moves = aStar.findPath(player, opponent.getPosition(), state, false);
+					}
+						
+				//if opponent has ball or ball is on ground
+				}else{
+					moves = aStar.findPath(player, b.getSquare(), state, false);
+			//		System.out.println();
+			//		System.out.println("NEW PLAYER!!!");
+			//		System.out.println();
+			//		System.out.println("player has not used any moves - doen't have the ball, but is going for it  b="+b.getSquare().getX()+","+b.getSquare().getY()+"   moves.size = "+moves.size()+"   MA="+player.getMA());
 				}
 			}
 		}
+	}
 		
-		return new MovePlayerAction(player, sq);
+		if(moves != null){
+			if(!moves.isEmpty()){
+//				System.out.println("MOVEPLAYERACTION!!!");
+				int size = moves.size();
+//				System.out.println("moves.size = "+moves.size());
+				Square sq = moves.remove(size-1);
+//				System.out.println("return new MovePlayerAction(player, sq);  sq = ("+sq.getX()+","+sq.getY()+")");
+				return new MovePlayerAction(player, sq);
+			}else{System.out.println("moves.isEmpty()");}
+		}else{System.out.println("moves != null");}
+	
+			
+		moves.clear();
+		
+		return new EndPlayerTurnAction(player);
+		
 	}
 	
 	//The higher the number of unused players, the higher the
@@ -653,87 +643,35 @@ private Action continueFoulAction(Player player, GameState state) {
 		
 	}
 	
-private Action startPlayerAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
-		
-		PlayerTurn action = null;
-		Square playerPos = state.getPitch().getPlayerPosition(player);
-		int i = (int) (Math.random() * 6);
-		
-		ArrayList<Player> surroundingPlayers = getSurroundingPlayers(player, state);
-		
-		if(!surroundingPlayers.isEmpty()){
-			for(Player p: surroundingPlayers){
-				Square playerSquare = state.getPitch().getPlayerPosition(p);
-				if(state.getPitch().getBall().getSquare().getX() == playerSquare.getX() &&
-					state.getPitch().getBall().getSquare().getY() == playerSquare.getY() &&
-					player.getRace() != p.getRace()){
-					i = 1;
-				}
-			}
-		}
-		
-		if(playerPos.getX() == state.getPitch().getBall().getSquare().getX() &&
-				playerPos.getY() == state.getPitch().getBall().getSquare().getY()){
-			i = 0;
-		}
-		
-		while(true){
-			//int i = (int) (Math.random() * 6);
-			//int i = 3;
-			switch(i){
-			case 0: action = PlayerTurn.MOVE_ACTION; break;
-			case 1: action = PlayerTurn.BLOCK_ACTION; break;
-			case 2: action = PlayerTurn.PASS_ACTION; break;
-			case 3: action = PlayerTurn.HAND_OFF_ACTION; break;
-			case 4: action = PlayerTurn.BLITZ_ACTION; break;
-			case 5: action = PlayerTurn.FOUL_ACTION; break;
-			}
-			
-			if(action == PlayerTurn.BLOCK_ACTION && player.getPlayerStatus().getStanding() != Standing.UP){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			
-			if (action == PlayerTurn.HAND_OFF_ACTION && myTeam(state).getTeamStatus().hasHandedOf()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			if (action == PlayerTurn.PASS_ACTION && myTeam(state).getTeamStatus().hasPassed()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			if (action == PlayerTurn.BLITZ_ACTION && myTeam(state).getTeamStatus().hasBlitzed()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			if (action == PlayerTurn.FOUL_ACTION && myTeam(state).getTeamStatus().hasFouled()){
-				action = PlayerTurn.MOVE_ACTION;
-			}
-			
-			break;
-		}
-		
-		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
-		
-		return new SelectPlayerTurnAction(action, player);
-	}
+
 	
 	private ArrayList<Player> getSurroundingPlayers(Player player, GameState state){
 		
-		Square playerPos = state.getPitch().getPlayerPosition(player);
+		Square playerPos = player.getPosition();
 		ArrayList<Player> surroundingPlayers = new ArrayList<Player>();
-		
+
 		for(int i = 0; i < 8; i++){
 			switch(i){
-				case 0: Square up = new Square(playerPos.getX(), playerPos.getY()-1); surroundingPlayers.add(state.getPitch().getPlayerAt(up)); break;
-				case 1: Square upRight = new Square(playerPos.getX()+1, playerPos.getY()-1); surroundingPlayers.add(state.getPitch().getPlayerAt(upRight)); break;
-				case 2: Square right = new Square(playerPos.getX()+1, playerPos.getY()); surroundingPlayers.add(state.getPitch().getPlayerAt(right)); break;
-				case 3: Square downRight = new Square(playerPos.getX()+1, playerPos.getY()+1); surroundingPlayers.add(state.getPitch().getPlayerAt(downRight)); break;
-				case 4: Square down = new Square(playerPos.getX(), playerPos.getY()+1); surroundingPlayers.add(state.getPitch().getPlayerAt(down)); break;
-				case 5: Square downLeft = new Square(playerPos.getX()-1, playerPos.getY()+1); surroundingPlayers.add(state.getPitch().getPlayerAt(downLeft)); break;
-				case 6: Square left = new Square(playerPos.getX()-1, playerPos.getY()); surroundingPlayers.add(state.getPitch().getPlayerAt(left)); break;
-				case 7: Square upLeft = new Square(playerPos.getX()-1, playerPos.getY()-1); surroundingPlayers.add(state.getPitch().getPlayerAt(upLeft)); break;
+				case 0: Square up = new Square(playerPos.getX(), playerPos.getY()-1); 
+						if(state.getPitch().getPlayerAt(up) != null)surroundingPlayers.add(state.getPitch().getPlayerAt(up)); break;
+				case 1: Square upRight = new Square(playerPos.getX()+1, playerPos.getY()-1); 
+						if(state.getPitch().getPlayerAt(upRight) != null) surroundingPlayers.add(state.getPitch().getPlayerAt(upRight)); break;
+				case 2: Square right = new Square(playerPos.getX()+1, playerPos.getY()); 
+						if(state.getPitch().getPlayerAt(right) != null) surroundingPlayers.add(state.getPitch().getPlayerAt(right)); break;
+				case 3: Square downRight = new Square(playerPos.getX()+1, playerPos.getY()+1); 
+						if(state.getPitch().getPlayerAt(downRight) != null)surroundingPlayers.add(state.getPitch().getPlayerAt(downRight)); break;
+				case 4: Square down = new Square(playerPos.getX(), playerPos.getY()+1);
+						if(state.getPitch().getPlayerAt(down) != null) surroundingPlayers.add(state.getPitch().getPlayerAt(down)); break;
+				case 5: Square downLeft = new Square(playerPos.getX()-1, playerPos.getY()+1); 
+						if(state.getPitch().getPlayerAt(downLeft) != null) surroundingPlayers.add(state.getPitch().getPlayerAt(downLeft)); break;
+				case 6: Square left = new Square(playerPos.getX()-1, playerPos.getY()); 
+						if(state.getPitch().getPlayerAt(left) != null) surroundingPlayers.add(state.getPitch().getPlayerAt(left)); break;
+				case 7: Square upLeft = new Square(playerPos.getX()-1, playerPos.getY()-1); 
+						if(state.getPitch().getPlayerAt(upLeft) != null) surroundingPlayers.add(state.getPitch().getPlayerAt(upLeft)); break;
 				default: break;
 			}
 		}
+		//System.out.println("surroundingPlayers.size = "+surroundingPlayers.size()+"  surroundingPlayers = "+surroundingPlayers);
 		return surroundingPlayers;
 	}
 	
@@ -786,6 +724,78 @@ private Action startPlayerAction(Player player, GameState state) {
 		
 		return new PlacePlayerAction(player, square);
 		
+	}
+	
+	private Action startPlayerAction(Player player, GameState state) {
+		
+//		System.out.println(player);
+		time = System.nanoTime();
+		
+		PlayerTurn action = null;
+		Square playerPos = player.getPosition();
+		int i = (int) (Math.random() * 6);
+		
+		ArrayList<Player> surroundingPlayers = getSurroundingPlayers(player, state);
+		
+		
+		Square ballPosition = state.getPitch().getBall().getSquare();
+		
+		if(state.getPitch().getPlayerAt(ballPosition) != null && state.getPitch().getPlayerAt(ballPosition).getTeamName() != player.getTeamName()){
+			if(canReachPosition(player, ballPosition, state)){
+				i = 4;
+			}
+		}
+		if(numberOfSurroundingOpponents(state, player.getPosition()) != 0){
+			for(Player p: surroundingPlayers){
+				Square playerSquare = p.getPosition();
+				if(//state.getPitch().getBall().getSquare().getX() == playerSquare.getX() &&  <--only for ball carriers
+					//state.getPitch().getBall().getSquare().getY() == playerSquare.getY() &&
+					player.getTeamName() != p.getTeamName()){
+	//				System.out.println("GOING FOR KIIIIIILL");
+					i = 1;
+				}
+			}
+		}else{
+//			System.out.println("GOING FOR MOOOOOVE");
+			i = 0;
+		}
+		
+		
+		while(true){
+			//int i = (int) (Math.random() * 6);
+			//int i = 3;
+			switch(i){
+			case 0: action = PlayerTurn.MOVE_ACTION; break;
+			case 1: action = PlayerTurn.BLOCK_ACTION; break;
+			case 2: action = PlayerTurn.PASS_ACTION; break;
+			case 3: action = PlayerTurn.HAND_OFF_ACTION; break;
+			case 4: action = PlayerTurn.BLITZ_ACTION; break;
+			case 5: action = PlayerTurn.FOUL_ACTION; break;
+			}
+			
+			if(action == PlayerTurn.BLOCK_ACTION && player.getPlayerStatus().getStanding() != Standing.UP){
+				action = PlayerTurn.MOVE_ACTION;
+			}
+			
+			if (action == PlayerTurn.HAND_OFF_ACTION && myTeam(state).getTeamStatus().hasHandedOf()){
+				action = PlayerTurn.MOVE_ACTION;
+			}
+			if (action == PlayerTurn.PASS_ACTION && myTeam(state).getTeamStatus().hasPassed()){
+				action = PlayerTurn.MOVE_ACTION;
+			}
+			if (action == PlayerTurn.BLITZ_ACTION && myTeam(state).getTeamStatus().hasBlitzed()){
+				action = PlayerTurn.MOVE_ACTION;
+			}
+			if (action == PlayerTurn.FOUL_ACTION && myTeam(state).getTeamStatus().hasFouled()){
+				action = PlayerTurn.MOVE_ACTION;
+			}
+			
+			break;
+		}
+		
+		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
+		
+		return new SelectPlayerTurnAction(action, player);
 	}
 
 }

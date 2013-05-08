@@ -6,8 +6,8 @@ import models.Skill;
 
 public class OrcBlackOrc extends Player{
 
-	public OrcBlackOrc(int number){
-		super(Race.ORCS, "Black Orc", number);
+	public OrcBlackOrc(int number, String teamName){
+		super(Race.ORCS, "Black Orc", number, teamName);
 		this.title = "black orc";
 		this.cost = 80000;
 		this.MA = 4;

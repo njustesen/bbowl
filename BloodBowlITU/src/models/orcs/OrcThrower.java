@@ -6,8 +6,8 @@ import models.Skill;
 
 public class OrcThrower extends Player{
 
-	public OrcThrower(int number){
-		super(Race.ORCS, "Thrower", number);
+	public OrcThrower(int number, String teamName){
+		super(Race.ORCS, "Thrower", number, teamName);
 		this.cost = 70000;
 		this.MA = 5;
 		this.ST = 3;

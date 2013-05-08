@@ -6,8 +6,8 @@ import models.Skill;
 
 public class HumanThrower extends Player{
 
-	public HumanThrower(int number){
-		super(Race.HUMANS, "Thrower", number);
+	public HumanThrower(int number, String teamName){
+		super(Race.HUMANS, "Thrower", number, teamName);
 		this.cost = 70000;
 		this.MA = 6;
 		this.ST = 3;

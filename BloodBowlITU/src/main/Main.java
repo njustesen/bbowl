@@ -46,14 +46,14 @@ public class Main {
 		
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
-		AIAgent montiCarlos = new MCTSRandom(true);
-		AIAgent montiCarlosB = new RandomAI(false);
+		AIAgent montiCarlos = new RandomAI(true);
+		AIAgent montiCarlosB = new BaseLineAI(false);
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);
 		//gameMaster.setSoundManager(new SoundManager());
 		gameMaster.setSoundManager(new FakeSoundManager());
 		inputManager = new InputManager(gameMaster);
-		renderer = new Renderer(60, gameMaster, inputManager);
+		renderer = new Renderer(600, gameMaster, inputManager);
 	}
 	
 	public static void startGame(){
@@ -74,14 +74,14 @@ public class Main {
 			
 			gameMaster.update();
 			
-			/*
+			
 			long delta = new Date().getTime() - startTime;
 			try {
 				
-				Thread.sleep(Math.max(1,(1000/renderer.getFps() - delta)));
+				Thread.sleep(Math.max(5,(1000/renderer.getFps() - delta)));
 				
 			} catch (InterruptedException e) {e.printStackTrace();}
-			*/
+			
 		}
 	}
 }

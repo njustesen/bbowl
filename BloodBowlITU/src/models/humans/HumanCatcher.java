@@ -6,8 +6,8 @@ import models.Skill;
 
 public class HumanCatcher extends Player{
 
-	public HumanCatcher(int number){
-		super(Race.HUMANS, "Catcher", number);
+	public HumanCatcher(int number, String teamName){
+		super(Race.HUMANS, "Catcher", number, teamName);
 		this.cost = 70000;
 		this.MA = 8;
 		this.ST = 2;

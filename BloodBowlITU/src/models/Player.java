@@ -15,18 +15,24 @@ public abstract class Player {
 	protected ArrayList<Skill> skills = new ArrayList<Skill>();
 	protected PlayerStatus playerStatus;
 	private Square position;
+	private String teamName;
 	
-	public Player(Race race, String title, int number) {
+	public Player(Race race, String title, int number, String teamName) {
 		super();
 		this.race = race;
 		this.title = title;
 		this.number = number;
 		this.playerStatus = new PlayerStatus(); 
 		this.position = null;
+		this.teamName = teamName;
 	}
 
 	public Race getRace() {
 		return race;
+	}
+
+	public String getTeamName() {
+		return teamName;
 	}
 
 	public String getTitle() {
