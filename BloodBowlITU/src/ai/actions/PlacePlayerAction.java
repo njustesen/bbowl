@@ -3,7 +3,7 @@ package ai.actions;
 import models.Player;
 import models.Square;
 
-public class PlacePlayerAction implements Action {
+public class PlacePlayerAction extends PlayerAction {
 
 	Player player;
 	Square square;

@@ -2,7 +2,7 @@ package ai.actions;
 
 import models.Player;
 
-public class PlaceBallOnPlayerAction implements Action {
+public class PlaceBallOnPlayerAction extends PlayerAction {
 
 	private Player player;
 

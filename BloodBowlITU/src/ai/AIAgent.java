@@ -130,6 +130,15 @@ public abstract class AIAgent {
 		return state.getAwayTeam();
 		
 	}
+	
+	protected Team otherTeam(GameState state){
+		
+		if (!homeTeam){
+			return state.getHomeTeam();
+		}
+		return state.getAwayTeam();
+		
+	}
 
 	protected Square groupUp(Player p, GameState state){
 		
@@ -167,7 +176,8 @@ public abstract class AIAgent {
 	}
 	
 	protected boolean canReachPosition(Player player, Square sq, GameState state){
-		if(aStar.findPath(player, sq , state, false).size() <= player.getMA()){
+		if(aStar
+				.findPath(player, sq , state, false).size() <= player.getMA()){
 			return true;
 		}
 		return false;
@@ -279,275 +289,276 @@ public abstract class AIAgent {
 	
 	//inner class
 	public class AStar{ 
-		
-		public AStar(){
 			
-		}
-		
-		protected ArrayList <Square> findPath(Player player, Square goalPosition, GameState state, boolean goingForTouchdown){
+			public AStar(){
+				
+			}
 			
-			int goalX = goalPosition.getX();
-			int goalY = goalPosition.getY();
-			Pitch pitch = state.getPitch();
-			Square playerPos = player.getPosition();
-			Mover curMover;
-//			System.out.println("HOMETEAM = "+homeTeam);
-			if(goingForTouchdown == true){
-				if(homeTeam == true){
-					curMover = new Mover(playerPos.getX(), playerPos.getY(),  26, goalY, 0, null, state, goingForTouchdown);
+			protected ArrayList <Square> findPath(Player player, Square goalPosition, GameState state, boolean goingForTouchdown){
+				
+				int goalX = goalPosition.getX();
+				int goalY = goalPosition.getY();
+				Pitch pitch = state.getPitch();
+				Square playerPos = player.getPosition();
+				Mover curMover;
+//				System.out.println("HOMETEAM = "+homeTeam);
+				if(goingForTouchdown == true){
+					if(homeTeam == true){
+						curMover = new Mover(playerPos.getX(), playerPos.getY(),  26, goalY, 0, null, state, goingForTouchdown);
+					}else{
+						curMover = new Mover(playerPos.getX(), playerPos.getY(),  1, goalY, 0, null, state, goingForTouchdown);
+					}
 				}else{
-					curMover = new Mover(playerPos.getX(), playerPos.getY(),  1, goalY, 0, null, state, goingForTouchdown);
+					curMover = new Mover(playerPos.getX(), playerPos.getY(),  goalX, goalY, 0, null, state, goingForTouchdown);
 				}
-			}else{
-				curMover = new Mover(playerPos.getX(), playerPos.getY(),  goalX, goalY, 0, null, state, goingForTouchdown);
-			}
+				
+				
+				Queue <Mover> pq = new PriorityQueue <Mover>();
+				Set <String> aStarVisited = new HashSet <String>();
+				
+				
 			
-			
-			Queue <Mover> pq = new PriorityQueue <Mover>();
-			Set <String> aStarVisited = new HashSet <String>();
-			
-			
-		
-			pq.add(curMover);
-			aStarVisited.add(curMover.toString());
-			
-	//		System.out.println("findPath called - going for square");
-	//		System.out.println("pitch = "+pitch+" player = "+player+" player position = ("+playerPos.getX()+","+playerPos.getY()+")  goalX="+goalX+" goalY="+goalY);
+				pq.add(curMover);
+				aStarVisited.add(curMover.toString());
+				
+		//		System.out.println("findPath called - going for square");
+		//		System.out.println("pitch = "+pitch+" player = "+player+" player position = ("+playerPos.getX()+","+playerPos.getY()+")  goalX="+goalX+" goalY="+goalY);
 
-	//		System.out.println("BEFORE WHILE");
-			
-			if(!goingForTouchdown){
-				while(!curMover.isGoal()){
-					for(int i = 1; i <=8; i++){
-	//					System.out.println("GOING FOR BALL");
-						
-						if(curMover.cloneMover(i).isGoal() && state.getPitch().getPlayerAt(curMover.cloneMover(i).toSquare()) != null){
-							return getFinalPath(curMover);
-						}
-						
-						if(curMover.isMoveLegal(i, curMover.toSquare()) && !aStarVisited.contains(curMover.cloneMover(i).toString())){
-	//						System.out.print(" is legal and visited not contains   curMover.cloneMover(i) ="+curMover.cloneMover(i)+"  pos="+curMover.cloneMover(i).getX()+","+curMover.cloneMover(i).getY());
-							aStarVisited.add(curMover.cloneMover(i).toString());	
-							pq.add(curMover.cloneMover(i));
-						}
-					}
-//					System.out.println("pq.remove = "+pq.peek());
-					if(pq.peek() == null){
-						break;
-					}
-					curMover = pq.remove();
-				}
-			}else{
-				
-//					System.out.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-				
-				while(!curMover.isTouchdown()){
-					for(int i = 1; i <=8; i++){
-//						System.out.println("GOING FOR TOUCHDOWN.... WTF?");
-						if(curMover.isMoveLegal(i, curMover.toSquare()) && !aStarVisited.contains(curMover.cloneMover(i).toString())){ //make this to toSquare
-			//				System.out.print(" is legal and visited not contains   curMover.cloneMover(i) ="+curMover.cloneMover(i)+"  pos="+curMover.cloneMover(i).getX()+","+curMover.cloneMover(i).getY());
-							aStarVisited.add(curMover.cloneMover(i).toString());	
-							pq.add(curMover.cloneMover(i));
-						}
-					}
-					if(pq.peek() == null){
-						break;
-					}
-			//		System.out.println("pq.remove = "+pq.peek());
-					curMover = pq.remove();
-				}
-			}
-					
-	//		System.out.println("with player position = "+player.getPosition().getX()+","+player.getPosition().getY()+" going to "+goalX+","+goalY);
-			return getFinalPath(curMover);
-		}
-		
-		private ArrayList <Square> getFinalPath(Mover curMover){
-			int counter = 0;
-			ArrayList <Square> finalPath = new ArrayList <Square>();
-			while(curMover.getParent() != null){
-				finalPath.add(new Square(curMover.getX(), curMover.getY()));
-				curMover = curMover.getParent();
-				counter++;
-//				System.out.println("with "+counter+" squares in it");
-//				System.out.println("finalPath = "+finalPath);
-			}
-//			System.out.println("___!!!  FINALPATH RETURNED  !!!___    finalPath = ");
-//			for(int i = 0; i < finalPath.size(); i++){
-	//			System.out.println(" "+finalPath.get(i).getX()+","+finalPath.get(i).getY());
-//			}
-			return finalPath;
-		}
-		
-		//inner inner class
-		protected class Mover implements Comparable{
-			
-			private int currentX;
-			private int currentY;
-			private int goalX;
-			private int goalY;
-			private int pitchWidth = 28;
-			private int pitchHeight = 16;
-			private int cost;
-			private Mover parent;
-			private GameState state;
-			private Pitch p;
-			private boolean goingForTouchdown;
-			
-			
-			public Mover(int x, int y, int goalX, int goalY, int cost, Mover parent, GameState state, boolean goingForTouchdown){
-				this.parent = parent;
-				this.cost = cost;
-				this.currentX = x;
-				this.currentY = y;
-				this.goalX = goalX;
-				this.goalY = goalY;				
-				this.state = state;
-				this.p = state.getPitch();
-	//			System.out.println("new Mover created  x = "+x+" y = "+y+" goalX = "+goalX+" goalY = "+goalY+" cost = "+cost+" parent = "+parent);
-			}
-			
-			public Mover cloneMover(int i){
-					switch(i){
-						//clone up
-						case 1: return new Mover(currentX,currentY-1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX,currentY-1)) * 5),this, state, goingForTouchdown);
-						//clone upRight
-						case 2: return new Mover(currentX+1,currentY-1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX+1,currentY-1)) * 5),this, state, goingForTouchdown);
-						//clone right
-						case 3: return new Mover(currentX+1,currentY,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX+1,currentY)) * 5),this, state, goingForTouchdown);
-						//clone rightDown
-						case 4: return new Mover(currentX+1,currentY+1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX+1,currentY+1)) * 5),this, state, goingForTouchdown); 
-						//clone down
-						case 5: return new Mover(currentX,currentY+1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX,currentY+1)) * 5),this, state, goingForTouchdown);
-						//clone downLeft
-						case 6: return new Mover(currentX-1,currentY+1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX-1,currentY+1)) * 5),this, state, goingForTouchdown);
-						//clone left
-						case 7: return new Mover(currentX-1,currentY,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state,new Square( currentX-1,currentY)) * 5),this, state, goingForTouchdown);
-						//clone upLeft
-						case 8: return new Mover(currentX-1,currentY-1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX-1,currentY-1)) * 5),this, state, goingForTouchdown); 
-						default: System.out.println("clone error");return null;
-					}
-			}
-			
-			public boolean isGoal(){
-				if(currentX == goalX && currentY == goalY)
-					return true;
-				else return false;
-			}
-			
-			public boolean isTouchdown(){
-				if(currentX == goalX)
-					return true;
-				else return false;
-			}
-			
-			public boolean isMoveLegal(int i, Square sq){
-			//	System.out.println("IS MOVE LEGAL???   sq = ("+sq.getX()+","+sq.getY()+")");
-				if(sq.getX() < 0 || sq.getX() > 27 || sq.getY() < 0 || sq.getY() > 16){
-			//		System.out.println("   sq = ("+sq.getX()+","+sq.getY()+")");
-					return false;
-				}
-				switch(i){
-				//check up
-				case 1: if(!isGridOccupied(sq.getX(), sq.getY()-1)){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				//check upRight
-				case 2: if(!isGridOccupied(sq.getX()+1, sq.getY()-1)){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				//check Right
-				case 3: if(!isGridOccupied(sq.getX()+1, sq.getY())){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				//check downRight
-				case 4: if(!isGridOccupied(sq.getX()+1, sq.getY()+1)){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				//check down
-				case 5: if(!isGridOccupied(sq.getX(), sq.getY()+1)){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				//check downLeft
-				case 6: if(!isGridOccupied(sq.getX()-1, sq.getY()+1)){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				//check left
-				case 7: if(!isGridOccupied(sq.getX()-1, sq.getY())){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				//check upLeft
-				case 8: if(!isGridOccupied(sq.getX()-1, sq.getY()-1)){
-				//	System.out.println("move "+i+" is legal");
-					return true;} break;
-				default: System.out.println("illegal direction"); break;
-				}
-			return false;
-			}
-			
-			protected boolean isGridOccupied(int x, int y){
-				
-				if(x > 0 && x < pitchWidth && y > 0 && y < pitchHeight){
-					Player[][] playerArr = p.getPlayerArr();
-				
-					if(playerArr[y][x] == null){
-						return false;
-					}
-				}
-				return true;
-			}
-			
-			public double manhattanTotalValue(boolean goingForTouchdown){
-				return cost+manhattanHeuristicValue(goingForTouchdown);
-			}
-
-			public double manhattanHeuristicValue(boolean goingForTouchdown){
+		//		System.out.println("BEFORE WHILE");
 				
 				if(!goingForTouchdown){
-					int difX = (Math.abs(currentX-goalX));
-					int difY = (Math.abs(currentY-goalY));
-					return difX+difY;
+					while(!curMover.isGoal()){
+						for(int i = 1; i <=8; i++){
+		//					System.out.println("GOING FOR BALL");
+							
+							if(curMover.cloneMover(i).isGoal() && state.getPitch().getPlayerAt(curMover.cloneMover(i).toSquare()) != null){
+								return getFinalPath(curMover);
+							}
+							
+							if(curMover.isMoveLegal(i, curMover.toSquare()) && !aStarVisited.contains(curMover.cloneMover(i).toString())){
+		//						System.out.print(" is legal and visited not contains   curMover.cloneMover(i) ="+curMover.cloneMover(i)+"  pos="+curMover.cloneMover(i).getX()+","+curMover.cloneMover(i).getY());
+								aStarVisited.add(curMover.cloneMover(i).toString());	
+								pq.add(curMover.cloneMover(i));
+							}
+						}
+//						System.out.println("pq.remove = "+pq.peek());
+						if(pq.peek() == null){
+							break;
+						}
+						curMover = pq.remove();
+					}
 				}else{
-					return (Math.abs(currentX-goalX));
-				}
-			}
-			
-			@Override
-			public int compareTo(Object o) {
-				if(goingForTouchdown){
-					if(manhattanTotalValue(true) < ((Mover) o).manhattanTotalValue(true))
-						return -1;
-					else if(manhattanTotalValue(true) > ((Mover) o).manhattanTotalValue(true))
-						return 1;
 					
-				}else{
-					if(manhattanTotalValue(false) < ((Mover) o).manhattanTotalValue(false))
-						return -1;
-					else if(manhattanTotalValue(false) > ((Mover) o).manhattanTotalValue(false))
-						return 1;
+//						System.out.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+					
+					while(!curMover.isTouchdown()){
+						for(int i = 1; i <=8; i++){
+//							System.out.println("GOING FOR TOUCHDOWN.... WTF?");
+							if(curMover.isMoveLegal(i, curMover.toSquare()) && !aStarVisited.contains(curMover.cloneMover(i).toString())){ //make this to toSquare
+				//				System.out.print(" is legal and visited not contains   curMover.cloneMover(i) ="+curMover.cloneMover(i)+"  pos="+curMover.cloneMover(i).getX()+","+curMover.cloneMover(i).getY());
+								aStarVisited.add(curMover.cloneMover(i).toString());	
+								pq.add(curMover.cloneMover(i));
+							}
+						}
+						if(pq.peek() == null){
+							break;
+						}
+				//		System.out.println("pq.remove = "+pq.peek());
+						curMover = pq.remove();
+					}
 				}
-				return 0;
+						
+		//		System.out.println("with player position = "+player.getPosition().getX()+","+player.getPosition().getY()+" going to "+goalX+","+goalY);
+				return getFinalPath(curMover);
 			}
 			
-			public String toString(){
-				return currentX+" "+currentY;
+			private ArrayList <Square> getFinalPath(Mover curMover){
+				int counter = 0;
+				ArrayList <Square> finalPath = new ArrayList <Square>();
+				while(curMover.getParent() != null){
+					finalPath.add(new Square(curMover.getX(), curMover.getY()));
+					curMover = curMover.getParent();
+					counter++;
+//					System.out.println("with "+counter+" squares in it");
+//					System.out.println("finalPath = "+finalPath);
+				}
+//				System.out.println("___!!!  FINALPATH RETURNED  !!!___    finalPath = ");
+//				for(int i = 0; i < finalPath.size(); i++){
+		//			System.out.println(" "+finalPath.get(i).getX()+","+finalPath.get(i).getY());
+//				}
+				return finalPath;
 			}
 			
-			public Square toSquare(){
-				return new Square(currentX, currentY);
-			}
-			
-			public Mover getParent(){
-				return parent;
-			}
-			
-			public int getX(){
-				return currentX;
-			}
-			
-			public int getY(){
-				return currentY;
+			//inner inner class
+			protected class Mover implements Comparable{
+				
+				private int currentX;
+				private int currentY;
+				private int goalX;
+				private int goalY;
+				private int pitchWidth = 28;
+				private int pitchHeight = 16;
+				private int cost;
+				private Mover parent;
+				private GameState state;
+				private Pitch p;
+				private boolean goingForTouchdown;
+				
+				
+				public Mover(int x, int y, int goalX, int goalY, int cost, Mover parent, GameState state, boolean goingForTouchdown){
+					this.parent = parent;
+					this.cost = cost;
+					this.currentX = x;
+					this.currentY = y;
+					this.goalX = goalX;
+					this.goalY = goalY;				
+					this.state = state;
+					this.p = state.getPitch();
+		//			System.out.println("new Mover created  x = "+x+" y = "+y+" goalX = "+goalX+" goalY = "+goalY+" cost = "+cost+" parent = "+parent);
+				}
+				
+				public Mover cloneMover(int i){
+						switch(i){
+							//clone up
+							case 1: return new Mover(currentX,currentY-1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX,currentY-1)) * 5),this, state, goingForTouchdown);
+							//clone upRight
+							case 2: return new Mover(currentX+1,currentY-1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX+1,currentY-1)) * 5),this, state, goingForTouchdown);
+							//clone right
+							case 3: return new Mover(currentX+1,currentY,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX+1,currentY)) * 5),this, state, goingForTouchdown);
+							//clone rightDown
+							case 4: return new Mover(currentX+1,currentY+1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX+1,currentY+1)) * 5),this, state, goingForTouchdown); 
+							//clone down
+							case 5: return new Mover(currentX,currentY+1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX,currentY+1)) * 5),this, state, goingForTouchdown);
+							//clone downLeft
+							case 6: return new Mover(currentX-1,currentY+1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX-1,currentY+1)) * 5),this, state, goingForTouchdown);
+							//clone left
+							case 7: return new Mover(currentX-1,currentY,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state,new Square( currentX-1,currentY)) * 5),this, state, goingForTouchdown);
+							//clone upLeft
+							case 8: return new Mover(currentX-1,currentY-1,goalX,goalY,cost+1 + (numberOfSurroundingOpponents(state, new Square(currentX-1,currentY-1)) * 5),this, state, goingForTouchdown); 
+							default: System.out.println("clone error");return null;
+						}
+				}
+				
+				public boolean isGoal(){
+					if(currentX == goalX && currentY == goalY)
+						return true;
+					else return false;
+				}
+				
+				public boolean isTouchdown(){
+					if(currentX == goalX)
+						return true;
+					else return false;
+				}
+				
+				public boolean isMoveLegal(int i, Square sq){
+				//	System.out.println("IS MOVE LEGAL???   sq = ("+sq.getX()+","+sq.getY()+")");
+					if(sq.getX() < 0 || sq.getX() > 27 || sq.getY() < 0 || sq.getY() > 16){
+				//		System.out.println("   sq = ("+sq.getX()+","+sq.getY()+")");
+						return false;
+					}
+					switch(i){
+					//check up
+					case 1: if(!isGridOccupied(sq.getX(), sq.getY()-1)){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					//check upRight
+					case 2: if(!isGridOccupied(sq.getX()+1, sq.getY()-1)){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					//check Right
+					case 3: if(!isGridOccupied(sq.getX()+1, sq.getY())){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					//check downRight
+					case 4: if(!isGridOccupied(sq.getX()+1, sq.getY()+1)){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					//check down
+					case 5: if(!isGridOccupied(sq.getX(), sq.getY()+1)){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					//check downLeft
+					case 6: if(!isGridOccupied(sq.getX()-1, sq.getY()+1)){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					//check left
+					case 7: if(!isGridOccupied(sq.getX()-1, sq.getY())){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					//check upLeft
+					case 8: if(!isGridOccupied(sq.getX()-1, sq.getY()-1)){
+					//	System.out.println("move "+i+" is legal");
+						return true;} break;
+					default: System.out.println("illegal direction"); break;
+					}
+				return false;
+				}
+				
+				protected boolean isGridOccupied(int x, int y){
+					
+					if(x > 0 && x < pitchWidth && y > 0 && y < pitchHeight){
+						Player[][] playerArr = p.getPlayerArr();
+					
+						if(playerArr[y][x] == null){
+							return false;
+						}
+					}
+					return true;
+				}
+				
+				public double manhattanTotalValue(boolean goingForTouchdown){
+					return cost+manhattanHeuristicValue(goingForTouchdown);
+				}
+
+				public double manhattanHeuristicValue(boolean goingForTouchdown){
+					
+					if(!goingForTouchdown){
+						int difX = (Math.abs(currentX-goalX));
+						int difY = (Math.abs(currentY-goalY));
+						return difX+difY;
+					}else{
+						return (Math.abs(currentX-goalX));
+					}
+				}
+				
+				@Override
+				public int compareTo(Object o) {
+					if(goingForTouchdown){
+						if(manhattanTotalValue(true) < ((Mover) o).manhattanTotalValue(true))
+							return -1;
+						else if(manhattanTotalValue(true) > ((Mover) o).manhattanTotalValue(true))
+							return 1;
+						
+					}else{
+						if(manhattanTotalValue(false) < ((Mover) o).manhattanTotalValue(false))
+							return -1;
+						else if(manhattanTotalValue(false) > ((Mover) o).manhattanTotalValue(false))
+							return 1;
+					}
+					return 0;
+				}
+				
+				public String toString(){
+					return currentX+" "+currentY;
+				}
+				
+				public Square toSquare(){
+					return new Square(currentX, currentY);
+				}
+				
+				public Mover getParent(){
+					return parent;
+				}
+				
+				public int getX(){
+					return currentX;
+				}
+				
+				public int getY(){
+					return currentY;
+				}
 			}
 		}
-	}
+	
 }

@@ -780,6 +780,8 @@ public class Renderer extends JPanel{
 		drawWeather(g);
 		drawGameEnded(g);
 		
+		
+		
 		//System.out.println("stage = "+gameMaster.getState().getGameStage());
 		
 	}

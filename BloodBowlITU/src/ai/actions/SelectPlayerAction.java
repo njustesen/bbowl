@@ -2,7 +2,7 @@ package ai.actions;
 
 import models.Player;
 
-public class SelectPlayerAction implements Action {
+public class SelectPlayerAction extends PlayerAction {
 
 	private Player player;
 

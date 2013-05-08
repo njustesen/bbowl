@@ -161,7 +161,9 @@ public class Block {
 	public Square getFollowUpSquare() {
 		return followUpSquare;
 	}
-	
-	
+
+	public void setFollowUpSquare(Square followUpSquare) {
+		this.followUpSquare = followUpSquare;
+	}
 	
 }

@@ -3,7 +3,7 @@ package ai.actions;
 import models.Player;
 import models.PlayerTurn;
 
-public class SelectPlayerTurnAction implements Action {
+public class SelectPlayerTurnAction extends PlayerAction {
 
 	PlayerTurn turn;
 	Player player;
