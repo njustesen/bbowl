@@ -3,7 +3,6 @@ package ai;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 import sound.FakeSoundManager;
 
@@ -19,7 +18,6 @@ import models.Team;
 import models.Weather;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
-import ai.actions.DoublePlayerAction;
 import ai.actions.EndPhaseAction;
 import ai.actions.EndPlayerTurnAction;
 import ai.actions.EndSetupAction;
@@ -31,7 +29,6 @@ import ai.actions.PassPlayerAction;
 import ai.actions.PlaceBallAction;
 import ai.actions.PlaceBallOnPlayerAction;
 import ai.actions.PlacePlayerAction;
-import ai.actions.PlayerAction;
 import ai.actions.RerollAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
@@ -47,7 +44,7 @@ public class FlatMonteCarloAI extends AIAgent{
 	
 	private static long time;
 
-	private static final int MULTIPLIER = 8;
+	private static final int MULTIPLIER = 2;
 	private static final int FEW = 1 * MULTIPLIER;
 	private static final int MEDIUM = 2 * MULTIPLIER;
 	private static final int MANY = 4 * MULTIPLIER;

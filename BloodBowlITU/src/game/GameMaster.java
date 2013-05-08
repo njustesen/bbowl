@@ -3916,12 +3916,12 @@ public class GameMaster {
 		int roll = da.getResultAsInt() + db.getResultAsInt();
 		
 		// DEBUGGING
-		blitz();
+		//blitz();
 		//throwARock();
 		//highKick();
 		//perfectDefense();
 		//quickSnap();
-		/*
+		
 		switch(roll){
 			case 2: getTheRef(); break;
 			case 3: riot(); break;
@@ -3934,7 +3934,7 @@ public class GameMaster {
 			case 10: blitz(); break;
 			case 11: throwARock(); break;
 			case 12: pitchInvasion(); break;
-		}*/
+		}
 	}
 
 	/**

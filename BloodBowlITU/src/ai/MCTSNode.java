@@ -1,23 +1,67 @@
 package ai;
 
+import java.util.ArrayList;
+
+import models.GameState;
+
 import ai.actions.Action;
 
-public class MCTSNode {
+public class MctsNode {
 	
-	private MCTSNode parent;
+	private MctsNode parent;
+	private ArrayList<MctsNode> children;
 	private Action action;
+	private GameState state;
+	private int visited;
+	private double averageResult;
 	
-	public MCTSNode(MCTSNode parent, Action action) {
+	public MctsNode(MctsNode parent, GameState state, Action action) {
 		super();
 		this.parent = parent;
+		this.state = state;
 		this.action = action;
+		this.children = new ArrayList<MctsNode>();
+		this.visited = 0;
+		this.averageResult = 0.0f;
+	}
+	
+	public double getAverageResult() {
+		return averageResult;
 	}
 
-	public MCTSNode getParent() {
+	public void setAverageResult(double averageResult) {
+		this.averageResult = averageResult;
+	}
+
+	public int getVisited() {
+		return visited;
+	}
+
+	public void setVisited(int visited) {
+		this.visited = visited;
+	}
+	
+	public GameState getState() {
+		return state;
+	}
+	
+	public void setState(GameState state) {
+		this.state = state;
+	}
+
+	public ArrayList<MctsNode> getChildren() {
+		return children;
+	}
+
+	public void setChildren(ArrayList<MctsNode> children) {
+		this.children = children;
+	}
+
+	public MctsNode getParent() {
 		return parent;
 	}
 
-	public void setParent(MCTSNode parent) {
+	public void setParent(MctsNode parent) {
 		this.parent = parent;
 	}
 
