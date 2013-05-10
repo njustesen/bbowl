@@ -28,6 +28,7 @@ import ai.actions.SelectDieAction;
 import ai.actions.SelectPlayerAction;
 import ai.actions.SelectPlayerTurnAction;
 import ai.actions.SelectPushSquareAction;
+import ai.actions.StandPlayerUpAction;
 
 import sound.Sound;
 import sound.SoundManager;
@@ -281,6 +282,10 @@ public class GameMaster {
 		} else if(action instanceof MovePlayerAction){
 			
 			movePlayerIfAllowed(playerA, ((MovePlayerAction) action).getSquare());
+			
+		} else if(action instanceof StandPlayerUpAction){
+			
+			standPlayerUpIfAllowed(playerA);
 			
 		} else if(action instanceof BlockPlayerAction){
 			
@@ -1597,7 +1602,7 @@ public class GameMaster {
 	}
 
 	/**
-	 * Moves a player to a square. 
+	 * Moves a player to a square if allowed. 
 	 * 
 	 * @param player
 	 * @param square
@@ -1630,6 +1635,33 @@ public class GameMaster {
 			movePlayer(player, square, false);
 			
 		}
+		
+	}
+	
+	/**
+	 * Stands a player up if allowed. 
+	 * 
+	 * @param player
+	 * @param square
+	 */
+	public void standPlayerUpIfAllowed(Player player){
+		
+		if (state.isAwaitingReroll())
+			return;
+		
+		boolean standUpAllowed = standUpAllowed(player);
+		
+		if (!standUpAllowed){
+			return;
+		}
+		
+		// Player turn
+		if (player.getPlayerStatus().getTurn() == PlayerTurn.UNUSED){
+			endTurnForOtherPlayers(playerOwner(player), player);
+			player.getPlayerStatus().setTurn(PlayerTurn.MOVE_ACTION);
+		}
+		
+		player.getPlayerStatus().setStanding(Standing.UP);
 		
 	}
 
@@ -2937,6 +2969,31 @@ public class GameMaster {
 			}
 			
 		}
+		
+		return false;
+		
+	}
+	
+	private boolean standUpAllowed(Player player) {
+		
+		// Block?
+		if (state.isAwaitingPush() || state.isAwaitingFollowUp()){
+			return false;
+		}
+		
+		// Turn
+		if (!isPlayerTurn(player)){
+			return false;
+		}
+		
+		// Player turn
+		if (player.getPlayerStatus().getTurn() == PlayerTurn.USED){
+			return false;
+		}
+		
+		// Enough movement left?
+		if (playerMovementLeft(player))
+			return true;
 		
 		return false;
 		
