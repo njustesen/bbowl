@@ -45,15 +45,15 @@ import ai.util.GameStateCloner;
 
 public class MctsDetermAi extends AIAgent {
 
-	public static final double C = 1f;
+	public static final double C = 1 / Math.sqrt(2);
 	
-	private static final int MULTIPLIER = 50;
+	private static final int MULTIPLIER = 10000;
 	private static final int FEW = 1 * MULTIPLIER;
 	private static final int MEDIUM = 2 * MULTIPLIER;
 	private static final int MANY = 4 * MULTIPLIER;
 	private static final int INSANE = 10 * MULTIPLIER;
 
-	private static final int samples = 20;
+	private static final int samples = 10;
 	
 	public MctsDetermAi(boolean homeTeam) {
 		super(homeTeam);
@@ -95,53 +95,95 @@ public class MctsDetermAi extends AIAgent {
 
 	private void printTreeStats(MctsStateNode root) {
 
-		int nodes = countNodes(root);
+		int nodes = nodes(root);
+		int minDepth = minDepth(root);
+		int maxDepth = maxDepth(root);
 		
-		System.out.println(nodes + " nodes in the tree with " + root.visits + " root visits.");
-		
+		System.out.println("Nodes: " + nodes);
+		System.out.println("Min depth: " + minDepth);
+		System.out.println("Max depth: " + maxDepth);
+		System.out.println("Iterations: " + root.visits);
+		System.out.println("Nodes in ply-2: " + root.getChildren().size());
+		double bestValue = 0.0;
+		for(MctsAbstractNode child : root.getChildren()){
+			if (bestValue < ((MctsIntermediateNode)child).getValue())
+				bestValue = ((MctsIntermediateNode)child).getValue();
+		}
+		System.out.println("Best value: " + bestValue);
 	}
 
-	private int countNodes(MctsAbstractNode node) {
-		
-		int count = 1;
-		
-		for(MctsAbstractNode child : node.getChildren()){
-			count += countNodes(child);
+	private int maxDepth(MctsAbstractNode root) {
+		int depth = 0;
+		for(MctsAbstractNode child : root.getChildren()){
+			int childDepth = maxDepth(child);
+			if (childDepth > depth)
+				depth = childDepth;
+		}
+		return 1 + depth;
+	}
+	
+	private int minDepth(MctsAbstractNode root) {
+		int depth = 1000;
+		if (root.getChildren().isEmpty())
+			depth = 0;
+		for(MctsAbstractNode child : root.getChildren()){
+			int childDepth = minDepth(child);
+			if (childDepth < depth)
+				depth = childDepth;
 		}
 		
-		return count;
+		return 1 + depth;
+	}
+
+	private int nodes(MctsAbstractNode node) {
+		
+		int count = 0;
+		
+		for(MctsAbstractNode child : node.getChildren()){
+			count += nodes(child);
+		}
+		
+		return 1 + count;
 	}
 
 	private MctsStateNode select(MctsStateNode node) {
 		
 		if (node.getChildren().isEmpty())
 			return node;
+		
+		if (node.getChildren().size() != node.getPossibleActions().size())
+			return node;
 			
 		// UTC
-		double bestUTC = node.UTC(C);
+		double bestUCT = node.UCT(C);
 		MctsAbstractNode best = node;
 		
 		for(MctsAbstractNode child : node.getChildren()){
 			
-			double utc = child.UTC(C);
+			double utc = child.UCT(C);
 			
-			if (utc >= bestUTC && !allChildStatesTerminal(((MctsIntermediateNode)child))){
-				bestUTC = utc;
+			if (utc > bestUCT && !allChildStatesTerminal(((MctsIntermediateNode)child))){
+				bestUCT = utc;
 				best = child;
 			}
 			
+		}
+		
+		// State node?
+		if(best instanceof MctsStateNode){
+			return ((MctsStateNode)best);
 		}
 		
 		// Skip intermediate level
 		if(best instanceof MctsIntermediateNode){
 			best = best.randomChild();
 		}
-		
+		/*
 		// If no child was selected
 		if (best == node){
 			return node;
 		}
-		
+		*/
 		return select((MctsStateNode) best);
 	}
 	
@@ -727,6 +769,7 @@ public class MctsDetermAi extends AIAgent {
 	protected ArrayList<Action> pickCoinSideEffectActions(GameState state, boolean home) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		actions.add(new SelectCoinTossEffectAction(true));
+		actions.add(new SelectCoinTossEffectAction(false));
 		return actions;
 	}
 

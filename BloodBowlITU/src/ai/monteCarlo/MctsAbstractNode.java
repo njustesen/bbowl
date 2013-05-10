@@ -71,14 +71,14 @@ public class MctsAbstractNode {
 		
 	}
 	
-	public double UTC(double C) {
-		double x = value;
+	public double UCT(double C) {
+		double x = (value + 1 / 2);
 		double n = 1;
 		if (parent != null)
 			n = parent.getVisits();
 		double nj = visits;
 		if (nj == 0.0)
-			nj = 0.001;
+			return 10000;
 		
 		return x + 2 * C * Math.sqrt( (2 * Math.log(n)) / nj );
 	}
