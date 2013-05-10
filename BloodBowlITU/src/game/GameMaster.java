@@ -94,7 +94,7 @@ public class GameMaster {
 	}
 	
 	public void update(){
-		/*
+		
 		if (!fast){
 			try {
 				Thread.sleep(250);
@@ -103,7 +103,7 @@ public class GameMaster {
 				e.printStackTrace();
 			}
 		}
-		*/
+		
 		if (state.getGameStage() == GameStage.START_UP){
 			StatisticManager.stopped = false;
 			StatisticManager.games++;

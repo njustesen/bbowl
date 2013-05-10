@@ -4,8 +4,9 @@ import java.util.Date;
 
 import ai.AIAgent;
 import ai.BaseLineAI;
-import ai.FlatMonteCarloAI;
 import ai.RandomAI;
+import ai.monteCarlo.FlatMonteCarloAI;
+import ai.monteCarlo.MctsDetermAi;
 
 import models.GameState;
 import models.Pitch;
@@ -47,11 +48,11 @@ public class Main {
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
 
-		AIAgent montiCarlos = new FlatMonteCarloAI(true);
-		AIAgent montiCarlosB = new BaseLineAI(false);
+		AIAgent montiCarlos = new MctsDetermAi(true);
+		AIAgent montiCarlosB = new RandomAI(false);
 
 		Pitch pitch = new Pitch(home, away);
-		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, false, true);
+		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);
 		//gameMaster.setSoundManager(new SoundManager());
 		gameMaster.setSoundManager(new FakeSoundManager());
 		inputManager = new InputManager(gameMaster);
@@ -76,14 +77,14 @@ public class Main {
 			
 			gameMaster.update();
 			
-			
+			/*
 			long delta = new Date().getTime() - startTime;
 			try {
 				
 				Thread.sleep(Math.max(5,(1000/renderer.getFps() - delta)));
 				
 			} catch (InterruptedException e) {e.printStackTrace();}
-			
+			*/
 		}
 	}
 }
