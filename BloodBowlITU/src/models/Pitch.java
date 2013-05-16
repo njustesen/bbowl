@@ -1,6 +1,7 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import models.actions.Pass;
 
@@ -889,6 +890,74 @@ public class Pitch {
 		
 		return false;
 		
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((awayDogout == null) ? 0 : awayDogout.hashCode());
+		result = prime * result
+				+ ((awayTeam == null) ? 0 : awayTeam.hashCode());
+		result = prime * result + ((ball == null) ? 0 : ball.hashCode());
+		result = prime * result + ((dungeon == null) ? 0 : dungeon.hashCode());
+		result = prime * result
+				+ ((homeDogout == null) ? 0 : homeDogout.hashCode());
+		result = prime * result
+				+ ((homeTeam == null) ? 0 : homeTeam.hashCode());
+		result = prime * result
+				+ ((inputManager == null) ? 0 : inputManager.hashCode());
+		result = prime * result + Arrays.hashCode(playerArr);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Pitch other = (Pitch) obj;
+		if (awayDogout == null) {
+			if (other.awayDogout != null)
+				return false;
+		} else if (!awayDogout.equals(other.awayDogout))
+			return false;
+		if (awayTeam == null) {
+			if (other.awayTeam != null)
+				return false;
+		} else if (!awayTeam.equals(other.awayTeam))
+			return false;
+		if (ball == null) {
+			if (other.ball != null)
+				return false;
+		} else if (!ball.equals(other.ball))
+			return false;
+		if (dungeon == null) {
+			if (other.dungeon != null)
+				return false;
+		} else if (!dungeon.equals(other.dungeon))
+			return false;
+		if (homeDogout == null) {
+			if (other.homeDogout != null)
+				return false;
+		} else if (!homeDogout.equals(other.homeDogout))
+			return false;
+		if (homeTeam == null) {
+			if (other.homeTeam != null)
+				return false;
+		} else if (!homeTeam.equals(other.homeTeam))
+			return false;
+		if (inputManager == null) {
+			if (other.inputManager != null)
+				return false;
+		}
+		if (!Arrays.deepEquals(playerArr, other.playerArr))
+			return false;
+		return true;
 	}
     
 }

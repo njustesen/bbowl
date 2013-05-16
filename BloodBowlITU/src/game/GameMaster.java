@@ -78,6 +78,7 @@ public class GameMaster {
 	private boolean restart = false;
 	private boolean rerollsAllowed = false;
 	private boolean fast = false;
+	private boolean logging = false;
 	
 	public GameMaster(GameState gameState, AIAgent homeAgent, AIAgent awayAgent, boolean fast, boolean restart) {
 		super();
@@ -91,6 +92,12 @@ public class GameMaster {
 	public void setSoundManager(SoundManager soundManager){
 		
 		this.soundManager = soundManager;
+		
+	}
+	
+	public void enableLogging(){
+		
+		this.logging  = true;
 		
 	}
 	
@@ -163,6 +170,8 @@ public class GameMaster {
 			} else {
 				home = true;
 			}
+		} else if (state.getGameStage() == GameStage.KICK_OFF){
+			startNewTurn();
 		} else if (state.getGameStage() == GameStage.KICKING_SETUP){
 			if (state.getKickingTeam() == state.getHomeTeam()){
 				home = true;
@@ -381,7 +390,8 @@ public class GameMaster {
 		
 		// Check if reroll?
 		if (state.isAwaitingReroll()){
-			GameLog.push("You cannot end your turn during a dice roll.");
+			if (logging)
+				GameLog.push("You cannot end your turn during a dice roll.");
 			return;
 		}
 		
@@ -720,7 +730,8 @@ public class GameMaster {
 			state.getPitch().getHomeDogout().putPlayersInReserves();
 			state.getPitch().getAwayDogout().putPlayersInReserves();
 			
-			GameLog.push("The game has started!");
+			if (logging)
+				GameLog.push("The game has started!");
 			
 		}
 		
@@ -740,18 +751,22 @@ public class GameMaster {
 			state.getCoinToss().setAwayPickedHeads(heads);
 			
 			if (heads){
-				GameLog.push(state.getAwayTeam().getTeamName() + " picked heads.");
+				if (logging)
+					GameLog.push(state.getAwayTeam().getTeamName() + " picked heads.");
 			} else {
-				GameLog.push(state.getAwayTeam().getTeamName() + " picked tails.");
+				if (logging)
+					GameLog.push(state.getAwayTeam().getTeamName() + " picked tails.");
 			}
 			
 			// Toss the coin
 			state.getCoinToss().Toss();
 			
 			if (state.getCoinToss().isResultHeads() == state.getCoinToss().hasAwayPickedHeads()){
-				GameLog.push(state.getAwayTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
+				if (logging)
+					GameLog.push(state.getAwayTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
 			} else {
-				GameLog.push(state.getHomeTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
+				if (logging)
+					GameLog.push(state.getHomeTeam().getTeamName() + " won the coin toss and will select to kick or receive.");
 			}
 			
 			// Go to pick coin toss effect
@@ -779,13 +794,17 @@ public class GameMaster {
 				if (receive){
 					state.setReceivingTeam(state.getAwayTeam());
 					state.setKickingTeam(state.getHomeTeam());
-					GameLog.push(state.getAwayTeam().getTeamName() + " selected to recieve the ball.");
-					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
+					if (logging){
+						GameLog.push(state.getAwayTeam().getTeamName() + " selected to recieve the ball.");
+						GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
+					}
 				} else {
 					state.setKickingTeam(state.getAwayTeam());
 					state.setReceivingTeam(state.getHomeTeam());
-					GameLog.push(state.getAwayTeam().getTeamName() + " selected to kick the ball.");
-					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
+					if (logging){
+						GameLog.push(state.getAwayTeam().getTeamName() + " selected to kick the ball.");
+						GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
+					}
 				}
 				
 			} else {
@@ -795,13 +814,17 @@ public class GameMaster {
 				if (receive){
 					state.setReceivingTeam(state.getHomeTeam());
 					state.setKickingTeam(state.getAwayTeam());
-					GameLog.push(state.getHomeTeam().getTeamName() + " selected to receive the ball.");
-					GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
+					if (logging){
+						GameLog.push(state.getHomeTeam().getTeamName() + " selected to receive the ball.");
+						GameLog.push(state.getAwayTeam().getTeamName() + " sets up first.");
+					}
 				} else {
 					state.setKickingTeam(state.getHomeTeam());
 					state.setReceivingTeam(state.getAwayTeam());
-					GameLog.push(state.getHomeTeam().getTeamName() + " selected to kick the ball.");
-					GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
+					if (logging){
+						GameLog.push(state.getHomeTeam().getTeamName() + " selected to kick the ball.");
+						GameLog.push(state.getHomeTeam().getTeamName() + " sets up first.");
+					}
 				}
 				
 			}
@@ -836,8 +859,10 @@ public class GameMaster {
 				state.setGameStage(GameStage.RECEIVING_SETUP);
 				selectedPlayer = null;
 				
-				GameLog.push(state.getKickingTeam().getTeamName() + " is done setting up.");
-				GameLog.push(state.getReceivingTeam().getTeamName() + " now has to setup.");
+				if (logging){
+					GameLog.push(state.getKickingTeam().getTeamName() + " is done setting up.");
+					GameLog.push(state.getReceivingTeam().getTeamName() + " now has to setup.");
+				}
 				
 			}
 			
@@ -857,8 +882,10 @@ public class GameMaster {
 				state.setGameStage(GameStage.KICK_PLACEMENT);
 				selectedPlayer = null;
 				
-				GameLog.push(state.getReceivingTeam().getTeamName() + " is done setting up.");
-				GameLog.push(state.getKickingTeam().getTeamName() + " now has to place the ball.");
+				if (logging){
+					GameLog.push(state.getReceivingTeam().getTeamName() + " is done setting up.");
+					GameLog.push(state.getKickingTeam().getTeamName() + " now has to place the ball.");
+				}
 				
 			}
 			
@@ -947,7 +974,8 @@ public class GameMaster {
 		
 		state.setCurrentHandOff(new HandOff(passer, catcher));
 		
-		GameLog.push("Ball handed off.");
+		if (logging)
+			GameLog.push("Ball handed off.");
 		
 		state.getPitch().getBall().setSquare(catcher.getPosition());
 		passer.getPlayerStatus().setTurn(PlayerTurn.USED);
@@ -1024,12 +1052,14 @@ public class GameMaster {
 			state.getPitch().getBall().setSquare(player.getPosition());
 			state.getPitch().getBall().setUnderControl(true);
 			state.setCurrentPass(null);
-			GameLog.push("Successfull interception. Result: " + result + " (" + success + " was needed");
+			if (logging)
+				GameLog.push("Successfull interception. Result: " + result + " (" + success + " was needed");
 			endTurn();
 			
 		} else {
 			
-			GameLog.push("Failed interception. Result: " + result + " (" + success + " was needed");
+			if (logging)
+				GameLog.push("Failed interception. Result: " + result + " (" + success + " was needed");
 			state.getCurrentPass().setAwaitingInterception(false);
 			state.getCurrentPass().setInterceptionPlayers(null);
 			
@@ -1057,7 +1087,8 @@ public class GameMaster {
 		
 		if (result >= success){
 			
-			GameLog.push(rangeStr + " succeded! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push(rangeStr + " succeded! Result: " + result + " (" + success + " was needed).");
 			
 			state.getPitch().getBall().setSquare(catcher.getPosition());
 			state.getCurrentPass().setAccurate(true);
@@ -1067,7 +1098,8 @@ public class GameMaster {
 			
 		} else {
 			
-			GameLog.push("Failed " + rangeStr + "! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Failed " + rangeStr + "! Result: " + result + " (" + success + " was needed).");
 			
 			if (passer.getSkills().contains(Skill.PASS)){
 				 
@@ -1080,7 +1112,8 @@ public class GameMaster {
 				
 				if (result >= success){
 					
-					GameLog.push(rangeStr + " succeded! Result: " + result + " (" + success + " was needed).");
+					if (logging)
+						GameLog.push(rangeStr + " succeded! Result: " + result + " (" + success + " was needed).");
 					
 					Square newSquare = catcher.getPosition();
 					state.getPitch().getBall().setSquare(newSquare);
@@ -1259,7 +1292,8 @@ public class GameMaster {
 			sendOffField = true;
 		}
 		
-		GameLog.push("Foul! Armour roll: " + da.getResultAsInt() + " + " + db.getResultAsInt() + " (" + (target.getAV() + 1 - foulSum) + " needed)");
+		if (logging)
+			GameLog.push("Foul! Armour roll: " + da.getResultAsInt() + " + " + db.getResultAsInt() + " (" + (target.getAV() + 1 - foulSum) + " needed)");
 		
 		if (result > target.getAV()){
 			
@@ -1278,19 +1312,22 @@ public class GameMaster {
 				// Stunned
 				target.getPlayerStatus().setStanding(Standing.STUNNED);
 				
-				GameLog.push("Foul! Player stunned!");
+				if (logging)
+					GameLog.push("Foul! Player stunned!");
 				
 			} else if (result < 10){
 				
 				// Knocked out
 				knockedOut = true;
-				GameLog.push("Foul! Player knocked out!");
+				if (logging)
+					GameLog.push("Foul! Player knocked out!");
 				
 			} else {
 				
 				// Dead and injured
 				deadAndInjured = true;
-				GameLog.push("Foul! Player dead or injured!");
+				if (logging)
+					GameLog.push("Foul! Player dead or injured!");
 				
 			}
 			
@@ -1319,7 +1356,8 @@ public class GameMaster {
 				return;
 			}
 			
-			GameLog.push("Foul! Player was sent off the field!");
+			if (logging)
+				GameLog.push("Foul! Player was sent off the field!");
 			
 			// Fumble
 			boolean fumble = false;
@@ -1411,7 +1449,8 @@ public class GameMaster {
 			roll.addDice(ba);
 			roll.addDice(bb);
 			
-			GameLog.push("Attacker selects block die.");
+			if (logging)
+				GameLog.push("Attacker selects block die.");
 			
 		}  else if(sum == BlockSum.DEFENDER_STRONGER){
 			
@@ -1424,7 +1463,8 @@ public class GameMaster {
 			
 			selectTeam = playerOwner(defender);
 			
-			GameLog.push("Defender selects block die.");
+			if (logging)
+				GameLog.push("Defender selects block die.");
 			
 		} else if(sum == BlockSum.ATTACKER_DOUBLE_STRONG){
 			
@@ -1438,7 +1478,8 @@ public class GameMaster {
 			roll.addDice(bb);
 			roll.addDice(bc);
 			
-			GameLog.push("Attacker selects block die.");
+			if (logging)
+				GameLog.push("Attacker selects block die.");
 			
 		} else if(sum == BlockSum.DEFENDER_DOUBLE_STRONG){
 			
@@ -1452,7 +1493,8 @@ public class GameMaster {
 			roll.addDice(bb);
 			roll.addDice(bc);
 			
-			GameLog.push("Defender selects block die.");
+			if (logging)
+				GameLog.push("Defender selects block die.");
 			
 		}
 		
@@ -2077,7 +2119,8 @@ public class GameMaster {
 		
 		if (result > success){
 			
-			GameLog.push("Succeeded going for it! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Succeeded going for it! Result: " + result + " (" + success + " was needed).");
 			
 			// Blitz?
 			if (player.getPosition().equals(square) && 
@@ -2103,7 +2146,8 @@ public class GameMaster {
 			
 		} else {
 			
-			GameLog.push("Failed going for it! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Failed going for it! Result: " + result + " (" + success + " was needed).");
 			movePlayer(player, square, true);
 			//knockDown(player, true);
 			
@@ -2146,14 +2190,16 @@ public class GameMaster {
 		// Success?
 		if (result == 6 || (result != 1 && result >= success)){
 			
-			GameLog.push("Succeeded dodge! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Succeeded dodge! Result: " + result + " (" + success + " was needed).");
 			
 			// Move
 			movePlayer(player, square, false);
 			
 		} else {
 			
-			GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
 			
 			// Dodge skill
 			if (player.getSkills().contains(Skill.DODGE)){
@@ -2167,7 +2213,8 @@ public class GameMaster {
 				
 				if (result == 6 || (result != 1 && result >= success)){
 					
-					GameLog.push("Succeeded dodge - using Dodge skill! Result: " + result + " (" + success + " was needed).");
+					if (logging)
+						GameLog.push("Succeeded dodge - using Dodge skill! Result: " + result + " (" + success + " was needed).");
 				
 					// Move
 					movePlayer(player, square, false);
@@ -2175,14 +2222,16 @@ public class GameMaster {
 				
 				} else {
 					
-					GameLog.push("Failed dodge - using Dodge skill! Result: " + result + " (" + success + " was needed).");
+					if (logging)
+						GameLog.push("Failed dodge - using Dodge skill! Result: " + result + " (" + success + " was needed).");
 					
 				}
 				
 			} else if (ableToReroll(getPlayerOwner(player))){
 				
 				// Prepare for reroll usage
-				GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
+				if (logging)
+					GameLog.push("Failed dodge! Result: " + result + " (" + success + " was needed).");
 				state.setCurrentDodge(new Dodge(player, square, success));
 				state.setAwaitReroll(true);
 				return;
@@ -2210,7 +2259,8 @@ public class GameMaster {
 			
 			state.getPitch().getBall().setUnderControl(true);
 			
-			GameLog.push("Succeeded catch! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Succeeded catch! Result: " + result + " (" + success + " was needed).");
 			
 			// Touchdown
 			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
@@ -2249,7 +2299,8 @@ public class GameMaster {
 			
 			state.getPitch().getBall().setUnderControl(true);
 			
-			GameLog.push("Succeeded pick up! Result: " + result + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Succeeded pick up! Result: " + result + " (" + success + " was needed).");
 			
 			// Touchdown
 			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
@@ -2423,7 +2474,8 @@ public class GameMaster {
 		// Add score
 		team.getTeamStatus().incScore();
 		
-		GameLog.push("TOUCHDOWN! " + team.getTeamName() + " scored a touchdown.");
+		if (logging)
+			GameLog.push("TOUCHDOWN! " + team.getTeamName() + " scored a touchdown.");
 		
 		if ((team == state.getHomeTeam() && 
 				state.getAwayTurn() == 8) || 
@@ -2434,6 +2486,10 @@ public class GameMaster {
 			return;
 			
 		}
+		
+		state.setAwaitFollowUp(false);
+		state.setAwaitPush(false);
+		state.setAwaitReroll(false);
 		
 		setupUpForKickOff();
 		
@@ -2502,7 +2558,8 @@ public class GameMaster {
 			
 			state.getPitch().getBall().setUnderControl(true);
 			
-			GameLog.push("Succeeded pick up! Result: " + result + ", (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Succeeded pick up! Result: " + result + ", (" + success + " was needed).");
 			
 			// Touchdown
 			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
@@ -2511,7 +2568,8 @@ public class GameMaster {
 			
 		} else { 
 			
-			GameLog.push("Failed pick up! Result: " + result + ", (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Failed pick up! Result: " + result + ", (" + success + " was needed).");
 			
 			if (player.getSkills().contains(Skill.SURE_HANDS)){
 			
@@ -2528,7 +2586,8 @@ public class GameMaster {
 						(result != 1 && result >= success)){
 					
 					state.getPitch().getBall().setUnderControl(true);
-					GameLog.push("Succeeded pick up - using Sure Hands! Result: " + result + ", (" + success + " was needed).");
+					if (logging)
+						GameLog.push("Succeeded pick up - using Sure Hands! Result: " + result + ", (" + success + " was needed).");
 					
 					// Touchdown
 					if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
@@ -2537,7 +2596,8 @@ public class GameMaster {
 					
 				} else {
 					
-					GameLog.push("Failed pick up - using Sure Hands! Result: " + result + ", (" + success + " was needed).");
+					if (logging)
+						GameLog.push("Failed pick up - using Sure Hands! Result: " + result + ", (" + success + " was needed).");
 					
 				}
 				
@@ -2598,7 +2658,8 @@ public class GameMaster {
 					!state.getPitch().isBallOnTeamSide(state.getReceivingTeam())){
 				
 				state.setGameStage(GameStage.PLACE_BALL_ON_PLAYER);
-				GameLog.push("Ball landed out of bounds. Place ball on a player.");
+				if (logging)
+					GameLog.push("Ball landed out of bounds. Place ball on a player.");
 				
 			}
 			
@@ -2837,7 +2898,8 @@ public class GameMaster {
 			
 			state.getPitch().getBall().setUnderControl(true);
 			
-			GameLog.push("Succeeded catch! Result: " + result + ", (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Succeeded catch! Result: " + result + ", (" + success + " was needed).");
 			
 			// Touchdown
 			if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
@@ -2846,7 +2908,8 @@ public class GameMaster {
 			
 		} else { 
 			
-			GameLog.push("Failed catch! Result: " + result + ", (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Failed catch! Result: " + result + ", (" + success + " was needed).");
 			
 			if (player.getSkills().contains(Skill.CATCH)){
 		
@@ -2863,7 +2926,8 @@ public class GameMaster {
 						(result != 1 && d.getResultAsInt() >= success)){
 					
 					state.getPitch().getBall().setUnderControl(true);
-					GameLog.push("Succeeded catch - using Catch! Result: " + result + ", (" + success + " was needed).");
+					if (logging)
+						GameLog.push("Succeeded catch - using Catch! Result: " + result + ", (" + success + " was needed).");
 					
 					// Touchdown
 					if (state.getPitch().isBallInEndzone(oppositeTeam(playerOwner(player)))){
@@ -2874,7 +2938,8 @@ public class GameMaster {
 					
 				} else {
 					
-					GameLog.push("Failed catch - using Catch! Result: " + result + ", (" + success + " was needed).");
+					if (logging)
+						GameLog.push("Failed catch - using Catch! Result: " + result + ", (" + success + " was needed).");
 					
 				}
 				
@@ -3086,7 +3151,8 @@ public class GameMaster {
 		
 		if (d.getResultAsInt() >= success){
 			
-			GameLog.push("Succeded going for it! Result: " + d.getResultAsInt() + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Succeded going for it! Result: " + d.getResultAsInt() + " (" + success + " was needed).");
 			
 			// Blitz?
 			if (player.getPosition().equals(square) && 
@@ -3104,7 +3170,8 @@ public class GameMaster {
 			
 		} else {
 			
-			GameLog.push("Failed going for it! Result: " + d.getResultAsInt() + " (" + success + " was needed).");
+			if (logging)
+				GameLog.push("Failed going for it! Result: " + d.getResultAsInt() + " (" + success + " was needed).");
 			
 			if (ableToReroll(playerOwner(player))){
 				state.setCurrentGoingForIt(new GoingForIt(player, square, success));
@@ -3127,11 +3194,11 @@ public class GameMaster {
 		state.getCurrentBlock().setResult(face);
 		
 		switch(face){
-		case SKULL : GameLog.push("Attacker down."); attackerDown(state.getCurrentBlock()); break;
-		case PUSH : GameLog.push("Defender pushed."); defenderPushed(state.getCurrentBlock()); break;
-		case BOTH_DOWN : GameLog.push("Both down."); bothDown(state.getCurrentBlock()); break;
-		case DEFENDER_STUMBLES : GameLog.push("Defender stumples."); defenderStumples(state.getCurrentBlock()); break;
-		case DEFENDER_KNOCKED_DOWN : GameLog.push("Defender down."); defenderKnockedDown(state.getCurrentBlock()); break;
+		case SKULL : attackerDown(state.getCurrentBlock()); break;
+		case PUSH : defenderPushed(state.getCurrentBlock()); break;
+		case BOTH_DOWN : bothDown(state.getCurrentBlock()); break;
+		case DEFENDER_STUMBLES : defenderStumples(state.getCurrentBlock()); break;
+		case DEFENDER_KNOCKED_DOWN : defenderKnockedDown(state.getCurrentBlock()); break;
 		default:
 			break;
 		}
@@ -3139,17 +3206,26 @@ public class GameMaster {
 
 	private void defenderKnockedDown(Block block) {
 		
+		if (logging)
+			GameLog.push("Defender down!");
+		
 		defenderPushed(block);
 		
 	}
 
 	private void defenderStumples(Block block) {
 		
+		if (logging)
+			GameLog.push("Defender pushed!");
+		
 		defenderPushed(block);
 		
 	}
 
 	private void bothDown(Block block) {
+		
+		if (logging)
+			GameLog.push("Both down!");
 		
 		if (!block.getDefender().getSkills().contains(Skill.BLOCK)){
 			knockDown(block.getDefender(), true);
@@ -3287,7 +3363,8 @@ public class GameMaster {
 				state.setGameStage(GameStage.KICK_OFF);
 				startNewTurn();
 			} else {
-				GameLog.push("Place the ball on a player.");
+				if (logging)
+					GameLog.push("Place the ball on a player.");
 			}
 		
 		} else if (state.getGameStage() == GameStage.HIGH_KICK){
@@ -3579,7 +3656,7 @@ public class GameMaster {
 		int result = da.getResultAsInt() + db.getResultAsInt();
 		boolean knockedOut = false;
 		boolean deadAndInjured = false;
-		if (armourRoll)
+		if (armourRoll && logging)
 			GameLog.push("Armour roll: " + result + " (AV: " + player.getAV() + ")");
 		
 		if (result > player.getAV() || !armourRoll){
@@ -3590,13 +3667,15 @@ public class GameMaster {
 			
 			result = da.getResultAsInt() + db.getResultAsInt();
 			
-			GameLog.push("Injury roll: " + result);
+			if (logging)
+				GameLog.push("Injury roll: " + result);
 			
 			if (result < 8){
 				
 				// Stunned
 				player.getPlayerStatus().setStanding(Standing.STUNNED);
-				GameLog.push("Player stunned.");
+				if (logging)
+					GameLog.push("Player stunned.");
 				
 				// Fumble
 				if (isBallCarried(player)){
@@ -3608,14 +3687,16 @@ public class GameMaster {
 			} else if (result < 10){
 				
 				// Knocked out
-				GameLog.push("Player knocked out.");
+				if (logging)
+					GameLog.push("Player knocked out.");
 				knockedOut = true;
 				
 				
 			} else {
 				
 				// Dead and injured
-				GameLog.push("Player dead or injured.");
+				if (logging)
+					GameLog.push("Player dead or injured.");
 				deadAndInjured = true;
 				
 			}
@@ -3914,13 +3995,15 @@ public class GameMaster {
 		
 		// Ball not placed?
 		if (state.getPitch().getBall().getSquare() == null){
-			GameLog.push("The ball has not been placed!");
+			if (logging)
+				GameLog.push("The ball has not been placed!");
 			return;
 		}
 		
 		// Ball corectly placed?
 		if (!state.getPitch().ballCorreclyPlaced(state.getKickingTeam())){
-			GameLog.push("The ball has not been placed correctly!");
+			if (logging)
+				GameLog.push("The ball has not been placed correctly!");
 			return;
 		}
 		
@@ -4004,7 +4087,8 @@ public class GameMaster {
 	 */
 	private void pitchInvasion() {
 		
-		GameLog.push("Pitch invasion!");
+		if (logging)
+			GameLog.push("Pitch invasion!");
 	
 		invadeTeam(state.getHomeTeam());
 		
@@ -4025,7 +4109,8 @@ public class GameMaster {
 	 */
 	private void throwARock() {
 		
-		GameLog.push("Throw a rock!");
+		if (logging)
+			GameLog.push("Throw a rock!");
 	
 		D6 home = new D6();
 		D6 away = new D6();
@@ -4040,14 +4125,16 @@ public class GameMaster {
 				state.getAwayTeam().getTeamStatus().getFAME();
 		
 		if (homeResult >= awayResult){
-			GameLog.push(state.getHomeTeam().getTeamName() + " threw a rock.");
+			if (logging)
+				GameLog.push(state.getHomeTeam().getTeamName() + " threw a rock.");
 			
 			// Injure random away player
 			throwRockAt(state.getAwayTeam());
 			
 		}
 		if (awayResult >= homeResult){
-			GameLog.push(state.getAwayTeam().getTeamName() + " threw a rock.");
+			if (logging)
+				GameLog.push(state.getAwayTeam().getTeamName() + " threw a rock.");
 			
 			// Injure random home player
 			throwRockAt(state.getHomeTeam());
@@ -4108,12 +4195,14 @@ public class GameMaster {
 
 	private void blitz() {
 		state.setGameStage(GameStage.BLITZ);
-		GameLog.push("Blitz!");
+		if (logging)
+			GameLog.push("Blitz!");
 	}
 
 	private void quickSnap() {
 		state.setGameStage(GameStage.QUICK_SNAP);
-		GameLog.push("Quck snap!");
+		if (logging)
+			GameLog.push("Quck snap!");
 	}
 
 	/**
@@ -4127,7 +4216,8 @@ public class GameMaster {
 	 */
 	private void brilliantCoaching() {
 		
-		GameLog.push("Brilliant coaching!");
+		if (logging)
+			GameLog.push("Brilliant coaching!");
 		
 		D3 home = new D3();
 		D3 away = new D3();
@@ -4146,12 +4236,14 @@ public class GameMaster {
 		if (homeResult >= awayResult){
 			int rr = state.getHomeTeam().getTeamStatus().getRerolls() + 1;
 			state.getHomeTeam().getTeamStatus().setRerolls(rr);
-			GameLog.push(state.getHomeTeam().getTeamName() + " gets an extra reroll.");
+			if (logging)
+				GameLog.push(state.getHomeTeam().getTeamName() + " gets an extra reroll.");
 		}
 		if (awayResult >= homeResult){
 			int rr = state.getAwayTeam().getTeamStatus().getRerolls() + 1;
 			state.getAwayTeam().getTeamStatus().setRerolls(rr);
-			GameLog.push(state.getAwayTeam().getTeamName() + " gets an extra reroll.");
+			if (logging)
+				GameLog.push(state.getAwayTeam().getTeamName() + " gets an extra reroll.");
 		}
 		
 	}
@@ -4164,7 +4256,8 @@ public class GameMaster {
 	 * square in a random direction before landing.  
 	 */
 	private void changingWeather() {
-		GameLog.push("Changing weather!");
+		if (logging)
+			GameLog.push("Changing weather!");
 		rollForWeather();
 		
 		// Gentle gust
@@ -4186,7 +4279,8 @@ public class GameMaster {
 	 */
 	private void cheeringFans() {
 		
-		GameLog.push("Cheering fans!");
+		if (logging)
+			GameLog.push("Cheering fans!");
 		
 		D3 home = new D3();
 		D3 away = new D3();
@@ -4205,23 +4299,27 @@ public class GameMaster {
 		if (homeResult >= awayResult){
 			int rr = state.getHomeTeam().getTeamStatus().getRerolls() + 1;
 			state.getHomeTeam().getTeamStatus().setRerolls(rr);
-			GameLog.push(state.getHomeTeam().getTeamName() + " gets an extra reroll.");
+			if (logging)
+				GameLog.push(state.getHomeTeam().getTeamName() + " gets an extra reroll.");
 		}
 		if (awayResult >= homeResult){
 			int rr = state.getAwayTeam().getTeamStatus().getRerolls() + 1;
 			state.getAwayTeam().getTeamStatus().setRerolls(rr);
-			GameLog.push(state.getAwayTeam().getTeamName() + " gets an extra reroll.");
+			if (logging)
+				GameLog.push(state.getAwayTeam().getTeamName() + " gets an extra reroll.");
 		}
 		
 	}
 
 	private void highKick() {
-		GameLog.push("High kick!");
+		if (logging)
+			GameLog.push("High kick!");
 		state.setGameStage(GameStage.HIGH_KICK);
 	}
 
 	private void perfectDefense() {
-		GameLog.push("Perfect defense!");
+		if (logging)
+			GameLog.push("Perfect defense!");
 		state.setGameStage(GameStage.PERFECT_DEFENSE);
 	}
 
@@ -4242,13 +4340,15 @@ public class GameMaster {
 	 */
 	private void riot() {
 		
-		GameLog.push("Riot!");
+		if (logging)
+			GameLog.push("Riot!");
 		
 		D6 d = new D6();
 		d.roll();
 		if (d.getResultAsInt() <= 3){
 			
-			GameLog.push("The referee lets the clock run on during the fight.");
+			if (logging)
+				GameLog.push("The referee lets the clock run on during the fight.");
 			
 			// End half?
 			if (state.getHomeTurn() + d.getResultAsInt() >= 8 && 
@@ -4266,7 +4366,8 @@ public class GameMaster {
 			
 		} else {
 			
-			GameLog.push("The referee resets the clock back to before the fight started.");
+			if (logging)
+				GameLog.push("The referee resets the clock back to before the fight started.");
 			
 			// Move turn makers one backwards
 			if (state.getHomeTurn() != 0)
@@ -4289,7 +4390,8 @@ public class GameMaster {
 	private void getTheRef() {
 		state.setRefAgainstHomeTeam(false);
 		state.setRefAgainstAwayTeam(false);
-		GameLog.push("Get the ref! No players from either team will be send off the field for making a foul nor be banned for using secret weapons.");
+		if (logging)
+			GameLog.push("Get the ref! No players from either team will be send off the field for making a foul nor be banned for using secret weapons.");
 	}
 
 	private void rollForWeather() {
@@ -4313,6 +4415,18 @@ public class GameMaster {
 		}
 		// DEBUG:
 		//state.setWeather(Weather.BLIZZARD);
+		
+		if (logging){
+			
+			switch(state.getWeather()){
+				case SWELTERING_HEAT : GameLog.push("Weather changed to swealtering heat."); break;
+				case VERY_SUNNY : GameLog.push("Weather changed to very sunny."); break;
+				case NICE : GameLog.push("Weather changed to nice."); break;
+				case POURING_RAIN : GameLog.push("Weather changed to pouring rain."); break;
+				case BLIZZARD : GameLog.push("Weather changed to blizzard."); break;
+			}
+		
+		}
 		
 	}
 

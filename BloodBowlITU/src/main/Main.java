@@ -49,12 +49,13 @@ public class Main {
 		Team away = TeamFactory.getHumanOrc();
 
 		AIAgent montiCarlos = new MctsDetermAi(true);
-		AIAgent montiCarlosB = new RandomAI(false);
+		AIAgent montiCarlosB = new MctsDetermAi(false);
 
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);
-		//gameMaster.setSoundManager(new SoundManager());
-		gameMaster.setSoundManager(new FakeSoundManager());
+		gameMaster.enableLogging();
+		gameMaster.setSoundManager(new SoundManager());
+		//gameMaster.setSoundManager(new FakeSoundManager());
 		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(600, gameMaster, inputManager);
 	}

@@ -47,7 +47,7 @@ public class MctsDetermAi extends AIAgent {
 
 	public static final double C = 1 / Math.sqrt(2);
 	
-	private static final int MULTIPLIER = 10000;
+	private static final int MULTIPLIER = 10;
 	private static final int FEW = 1 * MULTIPLIER;
 	private static final int MEDIUM = 2 * MULTIPLIER;
 	private static final int MANY = 4 * MULTIPLIER;
@@ -178,12 +178,7 @@ public class MctsDetermAi extends AIAgent {
 		if(best instanceof MctsIntermediateNode){
 			best = best.randomChild();
 		}
-		/*
-		// If no child was selected
-		if (best == node){
-			return node;
-		}
-		*/
+		
 		return select((MctsStateNode) best);
 	}
 	
@@ -219,11 +214,25 @@ public class MctsDetermAi extends AIAgent {
 			outcomes.add(new MctsStateNode(state, node, actions));
 		}
 		
-		// If all states are equal shrink down to one child TODO
+		// Shrink
+		List<MctsStateNode> shrinked = new ArrayList<MctsStateNode>();
+		for(MctsStateNode sn : outcomes){
+			if (shrinked.contains(sn)){
+				int idx = shrinked.indexOf(sn);
+				shrinked.get(idx).incProbability();
+				break;
+			}
+			shrinked.add(sn);
+		}
 		
-		child.getChildren().addAll(outcomes);
+		child.getChildren().addAll(shrinked);
 		
-		return (MctsStateNode) child.randomChild();
+		MctsStateNode r = (MctsStateNode) child.randomChild();
+		
+		if (r == null)
+			return node;
+				
+		return r;
 		
 	}
 

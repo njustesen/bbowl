@@ -140,5 +140,56 @@ public class TeamStatus {
 	public void setHasHandedOf(boolean hasHandedOf) {
 		this.hasHandedOf = hasHandedOf;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + FAME;
+		result = prime * result + babes;
+		result = prime * result + fans;
+		result = prime * result + (hasBlitzed ? 1231 : 1237);
+		result = prime * result + (hasFouled ? 1231 : 1237);
+		result = prime * result + (hasHandedOf ? 1231 : 1237);
+		result = prime * result + (hasPassed ? 1231 : 1237);
+		result = prime * result + (rerolledThisTurn ? 1231 : 1237);
+		result = prime * result + rerolls;
+		result = prime * result + score;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TeamStatus other = (TeamStatus) obj;
+		if (FAME != other.FAME)
+			return false;
+		if (babes != other.babes)
+			return false;
+		if (fans != other.fans)
+			return false;
+		if (hasBlitzed != other.hasBlitzed)
+			return false;
+		if (hasFouled != other.hasFouled)
+			return false;
+		if (hasHandedOf != other.hasHandedOf)
+			return false;
+		if (hasPassed != other.hasPassed)
+			return false;
+		if (rerolledThisTurn != other.rerolledThisTurn)
+			return false;
+		if (rerolls != other.rerolls)
+			return false;
+		if (score != other.score)
+			return false;
+		return true;
+	}
+	
+	
 	
 }

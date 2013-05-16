@@ -27,7 +27,5 @@ public class Block {
 	public void setDefender(Player defender) {
 		this.defender = defender;
 	}
-	
-	
-	
+
 }

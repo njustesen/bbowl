@@ -131,5 +131,57 @@ public class Push {
 	public void setTo(Square to) {
 		this.to = to;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((followingPush == null) ? 0 : followingPush.hashCode());
+		result = prime * result + ((from == null) ? 0 : from.hashCode());
+		result = prime * result
+				+ ((pushSquares == null) ? 0 : pushSquares.hashCode());
+		result = prime * result
+				+ ((pushedPlayer == null) ? 0 : pushedPlayer.hashCode());
+		result = prime * result + ((to == null) ? 0 : to.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Push other = (Push) obj;
+		if (followingPush == null) {
+			if (other.followingPush != null)
+				return false;
+		} else if (!followingPush.equals(other.followingPush))
+			return false;
+		if (from == null) {
+			if (other.from != null)
+				return false;
+		} else if (!from.equals(other.from))
+			return false;
+		if (pushSquares == null) {
+			if (other.pushSquares != null)
+				return false;
+		} else if (!pushSquares.equals(other.pushSquares))
+			return false;
+		if (pushedPlayer == null) {
+			if (other.pushedPlayer != null)
+				return false;
+		} else if (!pushedPlayer.equals(other.pushedPlayer))
+			return false;
+		if (to == null) {
+			if (other.to != null)
+				return false;
+		} else if (!to.equals(other.to))
+			return false;
+		return true;
+	}
 	
 }

@@ -94,5 +94,65 @@ public class Team {
 		}
 		return null;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + assistantCoaches;
+		result = prime * result + cheerleaders;
+		result = prime * result + fanFactor;
+		result = prime * result + ((players == null) ? 0 : players.hashCode());
+		result = prime * result + rerolls;
+		result = prime * result
+				+ ((teamName == null) ? 0 : teamName.hashCode());
+		result = prime * result
+				+ ((teamStatus == null) ? 0 : teamStatus.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Team other = (Team) obj;
+		if (assistantCoaches != other.assistantCoaches)
+			return false;
+		if (cheerleaders != other.cheerleaders)
+			return false;
+		if (fanFactor != other.fanFactor)
+			return false;
+		if (players == null) {
+			if (other.players != null)
+				return false;
+		} else if (!playersEquals(other))
+			return false;
+		if (rerolls != other.rerolls)
+			return false;
+		if (teamName == null) {
+			if (other.teamName != null)
+				return false;
+		} else if (!teamName.equals(other.teamName))
+			return false;
+		if (teamStatus == null) {
+			if (other.teamStatus != null)
+				return false;
+		} else if (!teamStatus.equals(other.teamStatus))
+			return false;
+		return true;
+	}
+
+	private boolean playersEquals(Team other) {
+		for(Player p : other.getPlayers()){
+			if (!players.contains(p)){
+				return false;
+			}
+		}
+		return true;
+	}
 	
 }

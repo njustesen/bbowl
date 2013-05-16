@@ -49,5 +49,41 @@ public class Ball {
 		this.onGround = true;
 		
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (inGame ? 1231 : 1237);
+		result = prime * result + (onGround ? 1231 : 1237);
+		result = prime * result + ((square == null) ? 0 : square.hashCode());
+		result = prime * result + (underControl ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Ball other = (Ball) obj;
+		if (inGame != other.inGame)
+			return false;
+		if (onGround != other.onGround)
+			return false;
+		if (square == null) {
+			if (other.square != null)
+				return false;
+		} else if (!square.equals(other.square))
+			return false;
+		if (underControl != other.underControl)
+			return false;
+		return true;
+	}
+	
+	
 	
 }

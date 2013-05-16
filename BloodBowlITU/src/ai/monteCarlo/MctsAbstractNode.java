@@ -51,23 +51,51 @@ public class MctsAbstractNode {
 
 	public MctsAbstractNode randomChild() {
 
+		// Get non-terminal nodes
 		List<MctsAbstractNode> nonTerminal = new ArrayList<MctsAbstractNode>();
-		
 		for (MctsAbstractNode child : children){
-			
 			if (child instanceof MctsStateNode){
 				if (((MctsStateNode)child).getState().getGameStage() != GameStage.GAME_ENDED){
 					nonTerminal.add(child);
 					continue;
 				}
+			} else {
+				nonTerminal.add(child);
 			}
-			
-			nonTerminal.add(child);
 		}
 		
-		int i = new Random().nextInt(nonTerminal.size());
 		
-		return nonTerminal.get(i);
+		// Get probability index
+		int probabilityIdx = 0;
+		for (MctsAbstractNode n : nonTerminal){
+		
+			if (n instanceof MctsStateNode){
+				probabilityIdx += ((MctsStateNode)n).getProbability();
+				continue;
+			}
+			probabilityIdx += 1; 
+			
+		}
+		
+		if (probabilityIdx == 0)
+			return null;
+		
+		// Get node using probability
+		int idx = new Random().nextInt(probabilityIdx);
+		int p = 0;
+		for (MctsAbstractNode n : nonTerminal){
+		
+			if (n instanceof MctsStateNode){
+				p += ((MctsStateNode)n).getProbability();
+			} else {
+				p += 1; 
+			}
+			if (idx <= p)
+				return n;
+			
+		}
+		
+		return null;
 		
 	}
 	
