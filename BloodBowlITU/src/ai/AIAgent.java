@@ -157,7 +157,7 @@ public abstract class AIAgent {
 	}
 	
 	protected boolean isGroupedUp(Player ballCarrier, GameState state){
-		System.out.println("is grouped up");
+	//	System.out.println("is grouped up");
 		int counter = 0;
 		Square sq = ballCarrier.getPosition();
 		
@@ -165,12 +165,16 @@ public abstract class AIAgent {
 			for(int j = -1; j <= 1; j += 2){	
 				if(state.getPitch().getPlayerAt(new Square(sq.getX()+i,sq.getY()+j)) != null){
 					counter++;
-					System.out.println("counter = "+counter);
 				}
 			}
 		}if(counter == 4){
 			return true;
 		}else{
+			if(sq.getX() == 1 || sq.getX() == 26 || sq.getY() == 1 || sq.getY() == 15){
+				if(counter == 2){
+					return true;
+				}
+			}
 			return false;
 		}
 	}
@@ -202,7 +206,7 @@ public abstract class AIAgent {
 		for(Player p: theList){
 			
 			if(p.getPosition() != null){
-				if(p.getPosition().getX() > 0 && p.getPosition().getX() < 27 && p.getPosition().getY() > 0 && p.getPosition().getY() < 15){
+				if(p.getPosition().getX() > 0 && p.getPosition().getX() < 27 && p.getPosition().getY() > 0 && p.getPosition().getY() < 16){
 			//		System.out.println("player = "+p+"    position = "+p.getPosition()+" x = "+p.getPosition().getX()+" y = "+p.getPosition().getY());
 					int NumberOfMoves = aStar.findPath(player, p.getPosition(), state, false).size();
 					if(NumberOfMoves < best){
@@ -396,8 +400,8 @@ public abstract class AIAgent {
 				private int currentY;
 				private int goalX;
 				private int goalY;
-				private int pitchWidth = 28;
-				private int pitchHeight = 16;
+				private int pitchWidth = 26;
+				private int pitchHeight = 15;
 				private int cost;
 				private Mover parent;
 				private GameState state;
@@ -453,10 +457,7 @@ public abstract class AIAgent {
 				
 				public boolean isMoveLegal(int i, Square sq){
 				//	System.out.println("IS MOVE LEGAL???   sq = ("+sq.getX()+","+sq.getY()+")");
-					if(sq.getX() < 0 || sq.getX() > 27 || sq.getY() < 0 || sq.getY() > 16){
-				//		System.out.println("   sq = ("+sq.getX()+","+sq.getY()+")");
-						return false;
-					}
+				
 					switch(i){
 					//check up
 					case 1: if(!isGridOccupied(sq.getX(), sq.getY()-1)){
@@ -497,7 +498,7 @@ public abstract class AIAgent {
 				
 				protected boolean isGridOccupied(int x, int y){
 					
-					if(x > 0 && x < pitchWidth && y > 0 && y < pitchHeight){
+					if(x > 0 && x <= pitchWidth && y > 0 && y <= pitchHeight){
 						Player[][] playerArr = p.getPlayerArr();
 					
 						if(playerArr[y][x] == null){

@@ -6,6 +6,7 @@ import ai.AIAgent;
 import ai.BaseLineAI;
 import ai.FlatMonteCarloAI;
 import ai.RandomAI;
+import ai.RandomTouchdownAI;
 
 import models.GameState;
 import models.Pitch;
@@ -47,7 +48,7 @@ public class Main {
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
 
-		AIAgent montiCarlos = new FlatMonteCarloAI(true);
+		AIAgent montiCarlos = new BaseLineAI(true);
 		AIAgent montiCarlosB = new BaseLineAI(false);
 
 		Pitch pitch = new Pitch(home, away);
@@ -80,7 +81,7 @@ public class Main {
 			long delta = new Date().getTime() - startTime;
 			try {
 				
-				Thread.sleep(Math.max(5,(1000/renderer.getFps() - delta)));
+				Thread.sleep(Math.max(250,(1000/renderer.getFps() - delta)));
 				
 			} catch (InterruptedException e) {e.printStackTrace();}
 			
