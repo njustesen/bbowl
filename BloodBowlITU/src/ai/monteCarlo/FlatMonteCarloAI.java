@@ -1,4 +1,4 @@
-package ai;
+package ai.monteCarlo;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,6 +16,8 @@ import models.Square;
 import models.Standing;
 import models.Team;
 import models.Weather;
+import ai.AIAgent;
+import ai.RandomAI;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
 import ai.actions.EndPhaseAction;

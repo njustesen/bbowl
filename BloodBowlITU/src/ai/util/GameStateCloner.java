@@ -84,7 +84,7 @@ public class GameStateCloner {
 		
 		Date newNow = new Date();
 		
-		System.out.println("clonetime: " + (newNow.getTime() - now.getTime()));
+		//System.out.println("clonetime: " + (newNow.getTime() - now.getTime()));
 		
 		return s;
 	}

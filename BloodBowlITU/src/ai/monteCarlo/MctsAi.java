@@ -1,4 +1,4 @@
-package ai;
+package ai.monteCarlo;
 
 import game.GameMaster;
 
@@ -8,6 +8,8 @@ import sound.FakeSoundManager;
 
 import models.GameStage;
 import models.GameState;
+import ai.AIAgent;
+import ai.RandomAI;
 import ai.actions.Action;
 import ai.actions.SelectCoinSideAction;
 import ai.util.GameStateCloner;

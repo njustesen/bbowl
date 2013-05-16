@@ -1,4 +1,4 @@
-package ai;
+package ai.monteCarlo;
 
 import java.util.ArrayList;
 
