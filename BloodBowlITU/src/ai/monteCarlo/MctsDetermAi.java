@@ -21,6 +21,7 @@ import models.Weather;
 import ai.AIAgent;
 import ai.BaseLineAI;
 import ai.RandomAI;
+import ai.RandomTouchdownAI;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
 import ai.actions.EndPhaseAction;
@@ -48,16 +49,19 @@ public class MctsDetermAi extends AIAgent {
 
 	public static final double C = 1 / Math.sqrt(2);
 	
-	private static final int MULTIPLIER = 1000;
+	private static final int MULTIPLIER = 300;
 	private static final int FEW = 1 * MULTIPLIER;
 	private static final int MEDIUM = 2 * MULTIPLIER;
 	private static final int MANY = 4 * MULTIPLIER;
 	private static final int INSANE = 10 * MULTIPLIER;
 
 	private static final int samples = 10;
+
+	private boolean heuristics;
 	
-	public MctsDetermAi(boolean homeTeam) {
+	public MctsDetermAi(boolean homeTeam, boolean heuristics) {
 		super(homeTeam);
+		this.heuristics = heuristics;
 	}
 	
 	protected Action MctsSearch(GameState state, long ms){
@@ -82,7 +86,7 @@ public class MctsDetermAi extends AIAgent {
 			MctsStateNode v2 = expand(v1);
 			
 			// Simulation
-			int result = simulatedResult(v2);
+			double result = simulatedResult(v2);
 			
 			// Backpropagate
 			backpropagate(v2, result);
@@ -237,12 +241,14 @@ public class MctsDetermAi extends AIAgent {
 		
 	}
 
-	private int simulatedResult(MctsStateNode node) {
+	private double simulatedResult(MctsStateNode node) {
 		
-		int result = 0;
+		double result = 0;
 		
 		GameState state = new GameStateCloner().clone(node.getState());
-		GameMaster master = new GameMaster(state, new BaseLineAI(true), new BaseLineAI(false), true, false);
+		//GameMaster master = new GameMaster(state, new BaseLineAI(true), new BaseLineAI(false), true, false);
+		//GameMaster master = new GameMaster(state, new RandomAI(true), new RandomAI(false), true, false);
+		GameMaster master = new GameMaster(state, new RandomTouchdownAI(true), new RandomTouchdownAI(false), true, false);
 		/*
 		if (!homeTeam)
 			master = new GameMaster(state, new RandomAI(true), new BaseLineAI(false), true, false);
@@ -267,11 +273,37 @@ public class MctsDetermAi extends AIAgent {
 			}
 		}
 		
+		// Use heuristics
+		if (heuristics && result == 0){
+			
+			// Ball position
+			if (state.getPitch().getBall().isOnGround()){
+				double x = state.getPitch().getBall().getSquare().getX();
+				x -= 13.0;
+				if (myTeam(state) == state.getHomeTeam()){
+					result = x/13.0/2.0;
+				} else {
+					result = -x/13.0/2.0;
+				}
+			}
+			
+			// Ball possession
+			if (state.getPitch().getBall().isUnderControl()){
+				Player player = state.getPitch().getPlayerAt(state.getPitch().getBall().getSquare());
+				if (player != null && player.getTeamName().equals(myTeam(state).getTeamName())){
+					result += 0.5;
+				} else if (player != null && !player.getTeamName().equals(myTeam(state).getTeamName())){
+					result -= 0.5;
+				}
+			}
+			
+		}
+		
 		return result;
 		
 	}
 
-	private void backpropagate(MctsStateNode node, int result) {
+	private void backpropagate(MctsStateNode node, double result) {
 		
 		MctsAbstractNode current = node;
 		

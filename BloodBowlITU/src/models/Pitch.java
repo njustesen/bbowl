@@ -539,6 +539,9 @@ public class Pitch {
 	}
 
 	public Player getPlayerAt(Square sq) {
+		if (sq == null)
+			return null;
+		
 		if (sq.getY() >= 0 && sq.getY() <= 16){
 			if (sq.getX() >= 0 && sq.getX() <= 27){
 				return playerArr[sq.getY()][sq.getX()];

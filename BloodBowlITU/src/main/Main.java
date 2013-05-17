@@ -50,8 +50,8 @@ public class Main {
 		Team away = TeamFactory.getHumanOrc();
 
 
-		AIAgent montiCarlos = new MctsDetermAi(true);
-		AIAgent montiCarlosB = new RandomTouchdownAI(false);
+		AIAgent montiCarlos = new MctsDetermAi(true, true);
+		AIAgent montiCarlosB = new MctsDetermAi(false, true);
 
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);

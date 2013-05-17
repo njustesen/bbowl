@@ -23,7 +23,7 @@ public class RandomScorerAI extends RandomAI{
 	}
 
 	
-private Action startPlayerAction(Player player, GameState state) {
+	private Action startPlayerAction(Player player, GameState state) {
 		
 		PlayerTurn action = null;
 		Square playerPos = player.getPosition();

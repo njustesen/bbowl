@@ -18,6 +18,7 @@ import models.Team;
 import models.Weather;
 import ai.AIAgent;
 import ai.RandomAI;
+import ai.RandomTouchdownAI;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
 import ai.actions.EndPhaseAction;
@@ -51,54 +52,90 @@ public class FlatMonteCarloAI extends AIAgent{
 	private static final int MEDIUM = 2 * MULTIPLIER;
 	private static final int MANY = 4 * MULTIPLIER;
 	private static final int INSANE = 10 * MULTIPLIER;
+
+	private boolean heuristics;
 	
-	public FlatMonteCarloAI(boolean homeTeam) {
+	public FlatMonteCarloAI(boolean homeTeam, boolean heuristics) {
 		super(homeTeam);
+		this.heuristics = heuristics;
 	}
 	
 	private Action search(List<Action> possibleActions, GameState state, int simulations){
 		
 		//MCTSNode root = new MCTSNode(null, null);
-		int bestSum = -100000;
+		double bestSum = -100000.0;
 		GameStateCloner cloner = new GameStateCloner();
-		ArrayList<Integer> sums = new ArrayList<Integer>();
+		ArrayList<Double> sums = new ArrayList<Double>();
 		
 		for(Action a : possibleActions){
 			
-			int sum = 0;
+			double sum = 0.0;
 			
 			for(int i = 0; i < simulations; i++){
 				Date now = new Date();
+				double result = 0.0;
 				
 				GameState as = cloner.clone(state);
-				GameMaster gameMaster = new GameMaster(as, new RandomAI(true), new RandomAI(false), true, false);
+				GameMaster gameMaster = new GameMaster(as, new RandomTouchdownAI(true), new RandomTouchdownAI(false), true, false);
 				gameMaster.setSoundManager(new FakeSoundManager());
 				gameMaster.performAIAction(a);
 				
+				int lastHalf = 0;
+				int lastX = 0;
+				Player lastBallCarrier = null;
 				while(as.getGameStage() != GameStage.GAME_ENDED){
+					if (lastHalf == 1 && as.getHalf() == 2){
+						break;
+					}
+					if (as.getPitch().getBall().isOnGround() && as.getPitch().getBall().getSquare() != null){
+						lastX = as.getPitch().getBall().getSquare().getX();
+						lastBallCarrier = as.getPitch().getPlayerAt(as.getPitch().getBall().getSquare());
+					}
 					gameMaster.update();
 				}
 				
-				if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
-					if (myTeam(state) == state.getHomeTeam()){
-						sum++;
+				if (as.getHomeTeam().getTeamStatus().getScore() > as.getAwayTeam().getTeamStatus().getScore()){
+					if (myTeam(as) == as.getHomeTeam()){
+						result++;
 					} else {
-						sum--;
+						result--;
 					}
-				} else if (state.getHomeTeam().getTeamStatus().getScore() < state.getAwayTeam().getTeamStatus().getScore()){
-					if (myTeam(state) == state.getHomeTeam()){
-						sum--;
+				} else if (as.getHomeTeam().getTeamStatus().getScore() < as.getAwayTeam().getTeamStatus().getScore()){
+					if (myTeam(as) == as.getHomeTeam()){
+						result--;
 					} else {
-						sum++;
+						result++;
 					}
 				}
 				
-				Date newNow = new Date();
+				if (heuristics && result == 0.0){
+					
+					// Ball position
+					if (as.getPitch().getBall().isOnGround()){
+						double x = lastX;
+						x -= 13.0;
+						if (myTeam(as) == as.getHomeTeam()){
+							result = x/13.0/2.0;
+						} else {
+							result = -x/13.0/2.0;
+						}
+					}
+					
+					// Ball possession
+					Player player = lastBallCarrier;
+					if (player != null && player.getTeamName().equals(myTeam(as).getTeamName())){
+						result += 0.5;
+					} else if (player != null && !player.getTeamName().equals(myTeam(as).getTeamName())){
+						result -= 0.5;
+					}
+				}
 				
-				System.out.println("simtime: " + (newNow.getTime() - now.getTime()));
+				sum += result;
+				Date newNow = new Date();
 				
 			}
 			
+			System.out.println("sum: " + sum);
 			sums.add(sum);
 			
 		}
@@ -407,16 +444,17 @@ public class FlatMonteCarloAI extends AIAgent{
 	
 	private Player findActivePlayer(GameState state, ArrayList<Player> players) {
 		
-		int bestSum = 0;
+		double bestSum = 0;
 		Player bestPlayer = null;
 		GameStateCloner cloner = new GameStateCloner();
 		
 		for(Player p : players){
 			
-			int sum = 0;
+			double sum = 0;
 			
 			for(int i = 0; i < MEDIUM; i++){
 				Date now = new Date();
+				double result = 0.0;
 				
 				GameState as = cloner.clone(state);
 				GameMaster gameMaster = new GameMaster(as, new RandomAI(true), new RandomAI(false), true, false);
@@ -426,19 +464,60 @@ public class FlatMonteCarloAI extends AIAgent{
 				Action randAction = new SelectPlayerTurnAction(getRandomPlayerTurn(), clonedPlayer);
 				gameMaster.performAIAction(randAction);
 				
+				int lastHalf = 0;
+				int lastX = 0;
+				Player lastBallCarrier = null;
 				while(as.getGameStage() != GameStage.GAME_ENDED){
+					if (lastHalf == 1 && as.getHalf() == 2){
+						break;
+					}
+					if (as.getPitch().getBall().isOnGround() && as.getPitch().getBall().getSquare() != null){
+						lastX = as.getPitch().getBall().getSquare().getX();
+						lastBallCarrier = as.getPitch().getPlayerAt(as.getPitch().getBall().getSquare());
+					}
 					gameMaster.update();
 				}
 				
-				if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
-					sum++;
-				} else if (state.getHomeTeam().getTeamStatus().getScore() < state.getAwayTeam().getTeamStatus().getScore()){
-					sum--;
+				if (as.getHomeTeam().getTeamStatus().getScore() > as.getAwayTeam().getTeamStatus().getScore()){
+					if (myTeam(as) == as.getHomeTeam()){
+						result++;
+					} else {
+						result--;
+					}
+				} else if (as.getHomeTeam().getTeamStatus().getScore() < as.getAwayTeam().getTeamStatus().getScore()){
+					if (myTeam(as) == as.getHomeTeam()){
+						result--;
+					} else {
+						result++;
+					}
+				}
+				
+				if (heuristics && result == 0.0){
+					
+					// Ball position
+					if (as.getPitch().getBall().isOnGround()){
+						double x = lastX;
+						x -= 13.0;
+						if (myTeam(as) == as.getHomeTeam()){
+							result = x/13.0/2.0;
+						} else {
+							result = -x/13.0/2.0;
+						}
+					}
+					
+					// Ball possession
+					if (as.getPitch().getBall().isUnderControl()){
+						Player player = lastBallCarrier;
+						if (player != null && player.getTeamName().equals(myTeam(as).getTeamName())){
+							result += 0.5;
+						} else if (player != null && !player.getTeamName().equals(myTeam(as).getTeamName())){
+							result -= 0.5;
+						}
+					}
 				}
 				
 				Date newNow = new Date();
-				
-				System.out.println("simtime: " + (newNow.getTime() - now.getTime()));
+				sum += result;
 				
 			}
 			
