@@ -8,10 +8,13 @@ import models.PassRange;
 import models.Player;
 import models.PlayerTurn;
 import models.RangeRuler;
+import models.Skill;
 import models.Square;
 import models.Standing;
 import models.Team;
 import models.Weather;
+import models.dice.DiceFace;
+import models.dice.IDice;
 import Statistics.StatisticManager;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
@@ -30,6 +33,7 @@ import ai.actions.RerollAction;
 import ai.actions.SelectCoinSideAction;
 import ai.actions.SelectCoinTossEffectAction;
 import ai.actions.SelectDieAction;
+import ai.actions.SelectInterceptionAction;
 import ai.actions.SelectPlayerAction;
 import ai.actions.SelectPlayerTurnAction;
 import ai.actions.SelectPushSquareAction;
@@ -102,25 +106,144 @@ public class BaseLineAI extends AIAgent{
 
 	@Override
 	protected Action decideReroll(GameState state) {
-		//lol
-		time = System.nanoTime();
+	
+		ArrayList<IDice> dices = state.getCurrentDiceRoll().getDices();
 		
-		int r = (int) (Math.random() * 2);
-		if (r == 0){
-			return new RerollAction();
+		int selected = 0;
+		int bestValue = 0;
+		
+		
+		if(state.getCurrentBlock() != null){
+			
+			Player defender = state.getCurrentBlock().getDefender();
+			Player attacker = state.getCurrentBlock().getAttacker();
+			
+			if(attacker.getTeamName() == myTeam(state).getTeamName()){
+				
+				for(int i = 0; i < dices.size(); i++){
+					//DEFENDER_KNOCKED_DOWN
+					if(dices.get(i).getResult() == DiceFace.DEFENDER_KNOCKED_DOWN && bestValue < 5){
+						selected = i;
+						bestValue = 5;
+					//PUSH
+					}else if(dices.get(i).getResult() == DiceFace.PUSH && bestValue < 4){
+						selected = i;
+						bestValue = 4;
+					//DEFENDER_STUMBLES
+					}else if(dices.get(i).getResult() == DiceFace.DEFENDER_STUMBLES){
+						//defender has dodge
+						if(defender.getSkills().contains(Skill.DODGE) && bestValue < 4){
+							selected = i;
+							bestValue = 4;
+						//defender does NOT have dodge
+						}else if(!defender.getSkills().contains(Skill.DODGE) && bestValue < 5){
+							selected = i;
+							bestValue = 5;
+						}
+					//BOTH_DOWN
+					}else if(dices.get(i).getResult() == DiceFace.BOTH_DOWN){
+						//defender has block
+						if(defender.getSkills().contains(Skill.BLOCK)){
+							//both have block
+							if(attacker.getSkills().contains(Skill.BLOCK) && bestValue < 3){
+								selected = i;
+								bestValue = 3;
+							//only defender has block
+							}else if(!attacker.getSkills().contains(Skill.BLOCK) && bestValue < 1){
+								selected = i;
+								bestValue = 1;
+							}
+						//defender does NOT have block
+						}else{
+							//only i have block
+							if(attacker.getSkills().contains(Skill.BLOCK) && bestValue < 5){
+								selected = i;
+								bestValue = 5;
+								
+							//none of us have block
+							}else if(!attacker.getSkills().contains(Skill.BLOCK) && bestValue < 2){
+								selected = i;
+								bestValue = 2;
+							}
+						}
+					//SKULL
+					}else if(dices.get(i).getResult() == DiceFace.SKULL && bestValue < 1){
+						selected = i;
+						bestValue = 1;
+					}
+					
+				}
+				
+			}else if(defender.getTeamName() == myTeam(state).getTeamName()){
+			
+				for(int i = 0; i < dices.size(); i++){
+					//DEFENDER_KNOCKED_DOWN
+					if(dices.get(i).getResult() == DiceFace.DEFENDER_KNOCKED_DOWN && bestValue < 1){
+						selected = i;
+						bestValue = 1;
+					//PUSH
+					}else if(dices.get(i).getResult() == DiceFace.PUSH && bestValue < 2){
+						selected = i;
+						bestValue = 2;
+					//DEFENDER_STUMBLES
+					}else if(dices.get(i).getResult() == DiceFace.DEFENDER_STUMBLES){
+						//defender has dodge
+						if(defender.getSkills().contains(Skill.DODGE) && bestValue < 4){
+							selected = i;
+							bestValue = 4;
+						//defender does NOT have dodge
+						}else if(!defender.getSkills().contains(Skill.DODGE) && bestValue < 5){
+							selected = i;
+							bestValue = 5;
+						}
+					//BOTH_DOWN
+					}else if(dices.get(i).getResult() == DiceFace.BOTH_DOWN){
+						//defender has block
+						if(defender.getSkills().contains(Skill.BLOCK)){
+							//both have block
+							if(attacker.getSkills().contains(Skill.BLOCK) && bestValue < 3){
+								selected = i;
+								bestValue = 3;
+							//only defender has block
+							}else if(!attacker.getSkills().contains(Skill.BLOCK) && bestValue < 5){
+								selected = i;
+								bestValue = 5;
+							}
+						//defender does NOT have block
+						}else{
+							//only attacker have block
+							if(attacker.getSkills().contains(Skill.BLOCK) && bestValue < 1){
+								selected = i;
+								bestValue = 1;
+								
+							//none of us have block
+							}else if(!attacker.getSkills().contains(Skill.BLOCK) && bestValue < 4){
+								selected = i;
+								bestValue = 4;
+							}
+						}
+					//SKULL
+					}else if(dices.get(i).getResult() == DiceFace.SKULL && bestValue < 5){
+						selected = i;
+						bestValue = 5;
+					}
+					
+				}
+			}
 		}
 		
-		r = (int) (Math.random() * state.getCurrentDiceRoll().getDices().size());
+		return new SelectDieAction(selected);	
+	}
+	
+	@Override
+	protected Action pickIntercepter(GameState state) {
+		time = System.nanoTime();
+
+		int i = (int) (Math.random() * state.getCurrentPass().getInterceptionPlayers().size());
 		
 		StatisticManager.timeSpendByRandomAI += System.nanoTime() - time;
 		
-		return new SelectDieAction(r);	
-	}
-
-	@Override
-	protected Action pickIntercepter(GameState state) {
-		// TODO Auto-generated method stub
-		return null;
+		return new SelectInterceptionAction(state.getCurrentPass().getInterceptionPlayers().get(i));
 	}
 
 	@Override
@@ -442,10 +565,12 @@ public class BaseLineAI extends AIAgent{
 	}
 
 	private Action continueBlitzAction(Player player, GameState state) {
-		System.out.println("BLIIITZ!!!");
-			if(!state.getAwayTeam().getTeamStatus().hasBlitzed()){
+		//System.out.println("BLIIITZ!!!");
+		
+			if(!myTeam(state).getTeamStatus().hasBlitzed()){
 				if(numberOfSurroundingOpponents(state, player.getPosition()) == 0){
-					System.out.println("numberOfSurroundingOpponents(state, player.getPosition()) == 0");
+					//System.out.println("LOOP 1");
+	//				System.out.println("numberOfSurroundingOpponents(state, player.getPosition()) == 0");
 					return continueMoveAction(player, state);
 				}
 			
@@ -459,33 +584,38 @@ public class BaseLineAI extends AIAgent{
 				
 				for(int i = -1; i <= 1; i++){
 					for(int j = -1; j <= 1; j++){
-						if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+i,playerPos.getY()+j)) != null){
-							if(state.getPitch().getPlayerAt(new Square(playerPos.getX()+i,playerPos.getY()+j)).getTeamName() != player.getTeamName()){
-								enemies.add(state.getPitch().getPlayerAt(new Square(playerPos.getX()+i,playerPos.getY()+j)));
+						Player opponent = state.getPitch().getPlayerAt(new Square(playerPos.getX()+i,playerPos.getY()+j));
+						if(opponent != null){
+							if(opponent.getTeamName() != player.getTeamName()){
+								enemies.add(opponent);
+								//System.out.println("LOOP 2");
 							}
 						}
 					}
 				}
-				System.out.println("enemies = "+enemies);
+	//			System.out.println("enemies = "+enemies);
 				
 				if (!enemies.isEmpty()){
-					System.out.println("blitz is NOT empty");
+	//				System.out.println("blitz is NOT empty");
 					Player selected = enemies.get(0);
 					for(Player e: enemies){
-					
+						//System.out.println("LOOP 3");
 						if(e.getST() < selected.getST()){
+							//System.out.println("LOOP 3.1");
 							selected = e;
 						}
 							
 						if(e.getPosition().getX() == ballPos.getX() && e.getPosition().getY() == ballPos.getY()){
+							//System.out.println("LOOP 3.2");
 							selected = e;
 						}
 						
 						if(enemies.size() == 1){
+							//System.out.println("LOOP 3.3");
 							selected = e;
 						}
 					}
-					System.out.println("return selected = "+selected);
+					//System.out.println("return selected = "+selected);
 					return new BlockPlayerAction(player, selected);
 				}
 			}
@@ -541,14 +671,16 @@ public class BaseLineAI extends AIAgent{
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
 		//	System.out.println("player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2   WHAT??");
-			moves.clear();
+			if(moves != null)
+				moves.clear();
 			return new EndPlayerTurnAction(player);
 		}
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA()){
 		//	if (Math.random() * 100 > calculateGoingForItPercentage(state, player)){
 		//	System.out.println("player.getPlayerStatus().getMovementUsed() >= player.getMA()   WHAT??");
-			moves.clear();
+			if(moves != null)
+				moves.clear();
 			return new EndPlayerTurnAction(player);
 		//	}
 		}
@@ -609,11 +741,11 @@ public class BaseLineAI extends AIAgent{
 				Square sq = moves.remove(size-1);
 //				System.out.println("return new MovePlayerAction(player, sq);  sq = ("+sq.getX()+","+sq.getY()+")");
 				return new MovePlayerAction(player, sq);
-			}else{System.out.println("moves.isEmpty()");}
-		}else{System.out.println("moves != null");}
+			}else{}
+		}else{}
 	
-			
-		moves.clear();
+		if(moves != null)
+			moves.clear();
 		
 		return new EndPlayerTurnAction(player);
 		

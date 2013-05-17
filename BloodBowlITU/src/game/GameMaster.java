@@ -3929,6 +3929,15 @@ public class GameMaster {
 			
 			return true;
 			
+		} else if (allowed && player.getPlayerStatus().getStanding() == Standing.DOWN){
+			
+			int movementUsed = player.getPlayerStatus().getMovementUsed();
+			if (movementUsed <= player.getMA() - 3){
+				
+				player.getPlayerStatus().setMovementUsed(movementUsed + 3);
+				return true;
+			}
+			
 		}
 			
 		return false;

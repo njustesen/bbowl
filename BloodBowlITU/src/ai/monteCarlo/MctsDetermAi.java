@@ -19,6 +19,7 @@ import models.Standing;
 import models.Team;
 import models.Weather;
 import ai.AIAgent;
+import ai.BaseLineAI;
 import ai.RandomAI;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
@@ -47,7 +48,7 @@ public class MctsDetermAi extends AIAgent {
 
 	public static final double C = 1 / Math.sqrt(2);
 	
-	private static final int MULTIPLIER = 10;
+	private static final int MULTIPLIER = 1000;
 	private static final int FEW = 1 * MULTIPLIER;
 	private static final int MEDIUM = 2 * MULTIPLIER;
 	private static final int MANY = 4 * MULTIPLIER;
@@ -211,7 +212,7 @@ public class MctsDetermAi extends AIAgent {
 			master.performAIAction(child.getAction());
 			boolean home = getTurn(state);
 			List<Action> actions = getPossibleActions(state, home);
-			outcomes.add(new MctsStateNode(state, node, actions));
+			outcomes.add(new MctsStateNode(state, child, actions));
 		}
 		
 		// Shrink
@@ -241,8 +242,11 @@ public class MctsDetermAi extends AIAgent {
 		int result = 0;
 		
 		GameState state = new GameStateCloner().clone(node.getState());
-		
-		GameMaster master = new GameMaster(state, new RandomAI(true), new RandomAI(false), true, false);
+		GameMaster master = new GameMaster(state, new BaseLineAI(true), new BaseLineAI(false), true, false);
+		/*
+		if (!homeTeam)
+			master = new GameMaster(state, new RandomAI(true), new BaseLineAI(false), true, false);
+			*/
 		master.setSoundManager(new FakeSoundManager());
 		
 		while(state.getGameStage() != GameStage.GAME_ENDED){
@@ -272,6 +276,10 @@ public class MctsDetermAi extends AIAgent {
 		MctsAbstractNode current = node;
 		
 		while(current != null){
+			
+			if (result != 0.0){
+				result += 0.0;
+			}
 			
 			double sum = current.getValue() * current.getVisits() + result;
 			current.setVisits(current.getVisits() + 1);

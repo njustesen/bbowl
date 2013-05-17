@@ -462,8 +462,12 @@ public class Renderer extends JPanel{
 		if (gameMaster.getState().isAwaitingFollowUp() && block != null){
 				Square notFollow = block.getAttacker().getPosition();
 				Square followUp = block.getFollowUpSquare();
-				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getX(),inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getY(),null);
-				g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getX(),inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getY(),null);
+				if(followUp != null){
+					g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getX(),inputManager.arrayToScreen(followUp.getX(),followUp.getY()).getY(),null);
+				}
+				if(notFollow != null){
+					g.drawImage(whiteTile.getBufferedImage(), inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getX(),inputManager.arrayToScreen(notFollow.getX(),notFollow.getY()).getY(),null);
+				}		
 			}
 	}
 

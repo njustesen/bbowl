@@ -5,6 +5,7 @@ import java.util.Date;
 import ai.AIAgent;
 import ai.BaseLineAI;
 import ai.RandomAI;
+import ai.RandomTouchdownAI;
 import ai.monteCarlo.FlatMonteCarloAI;
 import ai.monteCarlo.MctsDetermAi;
 
@@ -48,8 +49,9 @@ public class Main {
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
 
+
 		AIAgent montiCarlos = new MctsDetermAi(true);
-		AIAgent montiCarlosB = new MctsDetermAi(false);
+		AIAgent montiCarlosB = new RandomTouchdownAI(false);
 
 		Pitch pitch = new Pitch(home, away);
 		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);
@@ -82,7 +84,7 @@ public class Main {
 			long delta = new Date().getTime() - startTime;
 			try {
 				
-				Thread.sleep(Math.max(5,(1000/renderer.getFps() - delta)));
+				Thread.sleep(Math.max(250,(1000/renderer.getFps() - delta)));
 				
 			} catch (InterruptedException e) {e.printStackTrace();}
 			*/
