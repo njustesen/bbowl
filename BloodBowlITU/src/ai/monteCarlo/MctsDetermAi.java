@@ -21,6 +21,7 @@ import models.Weather;
 import ai.AIAgent;
 import ai.BaseLineAI;
 import ai.RandomAI;
+import ai.RandomMoveTouchdownAI;
 import ai.RandomTouchdownAI;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
@@ -248,7 +249,7 @@ public class MctsDetermAi extends AIAgent {
 		GameState state = new GameStateCloner().clone(node.getState());
 		//GameMaster master = new GameMaster(state, new BaseLineAI(true), new BaseLineAI(false), true, false);
 		//GameMaster master = new GameMaster(state, new RandomAI(true), new RandomAI(false), true, false);
-		GameMaster master = new GameMaster(state, new RandomTouchdownAI(true), new RandomTouchdownAI(false), true, false);
+		GameMaster master = new GameMaster(state, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false), true, false);
 		/*
 		if (!homeTeam)
 			master = new GameMaster(state, new RandomAI(true), new BaseLineAI(false), true, false);
@@ -277,7 +278,7 @@ public class MctsDetermAi extends AIAgent {
 		if (heuristics && result == 0){
 			
 			// Ball position
-			if (state.getPitch().getBall().isOnGround()){
+			if (state.getPitch().getBall().isOnGround() && state.getPitch().getBall().getSquare() != null){
 				double x = state.getPitch().getBall().getSquare().getX();
 				x -= 13.0;
 				if (myTeam(state) == state.getHomeTeam()){
@@ -288,7 +289,7 @@ public class MctsDetermAi extends AIAgent {
 			}
 			
 			// Ball possession
-			if (state.getPitch().getBall().isUnderControl()){
+			if (state.getPitch().getBall().isUnderControl() && state.getPitch().getBall().getSquare() != null){
 				Player player = state.getPitch().getPlayerAt(state.getPitch().getBall().getSquare());
 				if (player != null && player.getTeamName().equals(myTeam(state).getTeamName())){
 					result += 0.5;
@@ -297,6 +298,20 @@ public class MctsDetermAi extends AIAgent {
 				}
 			}
 			
+			// Injuries
+			/*
+			int awayKOs = state.getPitch().getAwayDogout().getKnockedOut().size();
+			int awayDnI = state.getPitch().getAwayDogout().getDeadAndInjured().size();
+			int homeKOs = state.getPitch().getHomeDogout().getKnockedOut().size();
+			int homeDnI = state.getPitch().getHomeDogout().getDeadAndInjured().size();
+			
+			int injSocre = (awayKOs - homeKOs) + (awayDnI - homeDnI) * 3;
+			if (myTeam(state) == state.getHomeTeam()){
+				result += injSocre;
+			} else {
+				result -= injSocre;
+			}
+			*/
 		}
 		
 		return result;
@@ -545,7 +560,7 @@ public class MctsDetermAi extends AIAgent {
 
 	@Override
 	protected Action setup(GameState state) {
-		return MctsSearch(state, FEW);
+		return MctsSearch(state, MANY);
 	}
 
 	@Override
@@ -685,7 +700,8 @@ public class MctsDetermAi extends AIAgent {
 			}
 		}
 		
-		actions.add( new EndPhaseAction() );
+		if (actions.isEmpty())
+			actions.add( new EndPhaseAction() );
 		
 		return actions;
 	}
@@ -726,7 +742,8 @@ public class MctsDetermAi extends AIAgent {
 			}
 		}
 		
-		actions.add( new EndPhaseAction() );
+		if (actions.isEmpty())
+			actions.add( new EndPhaseAction() );
 		
 		return actions;
 	}
@@ -855,7 +872,7 @@ public class MctsDetermAi extends AIAgent {
 					
 					actions.add(new SelectPlayerTurnAction(PlayerTurn.MOVE_ACTION, player));
 					
-					if (player.getPlayerStatus().getStanding() == Standing.UP)
+					if (player.getPlayerStatus().getStanding() == Standing.UP && enemiesInTackleZone(player, state))
 						actions.add(new SelectPlayerTurnAction(PlayerTurn.BLOCK_ACTION, player));
 					
 					if (!teamFromState(state, home).getTeamStatus().hasBlitzed())
@@ -889,84 +906,28 @@ public class MctsDetermAi extends AIAgent {
 			}
 		}
 		
-		actions.add( new EndPhaseAction() );
+		if (actions.isEmpty())
+			actions.add( new EndPhaseAction() );
 		
 		return actions;
 		
 	}
 	
-	private Player findActivePlayer(GameState state, ArrayList<Player> players, boolean home) {
+	private boolean enemiesInTackleZone(Player player, GameState state) {
 		
-		int bestSum = 0;
-		Player bestPlayer = null;
-		GameStateCloner cloner = new GameStateCloner();
-		
-		for(Player p : players){
-			
-			int sum = 0;
-			
-			for(int i = 0; i < MEDIUM; i++){
-				Date now = new Date();
-				
-				GameState as = cloner.clone(state);
-				GameMaster gameMaster = new GameMaster(as, new RandomAI(true), new RandomAI(false), true, false);
-				gameMaster.setSoundManager(new FakeSoundManager());
-				
-				Player clonedPlayer = findIdenticalPlayer(p, teamFromState(as, home), state, as);
-				Action randAction = new SelectPlayerTurnAction(getRandomPlayerTurn(), clonedPlayer);
-				gameMaster.performAIAction(randAction);
-				
-				while(as.getGameStage() != GameStage.GAME_ENDED){
-					gameMaster.update();
+		for(int i = -1; i <= 1; i++){
+			for(int j = -1; j <= 1; j++){
+				Player opponent = state.getPitch().getPlayerAt(new Square(player.getPosition().getX()+i,player.getPosition().getY()+j));
+				if(opponent != null){
+					if(opponent.getTeamName() != player.getTeamName()){
+						return true;
+					}
 				}
-				
-				if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
-					sum++;
-				} else if (state.getHomeTeam().getTeamStatus().getScore() < state.getAwayTeam().getTeamStatus().getScore()){
-					sum--;
-				}
-				
-				Date newNow = new Date();
-				
-				System.out.println("simtime: " + (newNow.getTime() - now.getTime()));
-				
-			}
-			
-			if (bestPlayer == null || 
-					(sum > bestSum && homeTeam) || 
-					(sum < bestSum && !homeTeam)){
-				bestSum = sum;
-				bestPlayer = p;
 			}
 		}
 		
-		return bestPlayer;
+		return false;
 		
-	}
-
-	private Player findIdenticalPlayer(Player player, Team newTeam, GameState oldState, GameState newState) {
-
-		for(Player p : newTeam.getPlayers()){
-			if (p.getNumber() == player.getNumber()){
-				return p;
-			}
-		}
-		
-		return null;
-	}
-
-	private PlayerTurn getRandomPlayerTurn() {
-
-		int i = (int) (Math.random() * 6);
-		switch(i){
-		case 0: return PlayerTurn.BLITZ_ACTION;
-		case 1: return PlayerTurn.BLOCK_ACTION;
-		case 2: return PlayerTurn.FOUL_ACTION;
-		case 3: return PlayerTurn.HAND_OFF_ACTION;
-		case 4: return PlayerTurn.MOVE_ACTION;
-		case 5: return PlayerTurn.PASS_ACTION;
-		}
-		return PlayerTurn.MOVE_ACTION;
 	}
 
 	private ArrayList<Action> continuedFoulActions(Player player, GameState state, boolean home) {
@@ -1078,6 +1039,11 @@ public class MctsDetermAi extends AIAgent {
 		
 		ArrayList<Action> actions = new ArrayList<Action>();
 
+		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
+			actions.add(new EndPlayerTurnAction(player));
+			return actions;
+		}
+		
 		if (!teamFromState(state, home).getTeamStatus().hasBlitzed()){
 			for(int y = -1; y <= 1; y++){
 				for(int x = -1; x <= 1; x++){

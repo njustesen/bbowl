@@ -34,9 +34,10 @@ import models.Standing;
 import models.Weather;
 
 public class RandomAI extends AIAgent {
-	
+	/*
 	private static final int ACTIVE_PLAYER_PERCENTAGE = 80;
 	private static final int GOING_FOR_IT_PERCENTAGE = 20;
+	*/
 	private static long time;
 
 	public RandomAI(boolean homeTeam) {
@@ -112,9 +113,9 @@ public class RandomAI extends AIAgent {
 		Player player = null;
 		
 		// Pick active player
-		int r = (int) (Math.random() * 100);
+		int r = (int) (Math.random() * 2);
 		
-		if (r <= ACTIVE_PLAYER_PERCENTAGE){
+		if (r < 1){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
 					player = p;
@@ -271,9 +272,9 @@ public class RandomAI extends AIAgent {
 		Player player = null;
 		
 		// Pick active player
-		int r = (int) (Math.random() * 100);
+		int r = (int) (Math.random() * 2);
 		
-		if (r <= ACTIVE_PLAYER_PERCENTAGE){
+		if (r < 1){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
 						p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
@@ -459,6 +460,10 @@ public class RandomAI extends AIAgent {
 			if (myTeam(state).getTeamStatus().hasBlitzed())
 				return new EndPlayerTurnAction(player);
 			
+			if (player.getPlayerStatus().getStanding() == Standing.DOWN && 
+					player.getPlayerStatus().getMovementUsed() > player.getMA() + 3)
+				return new EndPlayerTurnAction(player);
+			
 			// Enemies
 			ArrayList<Player> enemies = new ArrayList<Player>();
 			Square playerPos = player.getPosition();
@@ -524,12 +529,12 @@ public class RandomAI extends AIAgent {
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
 			return new EndPlayerTurnAction(player);
 		}
-		
+		/*
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA()){
 			if (Math.random() * 100 < GOING_FOR_IT_PERCENTAGE){
 				return new EndPlayerTurnAction(player);
 			}
-		}
+		}*/
 		
 		ArrayList<Square> squares = new ArrayList<Square>();
 		Square playerPos = player.getPosition();

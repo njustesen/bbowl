@@ -18,6 +18,7 @@ import models.Team;
 import models.Weather;
 import ai.AIAgent;
 import ai.RandomAI;
+import ai.RandomMoveTouchdownAI;
 import ai.RandomTouchdownAI;
 import ai.actions.Action;
 import ai.actions.BlockPlayerAction;
@@ -76,7 +77,7 @@ public class FlatMonteCarloAI extends AIAgent{
 				double result = 0.0;
 				
 				GameState as = cloner.clone(state);
-				GameMaster gameMaster = new GameMaster(as, new RandomTouchdownAI(true), new RandomTouchdownAI(false), true, false);
+				GameMaster gameMaster = new GameMaster(as, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false), true, false);
 				gameMaster.setSoundManager(new FakeSoundManager());
 				gameMaster.performAIAction(a);
 				
@@ -84,53 +85,18 @@ public class FlatMonteCarloAI extends AIAgent{
 				int lastX = 0;
 				Player lastBallCarrier = null;
 				while(as.getGameStage() != GameStage.GAME_ENDED){
-					if (lastHalf == 1 && as.getHalf() == 2){
+					if (heuristics && lastHalf == 1 && as.getHalf() == 2){
 						break;
 					}
-					if (as.getPitch().getBall().isOnGround() && as.getPitch().getBall().getSquare() != null){
+					
+					if (heuristics && as.getPitch().getBall().isOnGround() && as.getPitch().getBall().getSquare() != null){
 						lastX = as.getPitch().getBall().getSquare().getX();
 						lastBallCarrier = as.getPitch().getPlayerAt(as.getPitch().getBall().getSquare());
 					}
 					gameMaster.update();
 				}
 				
-				if (as.getHomeTeam().getTeamStatus().getScore() > as.getAwayTeam().getTeamStatus().getScore()){
-					if (myTeam(as) == as.getHomeTeam()){
-						result++;
-					} else {
-						result--;
-					}
-				} else if (as.getHomeTeam().getTeamStatus().getScore() < as.getAwayTeam().getTeamStatus().getScore()){
-					if (myTeam(as) == as.getHomeTeam()){
-						result--;
-					} else {
-						result++;
-					}
-				}
-				
-				if (heuristics && result == 0.0){
-					
-					// Ball position
-					if (as.getPitch().getBall().isOnGround()){
-						double x = lastX;
-						x -= 13.0;
-						if (myTeam(as) == as.getHomeTeam()){
-							result = x/13.0/2.0;
-						} else {
-							result = -x/13.0/2.0;
-						}
-					}
-					
-					// Ball possession
-					Player player = lastBallCarrier;
-					if (player != null && player.getTeamName().equals(myTeam(as).getTeamName())){
-						result += 0.5;
-					} else if (player != null && !player.getTeamName().equals(myTeam(as).getTeamName())){
-						result -= 0.5;
-					}
-				}
-				
-				sum += result;
+				sum += evaluate(as, lastX, lastBallCarrier);
 				Date newNow = new Date();
 				
 			}
@@ -153,6 +119,54 @@ public class FlatMonteCarloAI extends AIAgent{
 		
 		return pickRandom(bestActions);
 	}	
+
+	private double evaluate(GameState state, int lastX, Player lastBallCarrier) {
+		double result = 0.0;
+		if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
+			if (myTeam(state) == state.getHomeTeam()){
+				result++;
+			} else {
+				result--;
+			}
+		} else if (state.getHomeTeam().getTeamStatus().getScore() < state.getAwayTeam().getTeamStatus().getScore()){
+			if (myTeam(state) == state.getHomeTeam()){
+				result--;
+			} else {
+				result++;
+			}
+		}
+		
+		if (heuristics && result == 0.0){
+			
+			// Ball position
+			if (state.getPitch().getBall().isOnGround()){
+				double x = lastX;
+				x -= 13.0;
+				if (myTeam(state) == state.getHomeTeam()){
+					result = x/13.0/2.0;
+				} else {
+					result = -x/13.0/2.0;
+				}
+			}
+			
+			// Injuries
+			/*
+			int awayKOs = state.getPitch().getAwayDogout().getKnockedOut().size();
+			int awayDnI = state.getPitch().getAwayDogout().getDeadAndInjured().size();
+			int homeKOs = state.getPitch().getHomeDogout().getKnockedOut().size();
+			int homeDnI = state.getPitch().getHomeDogout().getDeadAndInjured().size();
+			
+			int injSocre = (awayKOs - homeKOs) + (awayDnI - homeDnI) * 3;
+			if (myTeam(state) == state.getHomeTeam()){
+				result += injSocre;
+			} else {
+				result -= injSocre;
+			}
+			*/
+		}
+		
+		return result;
+	}
 
 	private Action pickRandom(ArrayList<Action> bestActions) {
 		int x = (int) (Math.random() * bestActions.size());
@@ -336,7 +350,7 @@ public class FlatMonteCarloAI extends AIAgent{
 			
 		}
 		
-		return search(actions, state, MEDIUM);
+		return search(actions, state, 1);
 		
 	}
 
@@ -382,7 +396,7 @@ public class FlatMonteCarloAI extends AIAgent{
 			
 		}
 		
-		return search(actions, state, FEW);
+		return search(actions, state, 1);
 		
 	}
 
@@ -434,9 +448,11 @@ public class FlatMonteCarloAI extends AIAgent{
 			case FOUL_ACTION : actions.addAll( continuedFoulActions(active, state) ); break;
 			case USED : break;
 			}
+		} else {
+			actions.add( new EndPhaseAction() );
 		}
 		
-		actions.add( new EndPhaseAction() );
+		//actions.add( new EndPhaseAction() );
 		
 		return search(actions, state, INSANE);
 		
@@ -452,7 +468,7 @@ public class FlatMonteCarloAI extends AIAgent{
 			
 			double sum = 0;
 			
-			for(int i = 0; i < MEDIUM; i++){
+			for(int i = 0; i < FEW; i++){
 				Date now = new Date();
 				double result = 0.0;
 				

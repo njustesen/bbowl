@@ -182,7 +182,7 @@ public class Renderer extends JPanel{
 		yellowDot.loopAnimation();
 	}
 	
-	public void drawWeather(Graphics g){
+	private void drawWeather(Graphics g){
 		Weather w = gameMaster.getState().getWeather();
 		switch(w){
 			case SWELTERING_HEAT: weather.setImage("heat.png"); break;
@@ -196,7 +196,7 @@ public class Renderer extends JPanel{
 		g.drawImage(weather.getBufferedImage(), 845, 545, null);
 	}
 	
-	public int getFps(){
+	private int getFps(){
 		return fps;
 	}
 	
@@ -204,7 +204,7 @@ public class Renderer extends JPanel{
 		this.repaint();
 	}
 	
-	public void hoverSquare(Graphics g, int x, int y){
+	private void hoverSquare(Graphics g, int x, int y){
 		if(inputManager.getMouseX() > pitchOrigin.getX() && inputManager.getMouseX() < 26*pitchSquareSize + pitchOrigin.getX() &&
 				inputManager.getMouseY() > pitchOrigin.getY() && inputManager.getMouseY() < 15*pitchSquareSize + pitchOrigin.getY()){
 			 
@@ -216,7 +216,7 @@ public class Renderer extends JPanel{
 		}
 	}
 	
-	public void drawActionButtons(Graphics g){
+	private void drawActionButtons(Graphics g){
 		
 		for(int i = 0; i < 6; i++){
 			if(inputManager.getMouseX() > i*actionButtonWidth && inputManager.getMouseX() < (actionButtonWidth * i)+actionButtonWidth &&
@@ -264,7 +264,7 @@ public class Renderer extends JPanel{
 		}			
 	}
 	
-	public void drawEndTurnButton(Graphics g){
+	private void drawEndTurnButton(Graphics g){
 
 			if(inputManager.getMouseX() > inputManager.getEndTurnButtonOrigin().getX() && inputManager.getMouseX() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonWidth &&
 					inputManager.getMouseY() > inputManager.getEndTurnButtonOrigin().getY() && inputManager.getMouseY() < inputManager.getEndTurnButtonOrigin().getX()+actionButtonHeight){
@@ -289,7 +289,7 @@ public class Renderer extends JPanel{
 		}
 		
 	
-	public void drawRerollNamesAndScore(Graphics g){
+	private void drawRerollNamesAndScore(Graphics g){
 			//rerolls
 			g.drawImage(roll.getBufferedImage(), rerollButtonOrigin.getX(), rerollButtonOrigin.getY(), null);		
 			Font font = new Font("Arial", Font.PLAIN, 15);	    
@@ -345,7 +345,7 @@ public class Renderer extends JPanel{
 			g.setFont(standard);
 	}
 	
-	public void drawPlayer(Graphics g, Player p, int x, int y){
+	private void drawPlayer(Graphics g, Player p, int x, int y){
 		int screenX = inputManager.arrayToScreen(x, y).getX();
 		int screenY = inputManager.arrayToScreen(x, y).getY();
 		if(p.getRace() == Race.HUMANS){
@@ -431,7 +431,7 @@ public class Renderer extends JPanel{
 		g.setColor(Color.WHITE);
 	}
 	
-	public void drawPushSquares(Graphics g){
+	private void drawPushSquares(Graphics g){
 		Block b = gameMaster.getState().getCurrentBlock();
 		if(gameMaster.getState().getCurrentBlock() != null){
 			Push p = b.getPush();
@@ -446,7 +446,7 @@ public class Renderer extends JPanel{
 		}
 	}
 	
-	public void drawInterceptingPlayers(Graphics g){
+	private void drawInterceptingPlayers(Graphics g){
 		Pass pass = gameMaster.getState().getCurrentPass();
 		if(pass != null){
 			if(pass.getInterceptionPlayers() != null)
@@ -457,7 +457,7 @@ public class Renderer extends JPanel{
 		}
 	}
 	
-	public void drawFollowUpSquares(Graphics g){
+	private void drawFollowUpSquares(Graphics g){
 		Block block = gameMaster.getState().getCurrentBlock();
 		if (gameMaster.getState().isAwaitingFollowUp() && block != null){
 				Square notFollow = block.getAttacker().getPosition();
@@ -471,7 +471,7 @@ public class Renderer extends JPanel{
 			}
 	}
 
-	public void drawDice(Graphics g, int diceOne, int diceTwo, String type){
+	private void drawDice(Graphics g, int diceOne, int diceTwo, String type){
 		if(type == "D6"){
 			switch(diceOne){
 			case 1: g.drawImage(dice1.getBufferedImage(), rerollButtonOrigin.getX()-110, rerollButtonOrigin.getY()+10, null); break;
@@ -554,7 +554,7 @@ public class Renderer extends JPanel{
 
 	}
 	
-	public void drawDice(Graphics g, int dice, String type){
+	private void drawDice(Graphics g, int dice, String type){
 		if(type == "D6"){
 			switch(dice){
 				case 1: g.drawImage(dice1.getBufferedImage(), rerollButtonOrigin.getX()-85, rerollButtonOrigin.getY()+10, null); break;
@@ -645,7 +645,7 @@ public class Renderer extends JPanel{
 				}
 	}
 	
-	public void drawCoinToss(Graphics g){
+	private void drawCoinToss(Graphics g){
 		if(gameMaster.getState().getGameStage() == GameStage.COIN_TOSS){
 			g.drawString(gameMaster.getState().getAwayTeam().getTeamName()+" pick a coin", 350, 420);
 			g.drawImage(heads.getBufferedImage(), inputManager.getHeadsCenter().getX()-heads.getWidth()/2, inputManager.getHeadsCenter().getY()-heads.getHeight()/2, null);
@@ -684,7 +684,7 @@ public class Renderer extends JPanel{
 		}
 	}
 	
-	public void drawStats(Graphics g){
+	private void drawStats(Graphics g){
 		if(gameMaster.getSelectedPlayer() != null){
 			Player p = gameMaster.getSelectedPlayer();
 			if (p == null){
@@ -712,7 +712,7 @@ public class Renderer extends JPanel{
 		}
 	}
 	
-	public void drawBall(Graphics g){
+	private void drawBall(Graphics g){
 		if(gameMaster.getState().getPitch().getBall().getSquare() != null){
 			int ballX = gameMaster.getState().getPitch().getBall().getSquare().getX();
 			int ballY = gameMaster.getState().getPitch().getBall().getSquare().getY();
@@ -722,7 +722,7 @@ public class Renderer extends JPanel{
 		}
 	}
 	
-	public void drawGameLog(Graphics g){
+	private void drawGameLog(Graphics g){
 		
 		Font f = new Font("Arial", Font.PLAIN, 14);
 		g.setFont(f);

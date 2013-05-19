@@ -34,15 +34,15 @@ import models.Square;
 import models.Standing;
 import models.Weather;
 
-public class RandomTouchdownAI extends AIAgent {
-	/*
+public class RandomMoveTouchdownAI extends AIAgent {
+	
 	private static final int ACTIVE_PLAYER_PERCENTAGE = 80;
 	private static final int GOING_FOR_IT_PERCENTAGE = 20;
-	*/
+	
 	private static long time;
 	private ArrayList <Square> moves;
 
-	public RandomTouchdownAI(boolean homeTeam) {
+	public RandomMoveTouchdownAI(boolean homeTeam) {
 		super(homeTeam);
 	}
 	
@@ -115,9 +115,9 @@ public class RandomTouchdownAI extends AIAgent {
 		Player player = null;
 		
 		// Pick active player
-		int r = (int) (Math.random() * 2);
+		int r = (int) (Math.random() * 100);
 		
-		if (r <= 1){
+		if (r <= ACTIVE_PLAYER_PERCENTAGE){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
 					player = p;
@@ -274,9 +274,9 @@ public class RandomTouchdownAI extends AIAgent {
 		Player player = null;
 		
 		// Pick active player
-		int r = (int) (Math.random() * 2);
+		int r = (int) (Math.random() * 100);
 		
-		if (r < 1){
+		if (r <= ACTIVE_PLAYER_PERCENTAGE){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
 						p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){

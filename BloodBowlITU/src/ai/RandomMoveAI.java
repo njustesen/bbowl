@@ -24,7 +24,6 @@ import ai.actions.SelectDieAction;
 import ai.actions.SelectPlayerAction;
 import ai.actions.SelectPlayerTurnAction;
 import ai.actions.SelectPushSquareAction;
-import models.Ball;
 import models.GameState;
 import models.PassRange;
 import models.Player;
@@ -34,15 +33,14 @@ import models.Square;
 import models.Standing;
 import models.Weather;
 
-public class RandomTouchdownAI extends AIAgent {
-	/*
+public class RandomMoveAI extends AIAgent {
+	
 	private static final int ACTIVE_PLAYER_PERCENTAGE = 80;
 	private static final int GOING_FOR_IT_PERCENTAGE = 20;
-	*/
+	
 	private static long time;
-	private ArrayList <Square> moves;
 
-	public RandomTouchdownAI(boolean homeTeam) {
+	public RandomMoveAI(boolean homeTeam) {
 		super(homeTeam);
 	}
 	
@@ -115,9 +113,9 @@ public class RandomTouchdownAI extends AIAgent {
 		Player player = null;
 		
 		// Pick active player
-		int r = (int) (Math.random() * 2);
+		int r = (int) (Math.random() * 100);
 		
-		if (r <= 1){
+		if (r <= ACTIVE_PLAYER_PERCENTAGE){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
 					player = p;
@@ -274,9 +272,9 @@ public class RandomTouchdownAI extends AIAgent {
 		Player player = null;
 		
 		// Pick active player
-		int r = (int) (Math.random() * 2);
+		int r = (int) (Math.random() * 100);
 		
-		if (r < 1){
+		if (r <= ACTIVE_PLAYER_PERCENTAGE){
 			for(Player p : state.getPitch().getPlayersOnPitch(myTeam(state))){
 				if (p.getPlayerStatus().getTurn() != PlayerTurn.USED && 
 						p.getPlayerStatus().getTurn() != PlayerTurn.UNUSED){
@@ -525,74 +523,13 @@ public class RandomTouchdownAI extends AIAgent {
 		time = System.nanoTime();
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
-			if(moves != null)
-				moves.clear();
 			return new EndPlayerTurnAction(player);
 		}
 		
 		if (player.getPlayerStatus().getMovementUsed() >= player.getMA()){
-			if(moves != null)
-				moves.clear();
-			return new EndPlayerTurnAction(player);
-		}
-		
-		Ball b = state.getPitch().getBall();
-		Square playerPos = player.getPosition();
-		
-		if(player.getPlayerStatus().getMovementUsed() < player.getMA()){
-		
-			//if ball is not on the ground
-			if(b.getSquare() != null && state.getPitch().getPlayerAt(b.getSquare()) == null){
-				
-				moves = aStar.findPath(player, b.getSquare(), state, false);
-				if (moves.size() > player.getMA() - player.getPlayerStatus().getMovementUsed()
-						|| player.getAG() < 3){
-					moves = null;
-				}
-			
-			//if SOME player has the ball
-			}else{
-				
-				//if player has the ball
-				if(playerPos.equals(b.getSquare())){
-					moves = aStar.findPath(player, b.getSquare(), state, true);
-				}else{ 
-					return continueRandomMoveAction(player, state);
-				}
+			if (Math.random() * 100 < GOING_FOR_IT_PERCENTAGE){
+				return new EndPlayerTurnAction(player);
 			}
-		}
-		
-		if(moves != null){
-			if(!moves.isEmpty()){
-				int size = moves.size();
-				Square sq = moves.remove(size-1);
-				return new MovePlayerAction(player, sq);
-			}else{}
-		}else{}
-	
-		if(moves != null)
-			moves.clear();
-		
-		return continueRandomMoveAction(player, state);
-		
-	}
-	
-	private Action continueRandomMoveAction(Player player, GameState state) {
-		
-		time = System.nanoTime();
-		
-		if (player.getPlayerStatus().getMovementUsed() > 0 && player.getPlayerStatus().getStanding() == Standing.DOWN){
-			return new EndPlayerTurnAction(player);
-		}
-		
-		if (player.getPlayerStatus().getMovementUsed() >= player.getMA() + 2){
-			return new EndPlayerTurnAction(player);
-		}
-		
-		if (player.getPlayerStatus().getMovementUsed() >= player.getMA()){
-			//if (Math.random() * 100 < 1){
-				//return new EndPlayerTurnAction(player);
-			//}
 		}
 		
 		ArrayList<Square> squares = new ArrayList<Square>();

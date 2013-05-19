@@ -121,6 +121,9 @@ public class GameMaster {
 		if (state.getGameStage() == GameStage.GAME_ENDED && restart){
 			if (state.getHomeTeam().getTeamStatus().getScore() == state.getAwayTeam().getTeamStatus().getScore()){
 				StatisticManager.draws++;
+				if (state.getHomeTeam().getTeamStatus().getScore() == 0){
+					StatisticManager.zerozero++;
+				}
 			} else if (state.getHomeTeam().getTeamStatus().getScore() > state.getAwayTeam().getTeamStatus().getScore()){
 				StatisticManager.homeWon++;
 			} else {
@@ -1395,9 +1398,11 @@ public class GameMaster {
 			return;
 		
 		if (state.getCurrentBlock() != null){
+			/*
 			if (!state.getCurrentBlock().getAttacker().getPlayerStatus().hasMovedToBlock()){
 				return;
 			}
+			*/
 			blockTarget = state.getCurrentBlock().getDefender();
 		}
 		
@@ -2123,7 +2128,8 @@ public class GameMaster {
 				GameLog.push("Succeeded going for it! Result: " + result + " (" + success + " was needed).");
 			
 			// Blitz?
-			if (player.getPosition().equals(square) && 
+			if (player.getPosition() != null && 
+					player.getPosition().equals(square) && 
 					state.getCurrentBlock() != null && 
 					state.getCurrentBlock().getAttacker() == player){
 				player.getPlayerStatus().setMovedToBlock(true);
@@ -3301,7 +3307,8 @@ public class GameMaster {
 	private void endTurn() {
 		
 		if (state.isAwaitingFollowUp() || state.isAwaitingPush() || state.isAwaitingReroll()){
-			return;
+			if (state.getGameStage() != GameStage.PLACE_BALL_ON_PLAYER)
+				return;
 		}
 		
 		// Clear dice roll

@@ -5,6 +5,8 @@ import java.util.Date;
 import ai.AIAgent;
 import ai.BaseLineAI;
 import ai.RandomAI;
+import ai.RandomMoveAI;
+import ai.RandomMoveTouchdownAI;
 import ai.RandomTouchdownAI;
 import ai.monteCarlo.FlatMonteCarloAI;
 import ai.monteCarlo.MctsDetermAi;
@@ -49,15 +51,14 @@ public class Main {
 		Team home = TeamFactory.getHumanTeam();
 		Team away = TeamFactory.getHumanOrc();
 
-
-		AIAgent montiCarlos = new MctsDetermAi(true, true);
-		AIAgent montiCarlosB = new MctsDetermAi(false, true);
+		AIAgent montiCarlos = new FlatMonteCarloAI(true, true);
+		AIAgent montiCarlosB = new FlatMonteCarloAI(false, true);
 
 		Pitch pitch = new Pitch(home, away);
-		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);
+		gameMaster = new GameMaster(new GameState(home, away, pitch), null, null, true, true);
 		gameMaster.enableLogging();
-		gameMaster.setSoundManager(new SoundManager());
-		//gameMaster.setSoundManager(new FakeSoundManager());
+		//gameMaster.setSoundManager(new SoundManager());
+		gameMaster.setSoundManager(new FakeSoundManager());
 		inputManager = new InputManager(gameMaster);
 		renderer = new Renderer(600, gameMaster, inputManager);
 	}
@@ -75,8 +76,8 @@ public class Main {
 		while(true){
 			
 			//startTime = new Date().getTime();
-			
-			renderer.renderFrame();
+			if (renderer != null)
+				renderer.renderFrame();
 			
 			gameMaster.update();
 			
