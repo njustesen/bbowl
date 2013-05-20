@@ -55,10 +55,14 @@ public class FlatMonteCarloAI extends AIAgent{
 	private static final int INSANE = 10 * MULTIPLIER;
 
 	private boolean heuristics;
+	private AIAgent homeAgent;
+	private AIAgent awayAgent;
 	
-	public FlatMonteCarloAI(boolean homeTeam, boolean heuristics) {
+	public FlatMonteCarloAI(boolean homeTeam, boolean heuristics, AIAgent homeAgent, AIAgent awayAgent) {
 		super(homeTeam);
 		this.heuristics = heuristics;
+		this.homeAgent = homeAgent;
+		this.awayAgent = awayAgent;
 	}
 	
 	private Action search(List<Action> possibleActions, GameState state, int simulations){
@@ -77,7 +81,7 @@ public class FlatMonteCarloAI extends AIAgent{
 				double result = 0.0;
 				
 				GameState as = cloner.clone(state);
-				GameMaster gameMaster = new GameMaster(as, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false), true, false);
+				GameMaster gameMaster = new GameMaster(as, homeAgent, awayAgent, true, false);
 				gameMaster.setSoundManager(new FakeSoundManager());
 				gameMaster.performAIAction(a);
 				
@@ -473,7 +477,7 @@ public class FlatMonteCarloAI extends AIAgent{
 				double result = 0.0;
 				
 				GameState as = cloner.clone(state);
-				GameMaster gameMaster = new GameMaster(as, new RandomAI(true), new RandomAI(false), true, false);
+				GameMaster gameMaster = new GameMaster(as, homeAgent, awayAgent, true, false);
 				gameMaster.setSoundManager(new FakeSoundManager());
 				
 				Player clonedPlayer = findIdenticalPlayer(p, myTeam(as), state, as);

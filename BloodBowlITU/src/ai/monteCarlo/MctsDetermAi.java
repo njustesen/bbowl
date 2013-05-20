@@ -59,10 +59,14 @@ public class MctsDetermAi extends AIAgent {
 	private static final int samples = 10;
 
 	private boolean heuristics;
+	private AIAgent homeAgent;
+	private AIAgent awayAgent;
 	
-	public MctsDetermAi(boolean homeTeam, boolean heuristics) {
+	public MctsDetermAi(boolean homeTeam, boolean heuristics, AIAgent homeAgent, AIAgent awayAgent) {
 		super(homeTeam);
 		this.heuristics = heuristics;
+		this.homeAgent = homeAgent;
+		this.awayAgent = awayAgent;
 	}
 	
 	protected Action MctsSearch(GameState state, long ms){
@@ -249,7 +253,7 @@ public class MctsDetermAi extends AIAgent {
 		GameState state = new GameStateCloner().clone(node.getState());
 		//GameMaster master = new GameMaster(state, new BaseLineAI(true), new BaseLineAI(false), true, false);
 		//GameMaster master = new GameMaster(state, new RandomAI(true), new RandomAI(false), true, false);
-		GameMaster master = new GameMaster(state, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false), true, false);
+		GameMaster master = new GameMaster(state, homeAgent, awayAgent, true, false);
 		/*
 		if (!homeTeam)
 			master = new GameMaster(state, new RandomAI(true), new BaseLineAI(false), true, false);

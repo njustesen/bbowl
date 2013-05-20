@@ -38,7 +38,7 @@ public class TeamFactory {
 		return new Team(players, 4, 5, 0, teamName);
 	}
 
-	public static Team getHumanOrc() {
+	public static Team getOrcTeam() {
 		
 		String teamName = "Orcses";
 		

@@ -34,9 +34,103 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		
-		//test();
+		boolean h = false;
+		boolean a = false;
+		boolean restart = false;
+		boolean fast = false;
 		
-		initialize();
+		Team homeTeam = TeamFactory.getOrcTeam();
+		Team awayTeam = TeamFactory.getHumanTeam();
+
+		AIAgent homeAgent = null;
+		AIAgent awayAgent = null;
+		
+		for(String str : args){
+			
+			if (str.toLowerCase().equals("randomai")){
+				if (h)
+					homeAgent = new RandomAI(true);
+				else if (a)
+					awayAgent = new RandomAI(false);
+			}
+			
+			if (str.toLowerCase().equals("randommovetouchdownai")){
+				if (h)
+					homeAgent = new RandomMoveTouchdownAI(true);
+				else if (a)
+					awayAgent = new RandomMoveTouchdownAI(false);
+			}
+			
+			if (str.toLowerCase().equals("baselineai")){
+				if (h)
+					homeAgent = new BaseLineAI(true);
+				else if (a)
+					awayAgent = new BaseLineAI(false);
+			}
+			
+			if (str.toLowerCase().equals("flatmontecarloai-random")){
+				if (h)
+					homeAgent = new FlatMonteCarloAI(true, true, new RandomAI(true), new RandomAI(false));
+				else if (a)
+					awayAgent = new FlatMonteCarloAI(false, true, new RandomAI(true), new RandomAI(false));
+			}
+			
+			if (str.toLowerCase().equals("flatmontecarloai-touchdown")){
+				if (h)
+					homeAgent = new FlatMonteCarloAI(true, true, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false));
+				else if (a)
+					awayAgent = new FlatMonteCarloAI(false, true, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false));
+			}
+			
+			if (str.toLowerCase().equals("mctsai-random")){
+				if (h)
+					homeAgent = new MctsDetermAi(true, true, new RandomAI(true), new RandomAI(false));
+				else if (a)
+					awayAgent = new MctsDetermAi(false, true, new RandomAI(true), new RandomAI(false));
+			}
+			
+			if (str.toLowerCase().equals("mctsai-touchdown")){
+				if (h)
+					homeAgent = new MctsDetermAi(true, true, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false));
+				else if (a)
+					awayAgent = new MctsDetermAi(false, true, new RandomMoveTouchdownAI(true), new RandomMoveTouchdownAI(false));
+			}
+			
+			if (str.toLowerCase().equals("orc") || str.toLowerCase().equals("orcs")){
+				if (h)
+					homeTeam = TeamFactory.getOrcTeam();
+				else if (a)
+					awayTeam = TeamFactory.getOrcTeam();
+			}
+			
+			if (str.toLowerCase().equals("human") || str.toLowerCase().equals("humans")){
+				if (h)
+					homeTeam = TeamFactory.getHumanTeam();
+				else if (a)
+					awayTeam = TeamFactory.getHumanTeam();
+			}
+			
+			if (str.toLowerCase().equals("-home")){
+				h = true;
+				a = false;
+			}
+			if (str.toLowerCase().equals("-away")){
+				a = true;
+				h = false;
+			}
+			if (str.toLowerCase().equals("-restart")){
+				h = false;
+				a = false;
+				restart = true;
+			}
+			if (str.toLowerCase().equals("-fast")){
+				h = false;
+				a = false;
+				fast = true;
+			}
+		}
+		
+		initialize(homeTeam, awayTeam, homeAgent, awayAgent, fast, restart);
 		startGame();
 	}
 	
@@ -46,16 +140,10 @@ public class Main {
 		
 	}
 
-	public static void initialize(){
-		
-		Team home = TeamFactory.getHumanTeam();
-		Team away = TeamFactory.getHumanOrc();
-
-		AIAgent montiCarlos = new RandomAI(true);
-		AIAgent montiCarlosB = new RandomAI(false);
+	public static void initialize(Team home, Team away, AIAgent homeAgent, AIAgent awayAgent, boolean fast, boolean restart){
 
 		Pitch pitch = new Pitch(home, away);
-		gameMaster = new GameMaster(new GameState(home, away, pitch), montiCarlos, montiCarlosB, true, true);
+		gameMaster = new GameMaster(new GameState(home, away, pitch), homeAgent, awayAgent, fast, restart);
 		gameMaster.enableLogging();
 		//gameMaster.setSoundManager(new SoundManager());
 		gameMaster.setSoundManager(new FakeSoundManager());
@@ -76,8 +164,10 @@ public class Main {
 		while(true){
 			
 			//startTime = new Date().getTime();
-			if (renderer != null)
+			if (renderer != null){
 				renderer.renderFrame();
+				//renderer.paintComponent(renderer.getGraphics());
+			}
 			
 			gameMaster.update();
 			

@@ -132,7 +132,7 @@ public class GameMaster {
 			StatisticManager.print(time);
 			StatisticManager.stop();
 			Team home = TeamFactory.getHumanTeam();
-			Team away = TeamFactory.getHumanOrc();
+			Team away = TeamFactory.getOrcTeam();
 			Pitch pitch = new Pitch(home, away);
 			state = new GameState(home, away, pitch);
 		}
@@ -1434,8 +1434,8 @@ public class GameMaster {
 		
 		if (attacker.getPlayerStatus().getTurn() == PlayerTurn.BLITZ_ACTION && 
 				attacker.getPlayerStatus().getStanding() == Standing.DOWN){
-			selectedPlayer.getPlayerStatus().setStanding(Standing.UP);
-			selectedPlayer.getPlayerStatus().useMovement(3);
+			attacker.getPlayerStatus().setStanding(Standing.UP);
+			attacker.getPlayerStatus().useMovement(3);
 		}
 		
 		endTurnForOtherPlayers(playerOwner(attacker), attacker);
@@ -3265,12 +3265,16 @@ public class GameMaster {
 			knockDown(block.getAttacker(), true);
 			state.setCurrentBlock(null);
 			endTurn();
+			return;
 		} else {
 			/*
 			if (block.getAttacker().getPlayerStatus().getTurn() != PlayerTurn.BLITZ_ACTION){
 				block.getAttacker().getPlayerStatus().setTurn(PlayerTurn.USED);
 			}
 			*/
+			if (block.getAttacker().getPlayerStatus().getTurn() == PlayerTurn.BLOCK_ACTION){
+				block.getAttacker().getPlayerStatus().setTurn(PlayerTurn.USED);
+			}
 			state.setCurrentBlock(null);
 			
 		}
