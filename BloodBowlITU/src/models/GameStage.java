@@ -16,6 +16,6 @@ public enum GameStage {
 	HIGH_KICK,
 	HOME_TURN,
 	AWAY_TURN,
-	GAME_ENDED, 
+	GAME_ENDED
 	
 }

@@ -429,7 +429,7 @@ public class Pitch {
 				if (playerArr[y][x] == null){
 					
 					playerArr[y][x] = p;
-					
+					p.setPosition(new Square(x, y));
 					getDogout(team).getReserves().remove(p);
 					return;
 				}

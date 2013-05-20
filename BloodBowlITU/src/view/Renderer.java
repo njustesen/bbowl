@@ -401,31 +401,25 @@ public class Renderer extends JPanel{
 		}
 		GameStage stage = gameMaster.getState().getGameStage();
 		if(p.getPlayerStatus().getTurn() != null){	
-			if(stage == GameStage.HOME_TURN && gameMaster.getState().getHomeTeam().getPlayers().contains(p)){
-				switch(p.getPlayerStatus().getTurn()){
-					case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
-					case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
-					case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					default: break;	
+			if((stage == GameStage.HOME_TURN && gameMaster.getState().getHomeTeam().getPlayers().contains(p)) || 
+					(stage == GameStage.BLITZ && gameMaster.getState().getKickingTeam().getPlayers().contains(p)) || 
+					(stage == GameStage.QUICK_SNAP && gameMaster.getState().getReceivingTeam().getPlayers().contains(p)) || 
+					(stage == GameStage.AWAY_TURN  && gameMaster.getState().getAwayTeam().getPlayers().contains(p))){
+				
+				if (gameMaster.getState().getPitch().isOnPitch(p)){
+					switch(p.getPlayerStatus().getTurn()){
+						case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
+						case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
+						case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+						case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+						case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+						case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+						case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+						case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
+						default: break;	
+					}
 				}
-		    }else if(stage == GameStage.AWAY_TURN  && gameMaster.getState().getAwayTeam().getPlayers().contains(p)){
-		    	switch(p.getPlayerStatus().getTurn()){
-					case UNUSED: g.drawImage(greenDot.getBufferedImage(), screenX, screenY, null); break;
-					case USED: g.drawImage(redDot.getBufferedImage(), screenX, screenY, null); break;
-					case BLITZ_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case BLOCK_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case FOUL_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case HAND_OFF_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case MOVE_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					case PASS_ACTION: g.drawImage(yellowDot.getBufferedImage(), screenX, screenY, null);break;
-					default: break;	
-		    	}
-			}
+		    }
 		}
 		g.setFont(standard);
 		g.setColor(Color.WHITE);
