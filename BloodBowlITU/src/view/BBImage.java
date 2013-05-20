@@ -16,6 +16,8 @@ import javax.imageio.ImageIO;
 //import javax.swing.ImageIcon;
 import javax.xml.crypto.dsig.Transform;
 
+import main.Main;
+
 
 /**
  * This class is for image handling and representation. 
@@ -24,6 +26,8 @@ import javax.xml.crypto.dsig.Transform;
  */
 public class BBImage{
 
+	static final ClassLoader loader = Main.class.getClassLoader();
+	
 	/**
 	 * The image-object of the class.
 	 */
@@ -59,19 +63,22 @@ public class BBImage{
 	public BBImage(String fileName){
 		if(fileName.endsWith(".JPG") || fileName.endsWith(".PNG") || fileName.endsWith(".GIF") || fileName.endsWith(".BMP") || fileName.endsWith(".BNM") ||
 		   fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") || fileName.endsWith(".bmp") || fileName.endsWith(".bnm")){	
-				String path = getClass().getClassLoader().getResource(".").getPath();		
+				//String path = getClass().getClassLoader().getResource(".").getPath();		
 			try {
 
 				
-			//	System.out.println(new File("media/pictures/")
-			//    .getCanonicalPath());
-				
-						image = ImageIO.read(new File("media/pictures/"+fileName));
+				//System.out.println(new File("media/pictures/")
+			    //.getCanonicalPath());
+						
+						image = ImageIO.read(new File("./media/pictures/"+fileName));
+						
 //						java.net.URL url = getClass().getResource("/pictures/"+fileName);
 //						image = ImageIO.read(url);
 //						image = new ImageIcon(url);
 						
-					} catch (IOException e) {e.printStackTrace();}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 					
 				
 				}else{throw new RuntimeException("wrong image file format "+ this);}
@@ -87,11 +94,13 @@ public class BBImage{
 		if(fileName.endsWith(".JPG") || fileName.endsWith(".PNG") || fileName.endsWith(".GIF") || fileName.endsWith(".BMP") || fileName.endsWith(".BNM") ||
 		   fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") || fileName.endsWith(".bmp") || fileName.endsWith(".bnm")){	
 			try {
-				image = ImageIO.read(new File("media/pictures/"+fileName));
+				image = ImageIO.read(new File("./media/pictures/"+fileName));
 				//	java.net.URL url = getClass().getResource("/pictures/"+fileName);
 				//	image = ImageIO.read(url);
 //					image = new ImageIcon(url);
-				} catch (IOException e) {e.printStackTrace();}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 
 		//		System.out.println("Image folder = "+getClass().getResource("media/pictures/"+fileName));	
 		

@@ -34,6 +34,8 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		
+		System.out.println("Welcome to Blood Bowl!");
+		
 		boolean h = false;
 		boolean a = false;
 		boolean restart = false;

@@ -29,6 +29,7 @@ import ai.actions.SelectPlayerAction;
 import ai.actions.SelectPlayerTurnAction;
 import ai.actions.SelectPushSquareAction;
 import ai.actions.StandPlayerUpAction;
+import ai.util.GameStateCloner;
 
 import sound.Sound;
 import sound.SoundManager;
@@ -229,10 +230,11 @@ public class GameMaster {
 		
 		long agentTime = System.nanoTime();
 		Action action = null;
+		GameState clone = new GameStateCloner().clone(state);
 		if (home && homeAgent != null){
-			action = homeAgent.takeAction(this, state);
+			action = homeAgent.takeAction(this, clone);
 		} else if (!home && awayAgent != null){
-			action = awayAgent.takeAction(this, state);
+			action = awayAgent.takeAction(this, clone);
 		}
 		StatisticManager.timeSpendByAIAgent += System.nanoTime() - agentTime;
 		performAIAction(action);
