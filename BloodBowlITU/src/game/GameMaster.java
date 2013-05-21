@@ -230,7 +230,8 @@ public class GameMaster {
 		
 		long agentTime = System.nanoTime();
 		Action action = null;
-		GameState clone = new GameStateCloner().clone(state);
+		//GameState clone = new GameStateCloner().clone(state);
+		GameState clone = state;
 		if (home && homeAgent != null){
 			action = homeAgent.takeAction(this, clone);
 		} else if (!home && awayAgent != null){

@@ -100,7 +100,8 @@ public class MctsDetermAi extends AIAgent {
 			
 		}
 		
-		return bestChild(root).getAction();
+		//return bestChild(root).getAction();
+		return bestChildVisits(root).getAction();
 	}
 
 	private void printTreeStats(MctsStateNode root) {
@@ -352,6 +353,26 @@ public class MctsDetermAi extends AIAgent {
 			if (child.getValue() > bestValue){
 				
 				bestValue = child.getValue();
+				bestNode = (MctsIntermediateNode) child;
+				
+			}
+		
+		}
+		
+		return bestNode;
+		
+	}
+	
+	private MctsIntermediateNode bestChildVisits(MctsAbstractNode node) {
+		
+		double mostVisits = -1;
+		MctsIntermediateNode bestNode = null;
+		
+		for(MctsAbstractNode child : node.getChildren() ){
+			
+			if (child.getVisits() > mostVisits){
+				
+				mostVisits = child.getVisits();
 				bestNode = (MctsIntermediateNode) child;
 				
 			}

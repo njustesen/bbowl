@@ -261,10 +261,12 @@ public class GameStateCloner {
 			defender = getPlayer(block.getDefender(), home, away);
 		
 		Team select = null;
-		if (block.getSelectTeam().getPlayers().get(0).getRace() == home.getPlayers().get(0).getRace()){
-			select = home;
-		} else if (block.getSelectTeam().getPlayers().get(0).getRace() == away.getPlayers().get(0).getRace()){
-			select = away;
+		if (block.getSelectTeam() != null){
+			if (block.getSelectTeam().getPlayers().get(0).getRace() == home.getPlayers().get(0).getRace()){
+				select = home;
+			} else if (block.getSelectTeam().getPlayers().get(0).getRace() == away.getPlayers().get(0).getRace()){
+				select = away;
+			}
 		}
 		
 		Block newBlock = new Block(attacker, defender, select);
